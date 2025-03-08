@@ -1,0 +1,31 @@
+[package]
+name = "orbit"
+version = "0.1.0"
+edition = "2021"
+
+description = "Content finder - Scan kinds of files with keyword"
+authors = ["nabbisen <nabbisen@scqr.net>"]
+license = "Apache-2.0"
+
+categories = ["gui", "development-tools", "text-processing", "visualization"]
+keywords = ["gui", "search", "text", "pdf", "excel"]
+repository = "https://github.com/nabbisen/orbit"
+readme = "README.md"
+rust-version = "1.78.0"
+
+[profile.release]     # shrink executable size
+opt-level = "z"
+lto = true
+# panic = "abort"
+strip = true
+codegen-units = 1
+
+[profile.dev]         # to reasonably improve productivity
+opt-level = 1         # slightly optimize
+lto = false           # disable link-time optimizations
+# strip = "debuginfo" # reduce size
+incremental = true
+
+[dependencies]
+iced = "^0.13"
+rfd = "^0.15"
