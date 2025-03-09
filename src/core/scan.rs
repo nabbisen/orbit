@@ -14,6 +14,52 @@ pub fn walk(dirpath: Cow<'_, str>) -> impl Iterator<Item = String> {
             dirs_text.push(dirname.clone().into_owned());
             let child_dirs = walk(dirname);
             dirs_text.extend(child_dirs);
+        } else if path.is_file() {
+            let extension = path
+                .extension()
+                .unwrap_or_default()
+                .to_str()
+                .unwrap_or_default();
+            match extension {
+                "xlsx" | "xlsm" => {
+                    let found =
+                        findtext_sheet::search("hej", path.to_string_lossy().to_string().as_str());
+                    if let Ok(found) = found {
+                        if 0 < found.len() {
+                            println!("sheet: {:?}", found);
+                        }
+                    }
+                }
+                "pdf" => {
+                    let found =
+                        findtext_pdf::search("hej", path.to_string_lossy().to_string().as_str());
+                    if let Ok(found) = found {
+                        if 0 < found.len() {
+                            println!("sheet: {:?}", found);
+                        }
+                    }
+                }
+                "docx" | "docm" => {
+                    let found =
+                        findtext_doc::search("hej", path.to_string_lossy().to_string().as_str());
+                    if let Ok(found) = found {
+                        if found {
+                            println!("sheet: {:?}", found);
+                        }
+                    }
+                }
+                _ => {
+                    let found = findtext_textfile::search(
+                        "hej",
+                        path.to_string_lossy().to_string().as_str(),
+                    );
+                    if let Ok(found) = found {
+                        if 0 < found.matched.len() {
+                            println!("sheet: {:?}", found);
+                        }
+                    }
+                }
+            }
         }
     });
     dirs_text.into_iter()

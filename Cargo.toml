@@ -27,5 +27,9 @@ lto = false           # disable link-time optimizations
 incremental = true
 
 [dependencies]
+findtext_doc = "0"
+findtext_pdf = "0"
+findtext_sheet = "0"
+findtext_textfile = "0"
 iced = "^0.13"
 rfd = "^0.15"
