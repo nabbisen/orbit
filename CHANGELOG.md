@@ -287,3 +287,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `orbok-db`: 15 tests (model repo tested via v05 integration suite).
 - `orbok-workers`: 37 tests (+11 covering RFC-012/015/016/018).
 - Workspace total: **115 tests / 0 failures**.
+
+---
+
+## [0.6.0] — 2026-06-07 🎉 All Part 1–4 RFCs complete
+
+This release completes the planned feature set defined in the initial
+requirements document. All 23 implementation RFCs (RFC-000 through
+RFC-020, RFC-027, RFC-031) are now in `rfcs/done/`.
+
+### Added
+
+**M10 complete — CleanupService end-to-end**
+- `CleanupService` in orbok-workers: combines catalog-side cleanup
+  (via `CleanupExecutor`) with cache-side cleanup (via `CacheService`)
+  in one validated operation driven by `CleanupPlan`.
+- `run_safe(plan)` — ordinary cleanup (snippet cache, search cache,
+  stale indexes); guaranteed to never touch persistent source settings.
+- `run_reset(plan, keep_settings)` — full catalog reset that also
+  purges all localcache namespaces.
+- `FullCleanupOutcome` reports `catalog_rows_deleted` and
+  `cache_bytes_freed`.
+
+**M12 backend infrastructure**
+- `InferenceBackend` enum: `CandleCpu`, `CandleCuda`, `OnnxRuntime`, `Mock`.
+- `EmbeddingModelConfig`: weights path, tokenizer path, dimension,
+  max sequence length, backend, name/version.
+- `RerankerConfig`: equivalent config for cross-encoder rerankers.
+- `weights_exist()` validator on `EmbeddingModelConfig`.
+- These types are consumed by the future candle/ONNX integration crates
+  (RFC-021 implementation); the `MockEmbeddingModel` remains the
+  fallback until a real backend is compiled in.
+
+**RFC-019 — Test Matrix and Release Readiness**
+- `.github/workflows/ci.yml`: four CI jobs:
+  - **fast** (every PR): fmt, clippy, unit tests on non-GUI crates
+  - **release** (main branch): release build, `--version`, `--check`, bench smoke
+  - **security** (every PR): `cargo audit`, security test execution
+  - **cross** (3 platforms): Linux, Windows, macOS smoke build
+- `docs/src/maintainers/release_readiness.md`: release readiness levels
+  RL-0 through RL-4, CI gate definitions, manual QA checklist,
+  retrieval benchmark requirements, packaging checklist.
+
+**RFC-020 — Documentation and User Guidance Structure**
+Complete mdbook documentation covering all three user personas:
+- **New users**: Features, Quick Start, Sources and Indexing, Searching,
+  Storage and Cleanup, Local AI Models, FAQ
+- **Intermediate users**: Settings Reference, Supported File Types
+- **Maintainers**: Architecture Overview, Local Development, Testing
+  Guide, RFC Index, Release Readiness
+
+### Changed
+- `rfcs/README.md`: all Part 1–4 RFCs now in `done/`; 0 in `proposed/`.
+  RFC-021–030 remain in `draft/` as deferred future work.
+
+### Tests
+- `orbok-workers`: 46 tests (+9 covering M10/M12/RFC-019).
+- Workspace total: **124 tests / 0 failures**.

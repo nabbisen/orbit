@@ -9,7 +9,7 @@
 - [Sources and Indexing](users/sources.md)
 - [Searching](users/searching.md)
 - [Storage and Cleanup](users/storage.md)
-- [Models](users/models.md)
+- [Local AI Models](users/models.md)
 - [FAQ](users/faq.md)
 
 ## For Intermediate Users
@@ -20,6 +20,7 @@
 ## For Maintainers and Contributors
 
 - [Architecture Overview](maintainers/architecture.md)
-- [RFC Index](maintainers/rfcs.md)
 - [Local Development](maintainers/development.md)
-- [Testing](maintainers/testing.md)
+- [Testing Guide](maintainers/testing.md)
+- [RFC Index](maintainers/rfcs.md)
+- [Release Readiness](maintainers/release_readiness.md)

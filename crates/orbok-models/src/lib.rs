@@ -323,3 +323,75 @@ mod reranker_tests {
         assert!(MockReranker.max_candidates() > 0);
     }
 }
+
+// ── Inference backend (M12) ──────────────────────────────────────────
+
+/// The compute backend used for local inference.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InferenceBackend {
+    /// CPU-only inference via candle (no GPU required).
+    CandleCpu,
+    /// GPU inference via candle + CUDA.
+    CandleCuda,
+    /// ONNX Runtime (CPU or GPU via execution provider).
+    OnnxRuntime,
+    /// Mock backend for tests — deterministic, no model files.
+    Mock,
+}
+
+impl InferenceBackend {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            InferenceBackend::CandleCpu => "candle-cpu",
+            InferenceBackend::CandleCuda => "candle-cuda",
+            InferenceBackend::OnnxRuntime => "onnx-runtime",
+            InferenceBackend::Mock => "mock",
+        }
+    }
+}
+
+/// Configuration for loading a real embedding model from disk.
+///
+/// This is the configuration type callers populate to construct a real
+/// `EmbeddingModel` implementation via a future `BackendLoader`. The
+/// `MockEmbeddingModel` ignores this; it is used only when testing the
+/// pipeline without model files.
+///
+/// Once a `candle` or `onnx-runtime` integration crate is added (M12
+/// full implementation), it will consume this config and return a
+/// `Box<dyn EmbeddingModel>`.
+#[derive(Debug, Clone)]
+pub struct EmbeddingModelConfig {
+    /// Path to the model weights file (ONNX `.onnx` or safetensors).
+    pub weights_path: String,
+    /// Tokenizer config path (tokenizer.json for HuggingFace tokenizers).
+    pub tokenizer_path: Option<String>,
+    /// Expected embedding dimension.
+    pub dimension: u32,
+    /// Maximum input token length (truncation limit).
+    pub max_seq_len: u32,
+    /// Compute backend selection.
+    pub backend: InferenceBackend,
+    /// Model name for registry (e.g. "nomic-embed-text-v1.5").
+    pub model_name: String,
+    /// Model version string.
+    pub model_version: String,
+}
+
+impl EmbeddingModelConfig {
+    /// Check that the model weights file exists on disk.
+    pub fn weights_exist(&self) -> bool {
+        std::path::Path::new(&self.weights_path).exists()
+    }
+}
+
+/// Configuration for a cross-encoder reranker model.
+#[derive(Debug, Clone)]
+pub struct RerankerConfig {
+    pub weights_path: String,
+    pub tokenizer_path: Option<String>,
+    pub max_seq_len: u32,
+    pub backend: InferenceBackend,
+    pub model_name: String,
+    pub model_version: String,
+}

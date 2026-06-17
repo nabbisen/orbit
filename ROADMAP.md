@@ -82,3 +82,55 @@
 - **RFC-017**: Packaging and Distribution — cross-platform release binaries, Debian/RPM packages, macOS .app bundle, Windows installer.
 - **M9 complete**: Two-pane preview panel with full explanation (RFC-013 follow-through), file-open OS integration in orbok-app.
 - **M10 complete**: Storage dashboard cleanup actions wired end-to-end (CleanupService combining catalog + cache).
+
+## v0.5 status
+
+| RFC | Title | v0.5 |
+|---|---|:---:|
+| RFC-012 | Model Registry and Installation Workflow | ✓ |
+| RFC-015 | Security Hardening | ✓ |
+| RFC-016 | Benchmark and Retrieval Evaluation | ✓ |
+| RFC-017 | Packaging and Distribution | ✓ |
+| RFC-018 | Crash Recovery and Diagnostics | ✓ |
+
+## v0.6 targets
+
+- **RFC-019**: Test Matrix and Release Readiness — cross-platform CI definition, integration test scenarios, release gate criteria.
+- **RFC-020**: Documentation and User Guidance — complete mdbook docs, API reference, tutorial content for new/intermediate/maintainer paths.
+- **RFC-019/020 complete**: these are the final RFCs in Part 4 (operational).
+- **M10 complete**: Storage cleanup actions fully wired — CleanupService combining catalog + cache, one-click cleanup triggering both.
+- **M12 complete**: Real embedding model loading via candle/ONNX backend (replaces MockEmbeddingModel in production paths).
+- **Remaining Part 5 RFCs** (021–030): deferred future work including ANN, quantization, OCR, email archives, plugins, model trust, portable mode.
+
+## v0.6 status — All Part 1–4 RFCs complete ✓
+
+| RFC | Title | Status |
+|---|---|:---:|
+| RFC-019 | Test Matrix and Release Readiness | ✓ v0.6 |
+| RFC-020 | Documentation and User Guidance | ✓ v0.6 |
+| M10 | Storage Cleanup (CleanupService end-to-end) | ✓ v0.6 |
+| M12 | Backend Config (EmbeddingModelConfig, RerankerConfig) | ✓ v0.6 |
+
+## v0.7+ — Part 5 Deferred Future Work (draft RFCs)
+
+These RFCs are in `rfcs/draft/` and target future versions:
+
+| RFC | Title | Priority |
+|---|---|---|
+| RFC-021 | Default Embedding Model Selection | High |
+| RFC-022 | PDF Extraction Backend | High |
+| RFC-023 | Vector ANN Indexing | Medium |
+| RFC-024 | Vector Quantization | Medium |
+| RFC-025 | OCR Pipeline | Low |
+| RFC-026 | Encrypted Local Indexes | Low |
+| RFC-028 | Plugin Extractor Architecture | Low |
+| RFC-029 | Model Download Integrity and Trust | Medium |
+| RFC-030 | Portable Mode | Low |
+
+## v1.0.0 readiness
+
+orbok reaches v1.0.0 when:
+1. RFC-021 (real embedding model) and RFC-022 (PDF backend) are implemented.
+2. Benchmarks meet RFC-019 targets: recall@5 ≥ 0.75, p99 ≤ 200 ms.
+3. All three platforms (Linux/Windows/macOS) pass the manual QA checklist.
+4. Release level RL-4 is achieved.

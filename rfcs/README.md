@@ -1,6 +1,6 @@
 # orbok RFC Index
-Managed by RFC-000 lifecycle policy.
-Last updated: 2026-06-07.
+
+Managed by RFC-000. Last updated: 2026-06-07.
 
 ## Implemented
 
@@ -14,38 +14,26 @@ Last updated: 2026-06-07.
 | 005 | [Document Extraction Pipeline](done/005-document-extraction-pipeline.md) | v0.1.0 |
 | 006 | [Adaptive Chunking and Location Metadata](done/006-adaptive-chunking-and-location-metadata.md) | v0.2.0 |
 | 007 | [Keyword Search Engine Selection](done/007-keyword-search-engine-selection.md) | v0.2.0 |
+| 008 | [Embedding Model and Vector Storage](done/008-embedding-model-and-vector-storage.md) | v0.3.0 |
+| 009 | [Hybrid Search and RRF Fusion](done/009-hybrid-search-and-rrf-fusion.md) | v0.3.0 |
+| 010 | [Optional Local Reranking](done/010-optional-local-reranking.md) | v0.4.0 |
+| 011 | [Storage Dashboard and Cleanup UX](done/011-storage-dashboard-and-cleanup-ux.md) | v0.4.0 |
+| 012 | [Model Registry and Installation Workflow](done/012-model-registry-and-installation-workflow.md) | v0.5.0 |
+| 013 | [Search View and Result Explanation UX](done/013-search-view-and-result-explanation-ux.md) | v0.4.0 |
+| 014 | [Japanese and Mixed-Language Search Strategy](done/014-japanese-and-mixed-language-search-strategy.md) | v0.4.0 |
+| 015 | [Security Hardening for Local Files and Local API](done/015-security-hardening-for-local-files-and-local-api.md) | v0.5.0 |
+| 016 | [Benchmark and Retrieval Evaluation Plan](done/016-benchmark-and-retrieval-evaluation-plan.md) | v0.5.0 |
+| 017 | [Packaging and Distribution Strategy](done/017-packaging-and-distribution-strategy.md) | v0.5.0 |
+| 018 | [Crash Recovery, Diagnostics, and Repair Tools](done/018-crash-recovery-diagnostics-and-repair-tools.md) | v0.5.0 |
+| 019 | [Test Matrix and Release Readiness](done/019-test-matrix-and-release-readiness.md) | v0.6.0 |
+| 020 | [Documentation and User Guidance Structure](done/020-documentation-and-user-guidance-structure.md) | v0.6.0 |
 | 027 | [GUI Framework Finalization](done/027-gui-framework-finalization.md) | v0.1.0 |
 | 031 | [GUI Internationalization (i18n)](done/031-gui-internationalization.md) | v0.1.0 |
 
-## Proposed
+## Proposed / Deferred
 
 | ID | Title |
 |---|---|
-| 008 | [Embedding Model and Vector Storage](proposed/008-embedding-model-and-vector-storage.md) |
-| 009 | [Hybrid Search and RRF Fusion](proposed/009-hybrid-search-and-rrf-fusion.md) |
-| 010 | [Optional Local Reranking](proposed/010-optional-local-reranking.md) |
-| 011 | [Storage Dashboard and Cleanup UX](proposed/011-storage-dashboard-and-cleanup-ux.md) |
-| 012 | [Model Registry and Installation Workflow](proposed/012-model-registry-and-installation-workflow.md) |
-| 013 | [Search View and Result Explanation UX](proposed/013-search-view-and-result-explanation-ux.md) |
-| 014 | [Japanese and Mixed-Language Search Strategy](proposed/014-japanese-and-mixed-language-search-strategy.md) |
-| 015 | [Security Hardening for Local Files and Local API](proposed/015-security-hardening-for-local-files-and-local-api.md) |
-| 016 | [Benchmark and Retrieval Evaluation Plan](proposed/016-benchmark-and-retrieval-evaluation-plan.md) |
-| 017 | [Packaging and Distribution Strategy](proposed/017-packaging-and-distribution-strategy.md) |
-| 018 | [Crash Recovery, Diagnostics, and Repair Tools](proposed/018-crash-recovery-diagnostics-and-repair-tools.md) |
-| 019 | [Test Matrix and Release Readiness](proposed/019-test-matrix-and-release-readiness.md) |
-| 020 | [Documentation and User Guidance Structure](proposed/020-documentation-and-user-guidance-structure.md) |
 
 ## Archive
-
 *(empty)*
-
-## Changelog
-
-| Date | Change |
-|---|---|
-| 2026-06-06 | RFC-000 policy applied; RFCs 001–031 migrated into folder structure |
-| 2026-06-06 | RFC-027 (GUI: snora/iced, no WebView) and RFC-031 (i18n) proposed and implemented |
-| 2026-06-07 | localcache 0.20.0 pinned; Appendix A amended |
-| 2026-06-07 | RFCs 001–005, 027, 031 moved to done/ (Implemented v0.1.0) |
-| 2026-06-07 | RFCs 006–007 targeted v0.2.0; remaining proposed unchanged |
-| 2026-06-07 | RFCs 008–009 moved to done/ (Implemented v0.3.0) |

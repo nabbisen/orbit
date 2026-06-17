@@ -41,7 +41,7 @@ cargo install --path crates/orbok-app
 orbok
 
 # Validate backend without a display (CI / headless)
-ORBIT_DATA_DIR=/tmp/orbok-test orbok --check
+ORBOK_DATA_DIR=/tmp/orbok-test orbok --check
 ```
 
 On first launch, orbok asks you to add at least one source folder.

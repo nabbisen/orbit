@@ -5,3 +5,5 @@ mod pipeline;
 mod v04_features;
 
 mod v05_features;
+
+mod v06_features;

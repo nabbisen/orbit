@@ -17,6 +17,7 @@
 mod chunk_and_index;
 mod embedding;
 mod extract;
+pub mod cleanup_service;
 pub mod recovery;
 pub mod storage;
 
@@ -26,6 +27,7 @@ mod tests;
 pub use chunk_and_index::ChunkAndIndexWorker;
 pub use embedding::EmbeddingWorker;
 pub use extract::ExtractionWorker;
+pub use cleanup_service::{CleanupService, FullCleanupOutcome};
 pub use recovery::{IntegrityReport, RecoveryReport, check_catalog_integrity, run_startup_recovery};
 pub use storage::update_storage_accounting;
 

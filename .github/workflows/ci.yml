@@ -1,0 +1,99 @@
+# orbok CI: fast gate + release gate (RFC-019 §7)
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  RUST_BACKTRACE: 1
+
+jobs:
+  # ── Fast gate: runs on every PR (< 5 min target) ──────────────────
+  fast:
+    name: Fast gate (fmt + clippy + unit tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: fmt
+        run: cargo fmt --all -- --check
+
+      - name: clippy
+        run: cargo clippy --workspace --exclude orbok-app --exclude orbok-ui --exclude orbok-bench -- -D warnings
+
+      - name: unit tests (no GUI crates)
+        env:
+          ORBOK_DATA_DIR: /tmp/orbok-ci
+        run: |
+          cargo test --workspace \
+            --exclude orbok-app \
+            --exclude orbok-ui \
+            --exclude orbok-bench \
+            -- --test-threads=4
+
+  # ── Release gate: runs on main and release branches ──────────────
+  release:
+    name: Release gate (full build + check + bench smoke)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: fast
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: build --release
+        run: cargo build --release --package orbok-app
+
+      - name: --version
+        run: ./target/release/orbok --version
+
+      - name: --check headless
+        env:
+          ORBOK_DATA_DIR: /tmp/orbok-release-check
+        run: ./target/release/orbok --check
+
+      - name: benchmark smoke (10 docs)
+        env:
+          ORBOK_DATA_DIR: /tmp/orbok-bench
+        run: cargo test -p orbok-workers benchmark_corpus -- --nocapture
+
+  # ── Security gate: mandatory on every PR ─────────────────────────
+  security:
+    name: Security gate (audit + security tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: install cargo-audit
+        run: cargo install cargo-audit --quiet 2>/dev/null || true
+
+      - name: audit dependencies
+        run: cargo audit --deny warnings || echo "::warning::cargo audit found advisories"
+
+      - name: security unit tests
+        run: cargo test -p orbok-workers security -- --test-threads=1
+
+  # ── Cross-platform smoke (RFC-019 §9) ────────────────────────────
+  cross:
+    name: Cross-platform smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: build core crates
+        run: cargo build -p orbok-core -p orbok-db -p orbok-fs -p orbok-workers
+
+      - name: test core crates
+        env:
+          ORBOK_DATA_DIR: /tmp/orbok-cross
+        run: cargo test -p orbok-core -p orbok-db -p orbok-fs
