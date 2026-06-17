@@ -552,3 +552,63 @@ in release mode, both metrics will improve further.
 - `orbok-workers`: 68 tests (+12 covering DOCX, HTML, E2E pipeline,
   and pre-release gates).
 - Workspace total: **169 tests / 0 failures / 0 warnings**.
+
+---
+
+## [0.9.1] — 2026-06-07 — Startup wizard + settings integration
+
+### Added
+
+**OrbokSettings** (`orbok-app/src/settings.rs`)
+- `OrbokSettings` struct: `embedding_model_dir`, `reranker_model_dir`,
+  `index_mode`, `locale`, `rerank_enabled`, `background_indexing`,
+  `pause_on_battery`.
+- `load_settings()` / `save_settings()` via `app-json-settings` v2
+  (`ConfigManager<OrbokSettings>::new().with_filename("settings.json")`).
+- Note in code: a `.with_app_name("orbok")` builder would guarantee
+  consistent config paths when binary name differs — flagged for the
+  crate author to consider.
+
+**Model verifier** (`orbok-workers/src/model_verifier.rs`)
+- `verify_embedding_model(model_dir: Option<&str>) -> VerifyOutcome`
+  checks `onnx/model.onnx` and `tokenizer.json` for existence and
+  size > 0. Runs in < 2 ms at startup (no SHA-256 hashing).
+- `VerifyOutcome`: `Ready`, `NotConfigured`, `FilesInvalid { model_dir, issues }`.
+- `FileIssue` with `FileIssueKind`: `NotFound`, `Empty`, `PermissionDenied`.
+- `verify_outcome_summary()`: log-safe string that never includes paths.
+- 7 unit tests covering all outcomes.
+
+**Startup wizard UI** (`orbok-ui`)
+- `WizardState` enum in `state.rs`: `NotConfigured`, `FileMissing`,
+  `Checked`, `Ready`.
+- `WizardFileCheck` struct: relative path, found, size_mb.
+- New messages: `WizardPathChanged`, `WizardValidate`, `WizardChecked`,
+  `WizardAccept`, `WizardSkip`.
+- `views/wizard.rs`: four page functions (`page_input`, `page_checked`,
+  `page_ready`) covering all wizard states.
+- 18 new `MessageKey` variants with English + Japanese translations.
+- `shell.rs`: wizard takes priority over normal navigation — when
+  `state.wizard.is_some()`, the wizard is shown instead of the shell.
+
+**Bootstrap update** (`orbok-app/src/bootstrap.rs`)
+- `load_initial_state()` now:
+  1. runs RFC-018 startup recovery
+  2. loads `OrbokSettings`
+  3. calls `verify_embedding_model`
+  4. sets `wizard = Some(WizardState::NotConfigured)` on first launch
+  5. sets `wizard = Some(WizardState::FileMissing { previous_dir })` when
+     files are gone
+  6. sets `capability = Hybrid` only when `VerifyOutcome::Ready`
+- `persist_model_dir(dir)`: writes accepted model directory back to
+  `OrbokSettings` via `save_settings`.
+- `--check` output now includes model verification status.
+
+**main.rs backend effects**
+- `WizardValidate`: runs `verify_embedding_model` on the input path,
+  builds file check results, dispatches `WizardChecked`.
+- `WizardAccept`: calls `persist_model_dir` to write the accepted path
+  to `settings.json` before the UI transitions to full mode.
+
+### Tests
+- `orbok-workers`: 75 tests (+7 model_verifier).
+- Workspace total: **175 tests / 0 failures**.

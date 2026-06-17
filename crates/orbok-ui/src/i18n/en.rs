@@ -70,6 +70,28 @@ pub fn message(key: MessageKey) -> &'static str {
         BadgeKeyword => "Keyword",
         BadgeSemantic => "Semantic",
         BadgeFused => "Fused",
+        WizardTitleNotConfigured => "Set up semantic search",
+        WizardTitleFileMissing => "Embedding model not found",
+        WizardTitleValidating => "Checking model folder",
+        WizardTitleReady => "Embedding model ready",
+        WizardBodyNotConfigured => {
+            "Keyword search is ready. To also search by meaning,              orbok needs a local AI model on this computer.              No files are uploaded — inference runs locally."
+        }
+        WizardBodyFileMissing => {
+            "The model folder is no longer at its expected location.              This can happen when a drive is disconnected or files are moved."
+        }
+        WizardFilesNeededLabel => "Required files in the folder:",
+        WizardDownloadHint => "Download: huggingface-cli download intfloat/multilingual-e5-small",
+        WizardPathInputPlaceholder => "Path to model folder (e.g. ~/models/multilingual-e5-small)",
+        WizardActionLocate => "Locate model folder",
+        WizardActionValidate => "Validate",
+        WizardActionUseModel => "Use this model",
+        WizardActionContinue => "Continue to orbok",
+        WizardActionSkip => "Skip — use keyword search only",
+        WizardPreviousPathLabel => "Last known path",
+        WizardValidationOk => "found",
+        WizardValidationFail => "not found",
+        WizardReadyBody => "Semantic search is now available.",
         Cancel => "Cancel",
         Confirm => "Confirm",
     }

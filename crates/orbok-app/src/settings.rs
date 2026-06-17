@@ -1,0 +1,78 @@
+//! Persistent user settings (orbok-app layer).
+//!
+//! [`OrbokSettings`] is the single source of truth for user-configurable
+//! values that outlive a session. It is persisted as `settings.json`
+//! in the platform config directory via [`app_json_settings::ConfigManager`].
+//!
+//! The most important field is [`OrbokSettings::embedding_model_dir`]:
+//! the startup wizard writes it when the user successfully locates an
+//! embedding model folder. All other fields have safe `Default` values
+//! that work out of the box.
+//!
+//! ## Note for the crate author
+//!
+//! `ConfigManager::new()` currently derives the config directory from
+//! the binary name. A future `.with_app_name("orbok")` builder method
+//! would guarantee consistent config paths regardless of whether the
+//! binary ships as `orbok` or `orbok-app`. Tracked as an open question.
+
+use app_json_settings::ConfigManager;
+
+/// All persistent user preferences.
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+pub struct OrbokSettings {
+    /// Path to the folder containing `onnx/model.onnx` and
+    /// `tokenizer.json` for the embedding model. Set by the startup
+    /// wizard (RFC-021). `None` means semantic search has never been
+    /// configured.
+    pub embedding_model_dir: Option<String>,
+
+    /// Path to the reranker model folder (optional, RFC-010).
+    pub reranker_model_dir: Option<String>,
+
+    /// Indexing quality mode (RFC-013).
+    /// One of: `"balanced"` | `"high_accuracy"` | `"space_saving"`.
+    pub index_mode: String,
+
+    /// UI locale code — `"en"` or `"ja"` (RFC-031).
+    pub locale: String,
+
+    /// Whether reranking is enabled (RFC-010). Requires reranker model.
+    pub rerank_enabled: bool,
+
+    /// Whether background indexing is allowed (RFC-019).
+    pub background_indexing: bool,
+
+    /// Pause background indexing when on battery power.
+    pub pause_on_battery: bool,
+}
+
+impl Default for OrbokSettings {
+    fn default() -> Self {
+        Self {
+            embedding_model_dir: None,
+            reranker_model_dir: None,
+            index_mode: "balanced".into(),
+            locale: "en".into(),
+            rerank_enabled: false,
+            background_indexing: true,
+            pause_on_battery: true,
+        }
+    }
+}
+
+/// Load settings from the platform config directory, or return defaults
+/// if the file does not exist yet.
+pub fn load_settings() -> OrbokSettings {
+    ConfigManager::<OrbokSettings>::new()
+        .with_filename("settings.json")
+        .load_or_default()
+        .unwrap_or_default()
+}
+
+/// Persist settings to the platform config directory.
+pub fn save_settings(settings: &OrbokSettings) -> Result<(), app_json_settings::ConfigError> {
+    ConfigManager::new()
+        .with_filename("settings.json")
+        .save(settings)
+}

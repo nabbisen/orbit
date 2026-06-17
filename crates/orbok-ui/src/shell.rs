@@ -65,6 +65,11 @@ impl OrbokApp {
             LayoutDirection::Ltr,
         );
 
+        // Startup wizard takes priority over normal navigation (design §startup).
+        if self.state.wizard.is_some() {
+            return views::wizard_view(&self.state);
+        }
+
         let body = match self.state.active_view {
             ViewId::Search => views::search_view(&self.state),
             ViewId::Sources => views::sources_view(&self.state),

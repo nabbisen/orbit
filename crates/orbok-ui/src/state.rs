@@ -63,6 +63,28 @@ pub struct SearchResultDisplay {
     pub badges: Vec<String>,
 }
 
+
+/// One required file and its check result shown in the wizard.
+#[derive(Debug, Clone, PartialEq)]
+pub struct WizardFileCheck {
+    pub relative_path: String,
+    pub found: bool,
+    pub size_mb: Option<f64>,
+}
+
+/// Which stage of the startup wizard the user is on.
+#[derive(Debug, Clone, PartialEq)]
+pub enum WizardState {
+    /// First launch or model never configured.
+    NotConfigured,
+    /// Was configured, but files are gone.
+    FileMissing { previous_dir: String },
+    /// User submitted a path; file checks complete.
+    Checked { model_dir: String, checks: Vec<WizardFileCheck>, all_ok: bool },
+    /// All files verified — ready to proceed.
+    Ready { model_dir: String },
+}
+
 /// The whole-app view model.
 #[derive(Debug, Clone)]
 pub struct AppState {
@@ -79,6 +101,10 @@ pub struct AppState {
     pub sources: Vec<SourceCard>,
     pub capability: SearchCapability,
     pub storage_total_bytes: u64,
+    /// Active startup wizard, or `None` when startup succeeded.
+    pub wizard: Option<WizardState>,
+    /// Text-input path the user is typing in the wizard.
+    pub wizard_path_input: String,
 }
 
 impl Default for AppState {
@@ -97,6 +123,8 @@ impl Default for AppState {
             sources: Vec::new(),
             capability: SearchCapability::KeywordOnly,
             storage_total_bytes: 0,
+            wizard: None,
+            wizard_path_input: String::new(),
         }
     }
 }
@@ -115,6 +143,12 @@ pub enum Message {
     PersistLocale(Locale),
     SetLocale(Locale),
     StorageDataReady(Vec<(String, u64, u64)>),
+    // Startup wizard
+    WizardPathChanged(String),
+    WizardValidate,
+    WizardChecked { model_dir: String, checks: Vec<WizardFileCheck>, all_ok: bool },
+    WizardAccept,
+    WizardSkip,
 }
 
 impl AppState {
@@ -144,6 +178,31 @@ impl AppState {
             Message::SetSearchMode(mode) => self.search_mode = *mode,
             Message::PersistLocale(locale) | Message::SetLocale(locale) => self.locale = *locale,
             Message::StorageDataReady(rows) => self.storage_rows = rows.clone(),
+            Message::WizardPathChanged(p) => self.wizard_path_input = p.clone(),
+            Message::WizardValidate => {} // handled in orbok-app update
+            Message::WizardChecked { model_dir, checks, all_ok } => {
+                self.wizard = Some(if *all_ok {
+                    WizardState::Ready { model_dir: model_dir.clone() }
+                } else {
+                    WizardState::Checked {
+                        model_dir: model_dir.clone(),
+                        checks: checks.clone(),
+                        all_ok: false,
+                    }
+                });
+            }
+            Message::WizardAccept => {
+                // orbok-app writes the model dir to OrbokSettings; ui
+                // transitions to full capability.
+                self.capability = SearchCapability::Hybrid;
+                self.wizard = None;
+                self.wizard_path_input = String::new();
+            }
+            Message::WizardSkip => {
+                self.capability = SearchCapability::KeywordOnly;
+                self.wizard = None;
+                self.wizard_path_input = String::new();
+            }
         }
     }
 }

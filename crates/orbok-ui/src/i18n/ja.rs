@@ -74,6 +74,28 @@ pub fn message(key: MessageKey) -> &'static str {
         BadgeKeyword => "キーワード",
         BadgeSemantic => "セマンティック",
         BadgeFused => "融合",
+        WizardTitleNotConfigured => "セマンティック検索の設定",
+        WizardTitleFileMissing => "埋め込みモデルが見つかりません",
+        WizardTitleValidating => "モデルフォルダを確認中",
+        WizardTitleReady => "埋め込みモデルの準備完了",
+        WizardBodyNotConfigured => {
+            "キーワード検索は利用可能です。意味による検索を使用するには、             このコンピュータにローカルAIモデルが必要です。             ファイルはアップロードされません。"
+        }
+        WizardBodyFileMissing => {
+            "モデルフォルダが指定された場所にありません。             ドライブが切断されたか、ファイルが移動した可能性があります。"
+        }
+        WizardFilesNeededLabel => "フォルダ内の必要ファイル:",
+        WizardDownloadHint => "ダウンロード: huggingface-cli download intfloat/multilingual-e5-small",
+        WizardPathInputPlaceholder => "モデルフォルダのパス (例: ~/models/multilingual-e5-small)",
+        WizardActionLocate => "モデルフォルダを選択",
+        WizardActionValidate => "検証",
+        WizardActionUseModel => "このモデルを使用",
+        WizardActionContinue => "orbok を開始",
+        WizardActionSkip => "スキップ — キーワード検索のみ使用",
+        WizardPreviousPathLabel => "最後の既知のパス",
+        WizardValidationOk => "確認済み",
+        WizardValidationFail => "見つかりません",
+        WizardReadyBody => "セマンティック検索が利用可能になりました。",
         Cancel => "キャンセル",
         Confirm => "確認",
     }

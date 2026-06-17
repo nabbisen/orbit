@@ -4,6 +4,9 @@
 //! `Element` — the snora multi-view pattern. Empty states follow the
 //! design's required empty-state set.
 
+pub mod wizard;
+pub use wizard::wizard_view;
+
 use crate::i18n::{Locale, MessageKey, files_indexed, search_result_count, source_summary, tr};
 use crate::state::{AppState, Message};
 use iced::widget::{button, column, container, row, text, text_input};
