@@ -14,14 +14,16 @@
 //! (RFC-004 §16, RFC-005 §13). Workers update the relevant catalog
 //! records with the error category.
 
-mod extract;
 mod chunk_and_index;
+mod embedding;
+mod extract;
 
 #[cfg(test)]
 mod tests;
 
-pub use extract::ExtractionWorker;
 pub use chunk_and_index::ChunkAndIndexWorker;
+pub use embedding::EmbeddingWorker;
+pub use extract::ExtractionWorker;
 
 use orbok_core::OrbokResult;
 use orbok_db::Catalog;
@@ -35,6 +37,7 @@ pub fn run_pending(
     catalog: &Catalog,
     extract_worker: &ExtractionWorker<'_>,
     chunk_worker: &ChunkAndIndexWorker<'_>,
+    embed_worker: Option<&EmbeddingWorker<'_>>,
     limit: u32,
 ) -> OrbokResult<u64> {
     let jobs = IndexJobRepository::new(catalog);
@@ -59,6 +62,13 @@ pub fn run_pending(
             JobType::Chunk | JobType::KeywordIndex => {
                 if let Some(file_id) = &job.file_id {
                     chunk_worker.run(file_id)
+                } else {
+                    Ok(())
+                }
+            }
+            JobType::Embedding => {
+                if let (Some(file_id), Some(worker)) = (&job.file_id, embed_worker) {
+                    worker.run(file_id)
                 } else {
                     Ok(())
                 }

@@ -3,7 +3,7 @@
 **Project:** orbok  
 **RFC:** 008  
 **Title:** Embedding Model and Vector Storage  
-**Status:** Proposed  
+**Status.** Implemented (v0.3.0)
 **Target Milestone:** M7  
 **Date:** 2026-06-06  
 

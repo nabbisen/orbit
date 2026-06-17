@@ -11,6 +11,7 @@ repository.workspace = true
 [dependencies]
 orbok-core = { workspace = true }
 orbok-db = { workspace = true }
+orbok-models = { workspace = true }
 rusqlite = { workspace = true }
 tracing = { workspace = true }
 

@@ -2,6 +2,7 @@
 //! table family and exposes application-level types.
 
 pub mod chunks;
+pub mod embeddings;
 pub mod cleanup;
 pub mod events;
 pub mod files;
@@ -11,6 +12,7 @@ pub mod sources;
 pub mod storage;
 
 pub use chunks::{ChunkRecord, ChunkRepository, ChunkSpec};
+pub use embeddings::{EmbeddingRecord, EmbeddingRepository, NewEmbedding};
 pub use cleanup::CleanupExecutor;
 pub use events::{EventRepository, Severity};
 pub use files::{FileRepository, FileRecord, NewFile, ObservedMetadata};

@@ -1,6 +1,6 @@
 [package]
 name = "orbok-models"
-description = "orbok local AI model registry types (RFC-012 vocabulary; full workflow lands in M12)"
+description = "orbok local AI model registry types and embedding model trait (RFC-008, RFC-012)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,4 +10,5 @@ repository.workspace = true
 
 [dependencies]
 orbok-core = { workspace = true }
+sha2 = { workspace = true }
 serde = { workspace = true }

@@ -109,3 +109,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - localcache 0.20.0 (mtime nanosecond precision, schema v5).
 - rusqlite 0.40 (single libsqlite3-sys instance shared with localcache).
 - iced 0.14 via snora 0.8.
+
+---
+
+## [0.3.0] — 2026-06-07
+
+### Added
+
+**M7 — Embedding and Vector Search (RFC-008)**
+- `EmbeddingModel` trait in `orbok-models` (RFC-008 §6): `embed_batch`,
+  `name`, `version`, `dimension`. Implementations must run locally and
+  never transmit text externally.
+- `MockEmbeddingModel`: 8-dimensional deterministic mock using SHA-256
+  as a pseudo-random source; L2-normalized output. Used for pipeline
+  testing without a real ML runtime.
+- Vector serialization helpers: `vec_to_blob`/`blob_to_vec` (FP32
+  little-endian, RFC-008 §12.1).
+- `VectorCandidate` type; cosine-similarity and L2-normalize utilities.
+- `EmbeddingId` added to orbok-core.
+- `EmbeddingRepository` in orbok-db: `upsert`, `list_active_for_scan`
+  (joins with chunks to exclude stale chunks), `mark_stale_for_model`,
+  `count_active`.
+- `EmbeddingWorker` in orbok-workers: reads extraction cache → embeds
+  chunk texts in batch → stores vectors. `with_mock` constructor for
+  tests and no-model operation.
+- `ExactVectorSearch`: cosine-similarity scan over all active embeddings
+  for a model (RFC-008 §13 "exact search first").
+
+**M8 — Hybrid Search and RRF (RFC-009)**
+- `rrf_fuse`: Reciprocal Rank Fusion (k=60), deduplicating by chunk_id,
+  producing `FusedCandidate` with per-source rank metadata (RFC-009 §7).
+- `HybridSearchService`: `keyword_only` and `with_model` constructors;
+  `search(query, mode, limit)` running keyword + vector retrieval,
+  RRF fusion, and snippet loading in one call (RFC-009 §12).
+- `SearchMode` enum (RFC-009 §8): `Auto`, `Exact`, `Conceptual`, `Fast`
+  with per-mode candidate limits.
+- Badge system: `MatchBadge::Keyword`, `Semantic`; fused results carry
+  both badges when both retrievers contributed.
+- `SearchMode` in `orbok-ui` `AppState`; `SetSearchMode` message.
+
+**i18n additions (RFC-031)**
+- New keys: `SearchModeLabel`, `SearchModeAuto`, `SearchModeExact`,
+  `SearchModeConceptual`, `SearchModeFast`, `BadgeKeyword`,
+  `BadgeSemantic`, `BadgeFused` — translated to English and Japanese.
+- `search_result_count(locale, n)` parameterized message.
+
+### Tests
+- `orbok-models`: 5 tests (adds embedding/vector ops tests).
+- `orbok-workers`: 12 tests (adds 7 RFC-008/009 integration tests:
+  embedding generation, vector search, RRF fusion, model-change
+  staling, stale-chunk exclusion, catalog isolation).
+- Workspace total: **99 tests / 0 failures**.

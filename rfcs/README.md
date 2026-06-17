@@ -48,3 +48,4 @@ Last updated: 2026-06-07.
 | 2026-06-07 | localcache 0.20.0 pinned; Appendix A amended |
 | 2026-06-07 | RFCs 001–005, 027, 031 moved to done/ (Implemented v0.1.0) |
 | 2026-06-07 | RFCs 006–007 targeted v0.2.0; remaining proposed unchanged |
+| 2026-06-07 | RFCs 008–009 moved to done/ (Implemented v0.3.0) |

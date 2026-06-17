@@ -19,15 +19,21 @@
 //! Japanese terms do not. The keyword strategy RFC owns that gap.
 
 mod fts5;
+pub mod hybrid;
 mod query;
+pub mod rrf;
 pub mod service;
 pub mod snippet;
+pub mod vector;
 
 #[cfg(test)]
 mod tests;
 
 pub use fts5::Fts5KeywordEngine;
+pub use hybrid::{HybridSearchService, SearchMode};
+pub use rrf::{FusedCandidate, rrf_fuse};
 pub use service::{MatchBadge, SearchResult, SearchService};
+pub use vector::ExactVectorSearch;
 pub use query::build_match_expression;
 
 use orbok_core::{ChunkId, FileId, OrbokResult};

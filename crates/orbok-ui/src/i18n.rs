@@ -109,6 +109,16 @@ pub enum MessageKey {
     SettingsLanguageHeading,
     SettingsPrivacyHeading,
     SettingsPrivacyLocalOnly,
+    // Search modes (RFC-009 §8)
+    SearchModeLabel,
+    SearchModeAuto,
+    SearchModeExact,
+    SearchModeConceptual,
+    SearchModeFast,
+    // Match badges
+    BadgeKeyword,
+    BadgeSemantic,
+    BadgeFused,
     // Common actions
     Cancel,
     Confirm,
@@ -136,5 +146,13 @@ pub fn source_summary(locale: Locale, indexed: u64, stale: u64, failed: u64) -> 
     match locale {
         Locale::En => format!("{indexed} indexed · {stale} stale · {failed} failed"),
         Locale::Ja => format!("インデックス済み {indexed} · 要更新 {stale} · 失敗 {failed}"),
+    }
+}
+
+/// Parameterized: "3 results".
+pub fn search_result_count(locale: Locale, count: usize) -> String {
+    match locale {
+        Locale::En => format!("{count} result{}", if count == 1 { "" } else { "s" }),
+        Locale::Ja => format!("{count} 件の結果"),
     }
 }

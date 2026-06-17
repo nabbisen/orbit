@@ -7,6 +7,7 @@
 
 use crate::i18n::Locale;
 use orbok_models::SearchCapability;
+use orbok_search::SearchMode;
 
 /// Top-level pages (GUI external design §3.1 order).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -69,6 +70,7 @@ pub struct AppState {
     pub locale: Locale,
     pub query: String,
     pub last_query: Option<String>,
+    pub search_mode: SearchMode,
     pub search_results: Vec<SearchResultDisplay>,
     pub search_running: bool,
     pub health: IndexHealth,
@@ -84,6 +86,7 @@ impl Default for AppState {
             locale: Locale::default(),
             query: String::new(),
             last_query: None,
+            search_mode: SearchMode::Auto,
             search_results: Vec::new(),
             search_running: false,
             health: IndexHealth::default(),
@@ -102,6 +105,7 @@ pub enum Message {
     SubmitSearch,
     SearchResultsReady(Vec<SearchResultDisplay>),
     SearchError(String),
+    SetSearchMode(SearchMode),
     SetLocale(Locale),
 }
 
@@ -125,6 +129,7 @@ impl AppState {
             Message::SearchError(_) => {
                 self.search_running = false;
             }
+            Message::SetSearchMode(mode) => self.search_mode = *mode,
             Message::SetLocale(locale) => self.locale = *locale,
         }
     }

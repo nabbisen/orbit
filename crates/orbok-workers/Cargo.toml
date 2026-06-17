@@ -9,6 +9,7 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
+orbok-models = { workspace = true }
 orbok-search = { workspace = true }
 rusqlite = { workspace = true }
 orbok-core = { workspace = true }

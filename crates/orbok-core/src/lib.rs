@@ -21,7 +21,7 @@ mod tests;
 
 pub use data_class::{CleanupAction, CleanupPlan, DataClass, StorageCategory};
 pub use error::{ErrorCategory, OrbokError, OrbokResult};
-pub use id::{ChunkId, EventId, ExtractionId, FileId, JobId, ModelId, QueryId, SourceId};
+pub use id::{EmbeddingId, ChunkId, EventId, ExtractionId, FileId, JobId, ModelId, QueryId, SourceId};
 pub use status::{
     FileStatus, HiddenFilePolicy, IndexMode, JobStatus, JobType, PersistenceMode, SourceStatus,
     SourceType, SymlinkPolicy,

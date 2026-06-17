@@ -2516,7 +2516,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-app"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "dirs",
  "iced",
@@ -2535,7 +2535,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-cache"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "localcache",
  "orbok-core",
@@ -2550,7 +2550,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-core"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
@@ -2560,9 +2560,10 @@ dependencies = [
 
 [[package]]
 name = "orbok-db"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "orbok-core",
+ "orbok-models",
  "rusqlite",
  "serde",
  "serde_json",
@@ -2573,7 +2574,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-extract"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "orbok-core",
  "orbok-db",
@@ -2585,7 +2586,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-fs"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "orbok-core",
  "orbok-db",
@@ -2596,18 +2597,20 @@ dependencies = [
 
 [[package]]
 name = "orbok-models"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "orbok-core",
  "serde",
+ "sha2",
 ]
 
 [[package]]
 name = "orbok-search"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "orbok-core",
  "orbok-db",
+ "orbok-models",
  "rusqlite",
  "tempfile",
  "tracing",
@@ -2615,24 +2618,26 @@ dependencies = [
 
 [[package]]
 name = "orbok-ui"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "iced",
  "orbok-core",
  "orbok-models",
+ "orbok-search",
  "serde",
  "snora",
 ]
 
 [[package]]
 name = "orbok-workers"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "orbok-cache",
  "orbok-core",
  "orbok-db",
  "orbok-extract",
  "orbok-fs",
+ "orbok-models",
  "orbok-search",
  "rusqlite",
  "tempfile",

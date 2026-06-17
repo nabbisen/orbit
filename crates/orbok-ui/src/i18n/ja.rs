@@ -66,6 +66,14 @@ pub fn message(key: MessageKey) -> &'static str {
         SettingsPrivacyHeading => "プライバシー",
         SettingsPrivacyLocalOnly => "文書はこのコンピューター上でのみ処理されます。"
         ,
+        SearchModeLabel => "モード",
+        SearchModeAuto => "自動",
+        SearchModeExact => "完全一致",
+        SearchModeConceptual => "意味検索",
+        SearchModeFast => "高速",
+        BadgeKeyword => "キーワード",
+        BadgeSemantic => "セマンティック",
+        BadgeFused => "融合",
         Cancel => "キャンセル",
         Confirm => "確認",
     }

@@ -86,3 +86,5 @@ typed_id!(
     EventId,
     "evt"
 );
+
+typed_id!(EmbeddingId, "emb_");
