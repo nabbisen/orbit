@@ -79,7 +79,7 @@ pub enum WizardState {
     /// First launch or model never configured.
     NotConfigured,
     /// Was configured, but files are gone.
-    FileMissing { previous_dir: String },
+    FileMissing { previous_dir: String, checks: Vec<WizardFileCheck> },
     /// User submitted a path; file checks complete.
     Checked { model_dir: String, checks: Vec<WizardFileCheck>, all_ok: bool },
     /// All files verified — ready to proceed.

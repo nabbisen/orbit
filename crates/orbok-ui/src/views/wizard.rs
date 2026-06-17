@@ -20,9 +20,9 @@ pub fn wizard_view(state: &AppState) -> Element<'_, Message> {
         None => return text("").into(),
     };
     let inner = match wizard {
-        WizardState::NotConfigured => page_input(locale, state, None),
-        WizardState::FileMissing { previous_dir } => {
-            page_input(locale, state, Some(previous_dir))
+        WizardState::NotConfigured => page_input(locale, state, None, None),
+        WizardState::FileMissing { previous_dir, checks } => {
+            page_input(locale, state, Some(previous_dir), Some(checks))
         }
         WizardState::Checked { model_dir, checks, all_ok } => {
             page_checked(locale, state, model_dir, checks, *all_ok)
@@ -42,6 +42,7 @@ fn page_input<'a>(
     locale: Locale,
     state: &'a AppState,
     previous_dir: Option<&'a str>,
+    file_checks: Option<&'a [crate::state::WizardFileCheck]>,
 ) -> Element<'a, Message> {
     let (title_key, body_key) = if previous_dir.is_some() {
         (MessageKey::WizardTitleFileMissing, MessageKey::WizardBodyFileMissing)
@@ -99,6 +100,21 @@ fn page_input<'a>(
         button(text(tr(locale, MessageKey::WizardActionSkip)).size(12))
             .on_press(Message::WizardSkip),
     );
+
+    // If we have file-check results (FileMissing state), show which files
+    // are present/absent so the user knows exactly what to fix.
+    if let Some(checks) = file_checks {
+        for fc in checks {
+            let (icon, label_suffix) = if fc.found {
+                ("✓", "(found)")
+            } else {
+                ("✗", "(missing)")
+            };
+            col = col.push(
+                text(format!("{icon}  {}  {label_suffix}", fc.relative_path)).size(12),
+            );
+        }
+    }
 
     col.into()
 }
@@ -164,7 +180,6 @@ fn page_checked<'a>(
         button(text(tr(locale, MessageKey::WizardActionSkip)).size(12))
             .on_press(Message::WizardSkip),
     );
-
     col.into()
 }
 

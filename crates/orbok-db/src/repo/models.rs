@@ -322,6 +322,6 @@ pub fn verify_model_sha256(path: &str, expected_hash: &str) -> OrbokResult<bool>
         if n == 0 { break; }
         hasher.update(&buf[..n]);
     }
-    let actual = format!("{:x}", hasher.finalize());
+    let actual: String = hasher.finalize().iter().map(|b| format!("{b:02x}")).collect();
     Ok(actual == expected_hash)
 }

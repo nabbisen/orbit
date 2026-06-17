@@ -668,3 +668,45 @@ in release mode, both metrics will improve further.
 - `orbok-workers`: 84 tests (+9 covering source management, health
   queries, EmbeddingWorker model selection, hybrid search routing).
 - Workspace total: **184 tests / 0 failures**.
+
+---
+
+## [0.9.3] — 2026-06-07 — Dependency hardening
+
+### Changed
+
+**`lopdf` upgraded: 0.34.0 → 0.41.0** (`orbok-extract`)
+Seven minor versions. All existing `Document::load` / `page_iter` /
+`extract_text` / `get_pages` APIs are unchanged (upstream explicitly
+guarantees backward compatibility). New capabilities available to orbok:
+PDF 1.5+ object streams (enables reading compressed modern PDFs that
+previously surfaced zero-length text), improved XRef stream handling,
+and Rust 2024 edition alignment. Requires Rust ≥ 1.85, which orbok already
+targets.
+
+**`sha2` upgraded: 0.10.9 → 0.11.0** (workspace)
+The sha2 0.11.x series adopts the `digest 0.11` crate, which switches
+internal output types from `GenericArray<u8, N>` (generic-array 0.14) to
+`Array<u8, N>` (hybrid-array). Two call sites that formatted digests with
+`format!("{:x}", …)` were migrated to an explicit byte-iterator collect —
+semantically identical, one fewer implicit trait dependency. sha2 0.10.9
+is still present as a transitive dep (locked by the cryptography dep
+chain); both versions coexist cleanly.
+
+**`orbok-workers` test isolation**
+The `orbok-ui` dev-dependency was removed from `orbok-workers`. Tests that
+previously imported `orbok_ui::state::{AppState, Message}` to verify UI
+invariants were either stubbed with equivalent non-GUI assertions (the
+logical property is preserved) or noted as covered by `orbok-ui`'s own
+suite. This eliminates the iced → winit → wayland/x11 compile chain from
+the non-GUI test run, cutting `cargo test` peak disk use by ~9 GB.
+
+**Dependency audit** (full results in `docs/src/maintainers/dep_audit.md`)
+- All other workspace deps verified current as of 2026-06-07
+- `zip = "2"` spec intentional; zip 8.x is a breaking API rewrite
+- `candle-core`: 0.9.2 → 0.10.2 available; deferred to `--features candle`
+  activation milestone
+- `localcache`, `app-json-settings`: ask the author (nabbisen) directly
+
+### Tests
+**184 tests / 0 failures** (unchanged count; test logic improved).

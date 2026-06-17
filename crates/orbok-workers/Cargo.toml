@@ -22,7 +22,6 @@ tracing = { workspace = true }
 
 [dev-dependencies]
 orbok-bench = { path = "../orbok-bench" }
-orbok-ui = { workspace = true }
 dirs = { workspace = true }
 tempfile = { workspace = true }
 zip = { workspace = true }

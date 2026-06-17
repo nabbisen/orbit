@@ -14,7 +14,7 @@ use orbok_db::{CATALOG_FILE_NAME, Catalog};
 use orbok_db::repo::SettingsRepository;
 use orbok_models::SearchCapability;
 use orbok_embed::{create_embedding_model, recommended_config};
-use orbok_search::{HybridSearchService, SearchService};
+use orbok_search::HybridSearchService;
 use orbok_models::EmbeddingModel;
 use orbok_ui::AppState;
 use orbok_ui::i18n::Locale;
@@ -112,7 +112,7 @@ fn build_capability_and_wizard(
                     }
                 })
                 .collect();
-            let wizard = WizardState::FileMissing { previous_dir: model_dir };
+            let wizard = WizardState::FileMissing { previous_dir: model_dir, checks };
             (SearchCapability::KeywordOnly, Some(wizard))
         }
     }
@@ -280,7 +280,7 @@ pub fn scan_and_index_source(
     use orbok_core::SourceId;
     use orbok_db::repo::SourceRepository;
     use orbok_fs::{ScanRequest, Scanner};
-    use orbok_workers::{ChunkAndIndexWorker, EmbeddingWorker, ExtractionWorker, run_pending};
+    use orbok_workers::{ChunkAndIndexWorker, ExtractionWorker, run_pending};
     use std::sync::atomic::AtomicBool;
 
     let source_id = SourceId::from_string(source_id_str.to_string());

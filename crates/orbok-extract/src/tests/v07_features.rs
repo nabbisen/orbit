@@ -227,7 +227,7 @@ fn model_integrity_check_passes_correct_hash() {
     fs::write(&model_file, &contents).unwrap();
     let expected_hash = {
         use sha2::Digest;
-        format!("{:x}", sha2::Sha256::digest(&contents))
+        sha2::Sha256::digest(&contents).iter().map(|b| format!("{b:02x}")).collect::<String>()
     };
 
     let result = verify_model_sha256(

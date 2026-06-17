@@ -35,7 +35,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
     let submit = button(text(tr(locale, MessageKey::SearchButton)).size(13))
         .on_press(Message::SubmitSearch);
 
-    let mode = state.search_mode;
+    let _mode = state.search_mode; // TODO: highlight active mode button
     let mode_selector = row![
         text(tr(locale, MessageKey::SearchModeLabel)).size(12),
         button(text(tr(locale, MessageKey::SearchModeAuto)).size(11))
@@ -90,7 +90,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
                         .as_deref()
                         .unwrap_or("(source unavailable)");
                     let heading_str = result.heading_path.as_deref().unwrap_or("");
-                    let is_selected = state.selected_result == Some(i);
+                    let _is_selected = state.selected_result == Some(i); // TODO: visual highlight
                     let card = container(
                         column![
                             text(title_str.to_string()).size(15),
