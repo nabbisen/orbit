@@ -20,6 +20,7 @@
 
 mod fts5;
 pub mod hybrid;
+pub mod multilingual;
 mod query;
 pub mod rrf;
 pub mod service;
@@ -31,6 +32,7 @@ mod tests;
 
 pub use fts5::Fts5KeywordEngine;
 pub use hybrid::{HybridSearchService, SearchMode};
+pub use multilingual::{MultilingualKeywordEngine, contains_cjk, normalize_query};
 pub use rrf::{FusedCandidate, rrf_fuse};
 pub use service::{MatchBadge, SearchResult, SearchService};
 pub use vector::ExactVectorSearch;

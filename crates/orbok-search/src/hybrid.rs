@@ -3,6 +3,7 @@
 //! is unavailable (RFC-009 §21).
 
 use crate::fts5::Fts5KeywordEngine;
+use crate::multilingual::MultilingualKeywordEngine;
 use crate::rrf::{FusedCandidate, rrf_fuse};
 use crate::service::{MatchBadge, SearchResult};
 use crate::snippet::{chunk_record_for, load_snippet};
@@ -10,7 +11,7 @@ use crate::vector::ExactVectorSearch;
 use crate::KeywordSearchEngine;
 use orbok_core::{ChunkId, FileId, OrbokResult};
 use orbok_db::Catalog;
-use orbok_models::{EmbeddingModel, l2_normalize};
+use orbok_models::{CrossEncoderReranker, EmbeddingModel, RerankCandidate, l2_normalize};
 use std::path::Path;
 
 /// Search mode selector (RFC-009 §8, GUI design §7.2).
@@ -32,35 +33,35 @@ struct Limits {
     keyword_k: u32,
     vector_k: u32,
     fusion_n: usize,
+    rerank: bool,
 }
 
 impl Limits {
     fn for_mode(mode: SearchMode) -> Self {
         match mode {
-            SearchMode::Auto => Limits { keyword_k: 100, vector_k: 100, fusion_n: 50 },
-            SearchMode::Exact => Limits { keyword_k: 100, vector_k: 0, fusion_n: 50 },
-            SearchMode::Conceptual => Limits { keyword_k: 0, vector_k: 100, fusion_n: 50 },
-            SearchMode::Fast => Limits { keyword_k: 50, vector_k: 50, fusion_n: 20 },
+            SearchMode::Auto => Limits { keyword_k: 100, vector_k: 100, fusion_n: 50, rerank: true },
+            SearchMode::Exact => Limits { keyword_k: 100, vector_k: 0, fusion_n: 50, rerank: false },
+            SearchMode::Conceptual => Limits { keyword_k: 0, vector_k: 100, fusion_n: 50, rerank: true },
+            SearchMode::Fast => Limits { keyword_k: 50, vector_k: 50, fusion_n: 20, rerank: false },
         }
     }
 }
 
-/// Hybrid search service. `embedding_model` is `None` when no model is
-/// installed — the service falls back to keyword-only silently
-/// (RFC-009 §21: "Search works without embedding model").
+/// Hybrid search service. Optional embedding model and reranker both
+/// degrade gracefully when absent (RFC-009 §21, RFC-010 §20).
 pub struct HybridSearchService<'a> {
     catalog: &'a Catalog,
     embedding_model: Option<(&'a dyn EmbeddingModel, String)>,
+    reranker: Option<&'a dyn CrossEncoderReranker>,
 }
 
 impl<'a> HybridSearchService<'a> {
     /// Keyword-only mode (no embedding model).
     pub fn keyword_only(catalog: &'a Catalog) -> Self {
-        Self { catalog, embedding_model: None }
+        Self { catalog, embedding_model: None, reranker: None }
     }
 
-    /// Hybrid mode with an embedding model (name+version determine
-    /// which embeddings are eligible).
+    /// Hybrid mode with an embedding model.
     pub fn with_model(
         catalog: &'a Catalog,
         model: &'a dyn EmbeddingModel,
@@ -69,14 +70,25 @@ impl<'a> HybridSearchService<'a> {
         Self {
             catalog,
             embedding_model: Some((model, model_id.to_string())),
+            reranker: None,
         }
+    }
+
+    /// Add optional local reranker (RFC-010).
+    pub fn with_reranker(mut self, reranker: &'a dyn CrossEncoderReranker) -> Self {
+        self.reranker = Some(reranker);
+        self
     }
 
     pub fn is_hybrid(&self) -> bool {
         self.embedding_model.is_some()
     }
 
-    /// Execute a search and return enriched results.
+    pub fn has_reranker(&self) -> bool {
+        self.reranker.is_some()
+    }
+
+    /// Execute a search and return enriched, optionally reranked results.
     pub fn search(
         &self,
         query: &str,
@@ -85,9 +97,9 @@ impl<'a> HybridSearchService<'a> {
     ) -> OrbokResult<Vec<SearchResult>> {
         let limits = Limits::for_mode(mode);
 
-        // Keyword candidates.
+        // Keyword candidates — use multilingual engine (RFC-014).
         let kw_candidates = if limits.keyword_k > 0 {
-            Fts5KeywordEngine::new(self.catalog).search(query, limits.keyword_k)?
+            MultilingualKeywordEngine::new(self.catalog).search(query, limits.keyword_k)?
         } else {
             Vec::new()
         };
@@ -113,13 +125,21 @@ impl<'a> HybridSearchService<'a> {
         // Fuse.
         let fused = rrf_fuse(&kw_candidates, &vec_candidates, limits.fusion_n);
 
-        // Enrich top results with snippets.
+        // Enrich with snippets.
         let mut results = Vec::new();
         for candidate in fused.iter().take(limit as usize) {
             if let Some(result) = self.enrich(candidate)? {
                 results.push(result);
             }
         }
+
+        // Optional reranking (RFC-010): reorder using passage scores.
+        if limits.rerank {
+            if let Some(reranker) = self.reranker {
+                results = rerank_results(reranker, query, results)?;
+            }
+        }
+
         Ok(results)
     }
 
@@ -137,12 +157,8 @@ impl<'a> HybridSearchService<'a> {
                 .map(|n| n.to_string_lossy().into_owned())
         });
         let mut badges = Vec::new();
-        if candidate.keyword_rank.is_some() {
-            badges.push(MatchBadge::Keyword);
-        }
-        if candidate.vector_rank.is_some() {
-            badges.push(MatchBadge::Semantic);
-        }
+        if candidate.keyword_rank.is_some() { badges.push(MatchBadge::Keyword); }
+        if candidate.vector_rank.is_some() { badges.push(MatchBadge::Semantic); }
         Ok(Some(SearchResult {
             chunk_id: candidate.chunk_id.clone(),
             file_id: candidate.file_id.clone(),
@@ -156,6 +172,34 @@ impl<'a> HybridSearchService<'a> {
             badges,
         }))
     }
+}
+
+/// Rerank enriched results using the reranker model (RFC-010 §8).
+fn rerank_results(
+    reranker: &dyn CrossEncoderReranker,
+    query: &str,
+    mut results: Vec<SearchResult>,
+) -> OrbokResult<Vec<SearchResult>> {
+    let top_n = reranker.max_candidates() as usize;
+    let to_rerank = results.len().min(top_n);
+    let candidates: Vec<RerankCandidate> = results[..to_rerank]
+        .iter()
+        .map(|r| RerankCandidate {
+            chunk_id: r.chunk_id.clone(),
+            passage_text: r.snippet.clone().unwrap_or_default(),
+        })
+        .collect();
+    let scores = reranker.rerank(query, &candidates)?;
+    // Map scores back to results by chunk_id.
+    for result in results[..to_rerank].iter_mut() {
+        if let Some(score) = scores.iter().find(|s| s.chunk_id == result.chunk_id) {
+            result.keyword_score = score.score as f64;
+        }
+    }
+    results[..to_rerank].sort_by(|a, b| {
+        b.keyword_score.partial_cmp(&a.keyword_score).unwrap_or(std::cmp::Ordering::Equal)
+    });
+    Ok(results)
 }
 
 fn short_display_path(path: &str) -> String {

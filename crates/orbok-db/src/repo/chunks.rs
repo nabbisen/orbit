@@ -106,7 +106,7 @@ impl<'a> ChunkRepository<'a> {
             )
             .map_err(db_err)?;
 
-            // Insert FTS row and record the rowid mapping.
+            // Insert into unicode61 FTS and record rowid.
             tx.execute(
                 "INSERT INTO chunk_fts (title, heading_path, normalized_text) \
                  VALUES (?1, ?2, ?3)",
@@ -115,12 +115,30 @@ impl<'a> ChunkRepository<'a> {
             .map_err(db_err)?;
             let fts_rowid = tx.last_insert_rowid();
 
+            // Insert into trigram FTS (RFC-014 §12) for Japanese/CJK recall.
+            tx.execute(
+                "INSERT INTO chunk_fts_trigram (title, heading_path, normalized_text) \
+                 VALUES (?1, ?2, ?3)",
+                params![spec.title, spec.heading_path, spec.normalized_text],
+            )
+            .map_err(db_err)?;
+            let trigram_fts_rowid = tx.last_insert_rowid();
+
             tx.execute(
                 "INSERT INTO keyword_index_records \
-                 (chunk_id, fts_rowid, index_engine, tokenizer_name, tokenizer_version, \
-                  indexed_at, status) \
-                 VALUES (?1,?2,'sqlite-fts5','unicode61',?3,?4,'active')",
-                params![chunk_id.as_str(), fts_rowid, CHUNKER_VERSION, now],
+                 (chunk_id, fts_rowid, trigram_fts_rowid, index_engine, tokenizer_name, \
+                  tokenizer_version, indexed_at, status) \
+                 VALUES (?1, ?2, ?3, 'sqlite-fts5', 'unicode61', ?4, ?5, 'active') \
+                 ON CONFLICT(chunk_id) DO UPDATE SET fts_rowid = ?2, trigram_fts_rowid = ?3, \
+                  index_engine = 'sqlite-fts5', tokenizer_name = 'unicode61', \
+                  tokenizer_version = ?4, indexed_at = ?5, status = 'active'",
+                params![
+                    chunk_id.as_str(),
+                    fts_rowid,
+                    trigram_fts_rowid,
+                    CHUNKER_VERSION,
+                    now,
+                ],
             )
             .map_err(db_err)?;
 

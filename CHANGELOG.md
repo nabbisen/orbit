@@ -160,3 +160,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   embedding generation, vector search, RRF fusion, model-change
   staling, stale-chunk exclusion, catalog isolation).
 - Workspace total: **99 tests / 0 failures**.
+
+---
+
+## [0.4.0] — 2026-06-07
+
+### Added
+
+**RFC-010 — Optional Local Reranking**
+- `CrossEncoderReranker` trait and `RerankCandidate`/`RerankScore` types
+  in `orbok-models`.
+- `MockReranker`: deterministic mock ordering by passage length (test-safe,
+  no ML runtime required).
+- `HybridSearchService::with_reranker()` builder: attaches optional
+  reranker that reorders the top-N fused results using passage text.
+- `Fast` search mode bypasses reranking (`Limits.rerank = false`).
+- Search remains fully functional with no reranker attached (RFC-010 §20).
+
+**RFC-011 — Storage Dashboard**
+- `update_storage_accounting(catalog, cache_db_path)` in orbok-workers:
+  measures actual storage by category (keyword index rows, embedding BLOB
+  sum, snippet cache bytes, localcache DB file size, event log rows).
+- `StorageDataReady` message and `storage_rows` field in orbok-ui `AppState`.
+- Storage view renders per-category breakdown with MiB values.
+- `orbok-app` exposes `persist_locale()` helper — locale changes are now
+  persisted to the catalog `app_settings` table.
+
+**RFC-013 — Search View and Result Explanation UX**
+- `SelectResult(usize)` message and `selected_result: Option<usize>` in
+  `AppState`; result cards are now buttons that trigger selection.
+- `OpenSourceFile(String)` message (canonical path) dispatched to orbok-app.
+- `StorageDataReady` message wires real storage data into Storage view.
+- Search mode selector row in the Search view (Auto / Exact / Conceptual).
+- `search_result_count(locale, n)` parameterized i18n message.
+
+**RFC-014 — Japanese and Mixed-Language Search**
+- Migration 0002 (`0002_trigram_index.sql`): adds `chunk_fts_trigram`
+  virtual table (FTS5 trigram tokenizer, SQLite 3.53.2) and
+  `keyword_index_records.trigram_fts_rowid` column.
+- `ChunkRepository::insert_bundle` now indexes every chunk in both
+  the unicode61 and trigram FTS tables atomically.
+- `MultilingualKeywordEngine`: detects CJK characters in the query
+  (hiragana, katakana, CJK unified ideographs); routes CJK queries
+  through both unicode61 and trigram tables, merging and deduplicating
+  results. English/identifier queries use only unicode61.
+- `normalize_query()`: converts fullwidth ASCII/digits (ＡＢＣ→ABC)
+  and trims whitespace — satisfies RFC-014 §10 test 1.
+- `contains_cjk()`: character-class-based CJK detector.
+- `HybridSearchService` now uses `MultilingualKeywordEngine` internally
+  for all keyword retrieval.
+
+**Other improvements**
+- Locale persistence: `PersistLocale` message variant; orbok-app
+  `persist_locale()` writes to catalog settings on locale change.
+- `orbok-ui` i18n: added keys `SearchModeLabel`, `SearchModeAuto`,
+  `SearchModeExact`, `SearchModeConceptual`, `SearchModeFast`,
+  `BadgeKeyword`, `BadgeSemantic`, `BadgeFused`, plus parameterized
+  `search_result_count` in English and Japanese.
+
+### Tests
+- `orbok-models`: 7 tests (+2 reranker tests).
+- `orbok-workers`: 26 tests (+14 covering RFC-010/011/013/014).
+- Workspace total: **110 tests / 0 failures**.

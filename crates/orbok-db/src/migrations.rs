@@ -17,11 +17,18 @@ struct Migration {
 
 /// The append-only migration list. New migrations are appended here and
 /// never reordered or edited after release.
-const MIGRATIONS: &[Migration] = &[Migration {
-    version: 1,
-    name: "baseline",
-    sql: include_str!("../migrations/0001_baseline.sql"),
-}];
+const MIGRATIONS: &[Migration] = &[
+    Migration {
+        version: 1,
+        name: "baseline",
+        sql: include_str!("../migrations/0001_baseline.sql"),
+    },
+    Migration {
+        version: 2,
+        name: "trigram_index",
+        sql: include_str!("../migrations/0002_trigram_index.sql"),
+    },
+];
 
 /// Apply all pending migrations. Called from `Catalog::open` before any
 /// application service touches the database.

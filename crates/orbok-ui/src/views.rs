@@ -4,7 +4,7 @@
 //! `Element` — the snora multi-view pattern. Empty states follow the
 //! design's required empty-state set.
 
-use crate::i18n::{Locale, MessageKey, files_indexed, source_summary, tr};
+use crate::i18n::{Locale, MessageKey, files_indexed, search_result_count, source_summary, tr};
 use crate::state::{AppState, Message};
 use iced::widget::{button, column, container, row, text, text_input};
 use iced::{Element, Length, Padding};
@@ -32,9 +32,21 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
     let submit = button(text(tr(locale, MessageKey::SearchButton)).size(13))
         .on_press(Message::SubmitSearch);
 
+    let mode = state.search_mode;
+    let mode_selector = row![
+        text(tr(locale, MessageKey::SearchModeLabel)).size(12),
+        button(text(tr(locale, MessageKey::SearchModeAuto)).size(11))
+            .on_press(Message::SetSearchMode(orbok_search::SearchMode::Auto)),
+        button(text(tr(locale, MessageKey::SearchModeExact)).size(11))
+            .on_press(Message::SetSearchMode(orbok_search::SearchMode::Exact)),
+        button(text(tr(locale, MessageKey::SearchModeConceptual)).size(11))
+            .on_press(Message::SetSearchMode(orbok_search::SearchMode::Conceptual)),
+    ]
+    .spacing(4);
     let mut content = column![
         heading(tr(locale, MessageKey::NavSearch)),
         row![container(input).width(Length::Fill), submit].spacing(8),
+        mode_selector,
     ];
 
     if state.sources.is_empty() {
@@ -66,31 +78,30 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
                 );
             } else {
                 content = content.push(
-                    text(format!("{} results", state.search_results.len())).size(12),
+                    text(search_result_count(locale, state.search_results.len())).size(12),
                 );
-                for result in &state.search_results {
+                for (i, result) in state.search_results.iter().enumerate() {
                     let title_str = result.title.as_deref().unwrap_or(&result.display_path);
                     let snippet_str = result
                         .snippet
                         .as_deref()
                         .unwrap_or("(source unavailable)");
                     let heading_str = result.heading_path.as_deref().unwrap_or("");
+                    let is_selected = state.selected_result == Some(i);
+                    let card = container(
+                        column![
+                            text(title_str.to_string()).size(15),
+                            text(result.display_path.clone()).size(11),
+                            if !heading_str.is_empty() { text(heading_str.to_string()).size(11) }
+                            else { text("").size(11) },
+                            text(snippet_str.chars().take(120).collect::<String>()).size(12),
+                            text(result.badges.join("  ")).size(11),
+                        ]
+                        .spacing(2),
+                    )
+                    .padding(10);
                     content = content.push(
-                        container(
-                            column![
-                                text(title_str.to_string()).size(15),
-                                text(result.display_path.clone()).size(11),
-                                if !heading_str.is_empty() {
-                                    text(heading_str.to_string()).size(11)
-                                } else {
-                                    text("").size(11)
-                                },
-                                text(snippet_str.to_string()).size(12),
-                                text(result.badges.join("  ")).size(11),
-                            ]
-                            .spacing(2),
-                        )
-                        .padding(10),
+                        button(card).on_press(Message::SelectResult(i)),
                     );
                 }
             }
@@ -164,14 +175,32 @@ pub fn indexing_view(state: &AppState) -> Element<'_, Message> {
     page(content)
 }
 
-/// Storage view (§10): safe cleanup vs danger zone, clearly separated.
+/// Storage view (§10): safe cleanup vs danger zone, with real data.
 pub fn storage_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
-    let gib = state.storage_total_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
-    let content = column![
-        heading(tr(locale, MessageKey::StorageTitle)),
+    let total_bytes: u64 = state.storage_rows.iter().map(|(_, b, _)| b).sum();
+    let gib = total_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
+
+    let mut breakdown = column![
+        text(tr(locale, MessageKey::StorageTitle)).size(26),
         text(tr(locale, MessageKey::StorageIntro)).size(13),
-        text(format!("{gib:.2} GiB")).size(20),
+        text(format!("{gib:.3} GiB total")).size(20),
+    ]
+    .spacing(4);
+
+    if !state.storage_rows.is_empty() {
+        for (category, bytes, count) in &state.storage_rows {
+            if *bytes > 0 || *count > 0 {
+                let mib = *bytes as f64 / (1024.0 * 1024.0);
+                breakdown = breakdown.push(
+                    text(format!("  {category}: {mib:.1} MiB ({count} items)")).size(12),
+                );
+            }
+        }
+    }
+
+    let content = column![
+        breakdown,
         text(tr(locale, MessageKey::StorageSafeCleanupHeading)).size(15),
         row![
             button(text(tr(locale, MessageKey::StorageClearSnippets)).size(13)),

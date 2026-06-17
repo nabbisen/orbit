@@ -64,3 +64,21 @@
 - **FTS**: SQLite FTS5 contentless + `keyword_index_records.fts_rowid` mapping (RFC-007).
 - **Chunking**: structure-aware (Markdown headings) + paragraph fallback (RFC-006).
 - **Pipeline**: extract → chunk+index in two worker steps, atomic per-file transactions (RFC-006 §12).
+
+## v0.4 status
+
+| RFC | Title | v0.4 |
+|---|---|:---:|
+| RFC-010 | Optional Local Reranking | ✓ |
+| RFC-011 | Storage Dashboard and Cleanup UX | ✓ |
+| RFC-013 | Search View and Result Explanation UX | ✓ |
+| RFC-014 | Japanese and Mixed-Language Search | ✓ |
+
+## v0.5 targets
+
+- **RFC-012**: Model Registry and Installation Workflow — full model registry UI, locate/install/validate model files, reindex-on-change flow.
+- **RFC-015**: Security Hardening — CSRF protection for local API (when applicable), path-traversal audit, HTML render sanitization hardening.
+- **RFC-016**: Benchmarks and Retrieval Evaluation — search quality test corpus, indexing throughput, memory profiling.
+- **RFC-017**: Packaging and Distribution — cross-platform release binaries, Debian/RPM packages, macOS .app bundle, Windows installer.
+- **M9 complete**: Two-pane preview panel with full explanation (RFC-013 follow-through), file-open OS integration in orbok-app.
+- **M10 complete**: Storage dashboard cleanup actions wired end-to-end (CleanupService combining catalog + cache).

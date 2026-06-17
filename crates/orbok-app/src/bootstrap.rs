@@ -79,3 +79,9 @@ pub fn run_check() -> Result<(), Box<dyn std::error::Error>> {
     );
     Ok(())
 }
+
+/// Persist locale setting to the catalog when the user changes it.
+pub fn persist_locale(catalog: &Catalog, locale: &orbok_ui::i18n::Locale) -> OrbokResult<()> {
+    orbok_db::repo::SettingsRepository::new(catalog)
+        .set("ui.locale", &locale.as_str().to_string())
+}

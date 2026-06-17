@@ -73,6 +73,8 @@ pub struct AppState {
     pub search_mode: SearchMode,
     pub search_results: Vec<SearchResultDisplay>,
     pub search_running: bool,
+    pub selected_result: Option<usize>,
+    pub storage_rows: Vec<(String, u64, u64)>,
     pub health: IndexHealth,
     pub sources: Vec<SourceCard>,
     pub capability: SearchCapability,
@@ -89,6 +91,8 @@ impl Default for AppState {
             search_mode: SearchMode::Auto,
             search_results: Vec::new(),
             search_running: false,
+            selected_result: None,
+            storage_rows: Vec::new(),
             health: IndexHealth::default(),
             sources: Vec::new(),
             capability: SearchCapability::KeywordOnly,
@@ -105,8 +109,12 @@ pub enum Message {
     SubmitSearch,
     SearchResultsReady(Vec<SearchResultDisplay>),
     SearchError(String),
+    SelectResult(usize),
+    OpenSourceFile(String),
     SetSearchMode(SearchMode),
+    PersistLocale(Locale),
     SetLocale(Locale),
+    StorageDataReady(Vec<(String, u64, u64)>),
 }
 
 impl AppState {
@@ -120,17 +128,22 @@ impl AppState {
                     self.last_query = Some(trimmed.to_string());
                     self.search_running = true;
                     self.search_results.clear();
+                    self.selected_result = None;
                 }
             }
             Message::SearchResultsReady(results) => {
                 self.search_results = results.clone();
                 self.search_running = false;
+                self.selected_result = None;
             }
             Message::SearchError(_) => {
                 self.search_running = false;
             }
+            Message::SelectResult(idx) => self.selected_result = Some(*idx),
+            Message::OpenSourceFile(_) => {} // handled by orbok-app
             Message::SetSearchMode(mode) => self.search_mode = *mode,
-            Message::SetLocale(locale) => self.locale = *locale,
+            Message::PersistLocale(locale) | Message::SetLocale(locale) => self.locale = *locale,
+            Message::StorageDataReady(rows) => self.storage_rows = rows.clone(),
         }
     }
 }

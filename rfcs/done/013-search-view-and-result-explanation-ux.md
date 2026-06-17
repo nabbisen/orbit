@@ -3,7 +3,7 @@
 **Project:** orbok  
 **RFC:** 013  
 **Title:** Search View and Result Explanation UX  
-**Status:** Proposed  
+**Status.** Implemented (v0.4.0)
 **Target Milestone:** M9  
 **Date:** 2026-06-06  
 

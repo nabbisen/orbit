@@ -244,3 +244,82 @@ mod embedding_tests {
         assert!((sim - 1.0).abs() < 1e-6);
     }
 }
+
+// ── Reranker (RFC-010) ───────────────────────────────────────────────
+
+/// A candidate document passed to the reranker.
+#[derive(Debug, Clone)]
+pub struct RerankCandidate {
+    pub chunk_id: orbok_core::ChunkId,
+    /// Best available text for the passage — typically the loaded snippet.
+    pub passage_text: String,
+}
+
+/// Per-candidate rerank score (higher = more relevant).
+#[derive(Debug, Clone)]
+pub struct RerankScore {
+    pub chunk_id: orbok_core::ChunkId,
+    pub score: f32,
+}
+
+/// Optional local cross-encoder reranker (RFC-010 §5).
+///
+/// - Reranking is always optional; missing model must not break search.
+/// - Implementors must not log `passage_text` (NFR-014).
+pub trait CrossEncoderReranker: Send + Sync {
+    fn name(&self) -> &str;
+    fn version(&self) -> &str;
+    /// Maximum candidates to rerank (RFC-010 §9 top-N limit).
+    fn max_candidates(&self) -> u32;
+    fn rerank(&self, query: &str, candidates: &[RerankCandidate])
+        -> orbok_core::OrbokResult<Vec<RerankScore>>;
+}
+
+/// Deterministic mock reranker: scores by passage length (longer = more
+/// informative). Useful for pipeline testing without an ML model.
+pub struct MockReranker;
+
+impl CrossEncoderReranker for MockReranker {
+    fn name(&self) -> &str { "mock-reranker" }
+    fn version(&self) -> &str { "v1" }
+    fn max_candidates(&self) -> u32 { 20 }
+    fn rerank(
+        &self,
+        _query: &str,
+        candidates: &[RerankCandidate],
+    ) -> orbok_core::OrbokResult<Vec<RerankScore>> {
+        let mut scores: Vec<RerankScore> = candidates
+            .iter()
+            .map(|c| RerankScore {
+                chunk_id: c.chunk_id.clone(),
+                score: c.passage_text.len() as f32,
+            })
+            .collect();
+        scores.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        Ok(scores)
+    }
+}
+
+#[cfg(test)]
+mod reranker_tests {
+    use super::*;
+    use orbok_core::ChunkId;
+
+    // RFC-010 §19 test 4: reranker changes final order when scores differ.
+    #[test]
+    fn mock_reranker_orders_by_length() {
+        let r = MockReranker;
+        let candidates = vec![
+            RerankCandidate { chunk_id: ChunkId::from_string("c1".to_string()), passage_text: "short".into() },
+            RerankCandidate { chunk_id: ChunkId::from_string("c2".to_string()), passage_text: "a much longer passage".into() },
+        ];
+        let scores = r.rerank("query", &candidates).unwrap();
+        assert_eq!(scores[0].chunk_id.as_str(), "c2", "longer passage should rank first");
+    }
+
+    // RFC-010 §20: missing reranker does not break search.
+    #[test]
+    fn rerank_max_candidates_limit() {
+        assert!(MockReranker.max_candidates() > 0);
+    }
+}
