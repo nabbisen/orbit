@@ -754,3 +754,40 @@ startup so all icon glyphs render correctly.
 ### Tests
 **184 tests / 0 failures.** No new tests (icon rendering is a visual
 concern; the logic under the buttons is unchanged and already covered).
+
+---
+
+## [0.9.5] — 2026-06-08 — Navigation restructure + UX fixes
+
+### Changed
+
+**Navigation: two-level layout (sidebar groups + tab bar)**
+
+The six flat sidebar items are replaced with three top-level groups and
+per-group sub-tabs, following the approved hierarchy:
+
+| Group | Sidebar icon | Tabs |
+|---|---|---|
+| Search | `LucideIcon::Search` | Search · Sources |
+| AI | `LucideIcon::BrainCircuit` | Indexing · Storage · Models |
+| Settings | `LucideIcon::Settings` | (single page) |
+
+`NavGroup` enum added to `orbok-ui::state`. `ViewId::group()` maps any
+view to its parent group. `ViewId::group_default()` gives the default
+tab when entering a group. snora's `TabBar` / `app_tab_bar` render the
+horizontal tab strip. The `SwitchGroup(NavGroup)` message activates the
+default tab for a group.
+
+**Add Folder — native OS folder picker (`rfd 0.15`)**
+Clicking "Add Folder" now opens the operating system's native folder
+picker dialog. No path typing required. The selected path is scanned and
+indexed immediately. The manual path text-input field remains as a
+fallback for power users who prefer to type or paste a path.
+
+**Sources view — recursive scanning note**
+A subtitle line "All sub-folders are scanned recursively." appears below
+the add-folder controls, answering the immediate question new users have
+about search scope.
+
+### Tests
+**184 tests / 0 failures.**

@@ -125,18 +125,20 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
 /// Sources view (§8): add-source input, list or empty state.
 pub fn sources_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
-    // Add-source input row — always visible.
+    // Add-source controls — folder picker button + optional manual path input.
+    let add_btn = icon_btn(icons::icon_folder_plus(), tr(locale, MessageKey::SourcesAddFolder), Message::RequestAddSource);
     let add_input = text_input(
-        tr(locale, MessageKey::SourcesAddFolder),
+        "Or type a path manually…",
         &state.source_path_input,
     )
     .on_input(Message::SourcePathChanged)
     .on_submit(Message::RequestAddSource)
     .padding(8);
-    let add_btn = icon_btn(icons::icon_folder_plus(), tr(locale, MessageKey::SourcesAddFolder), Message::RequestAddSource);
+    let recursive_note = text("All sub-folders are scanned recursively.").size(11);
     let mut content = column![
         heading(tr(locale, MessageKey::SourcesTitle)),
-        row![container(add_input).width(Length::Fill), add_btn].spacing(8),
+        row![add_btn, container(add_input).width(Length::Fill)].spacing(8),
+        recursive_note,
     ];
     if state.sources.is_empty() {
         content = content.push(

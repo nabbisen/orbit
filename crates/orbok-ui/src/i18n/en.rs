@@ -12,6 +12,7 @@ pub fn message(key: MessageKey) -> &'static str {
         NavIndexing => "Indexing",
         NavStorage => "Storage",
         NavModels => "Models",
+        NavAi => "AI",
         NavSettings => "Settings",
         SearchPlaceholder => "Search local documents...",
         SearchButton => "Search",

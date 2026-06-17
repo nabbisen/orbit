@@ -68,14 +68,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
                 Message::RequestAddSource => {
-                    let path = app.state.source_path_input.trim().to_string();
-                    if !path.is_empty() {
+                    // Open the OS-native folder picker.
+                    // `pick_folder()` is synchronous; it blocks the update loop
+                    // while the dialog is open, which is expected for a modal dialog.
+                    let picked = rfd::FileDialog::new()
+                        .set_title("Select folder to search")
+                        .pick_folder();
+                    if let Some(folder) = picked {
+                        let path = folder.to_string_lossy().to_string();
+                        app.update(Message::SourcePathChanged(path.clone()));
                         if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
                             let cache = orbok_cache::CacheService::new(&data_dir);
                             match bootstrap::add_source(&catalog, &path) {
                                 Ok(card) => {
                                     let source_id = card.source_id.clone();
-                                    app.update(message.clone());
                                     app.update(Message::SourceAdded(card));
                                     match bootstrap::scan_and_index_source(&catalog, &cache, &source_id) {
                                         Ok(health) => app.update(Message::ScanCompleted(health)),

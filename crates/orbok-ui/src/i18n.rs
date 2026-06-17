@@ -64,6 +64,7 @@ pub enum MessageKey {
     NavIndexing,
     NavStorage,
     NavModels,
+    NavAi,
     NavSettings,
     // Search view
     SearchPlaceholder,

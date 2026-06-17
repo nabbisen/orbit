@@ -1,13 +1,27 @@
-//! Application shell (RFC-027): snora `AppLayout` with the sidebar
-//! navigation rail, dispatching to the page view functions.
+//! Application shell (RFC-027): snora `AppLayout` with a two-level navigation:
+//! a vertical sidebar for the three top-level groups (Search, AI, Settings) and
+//! a horizontal tab bar for the sub-views within each group.
 
 use crate::i18n::{MessageKey, tr};
-use crate::state::{AppState, Message, ViewId};
+use crate::state::{AppState, Message, NavGroup, ViewId};
 use crate::views;
 use iced::Element;
 use lucide_icons::Icon as LucideIcon;
-use snora::{AppLayout, Icon, LayoutDirection, SideBar, SideBarItem, render, widget::app_side_bar};
+use snora::{AppLayout, Icon, LayoutDirection, SideBar, SideBarItem, Tab, TabBar, render,
+            widget::{app_side_bar, app_tab_bar}};
 
+fn tab_action_to_msg(action: snora::TabAction<ViewId>) -> Message {
+    let snora::TabAction::Pressed(id) = action;
+    Message::Switch(id)
+}
+
+fn build_tab_bar(tabs: Vec<Tab<ViewId>>, active: ViewId) -> Element<'static, Message> {
+    app_tab_bar(
+        TabBar { tabs, active },
+        &tab_action_to_msg,
+        LayoutDirection::Ltr,
+    )
+}
 
 /// The iced application wrapper around [`AppState`].
 #[derive(Default)]
@@ -20,71 +34,94 @@ impl OrbokApp {
         Self { state }
     }
 
-    /// iced update entry. Pure transitions only; `orbok-app` layers
-    /// backend effects on top.
     pub fn update(&mut self, message: Message) {
         self.state.update(&message);
     }
 
-    /// iced view entry: sidebar + active page (RFC-027 component
-    /// mapping: AppShell → AppLayout, SidebarNav → app_side_bar).
     pub fn view(&self) -> Element<'_, Message> {
         let locale = self.state.locale;
-        let icon_for = |view: ViewId| -> Icon {
-            match view {
-                ViewId::Search   => Icon::Lucide(LucideIcon::Search),
-                ViewId::Sources  => Icon::Lucide(LucideIcon::FolderOpen),
-                ViewId::Indexing => Icon::Lucide(LucideIcon::ListOrdered),
-                ViewId::Storage  => Icon::Lucide(LucideIcon::Database),
-                ViewId::Models   => Icon::Lucide(LucideIcon::Cpu),
-                ViewId::Settings => Icon::Lucide(LucideIcon::Settings),
-            }
-        };
-        let tooltip_for = |view: ViewId| -> &'static str {
-            match view {
-                ViewId::Search => tr(locale, MessageKey::NavSearch),
-                ViewId::Sources => tr(locale, MessageKey::NavSources),
-                ViewId::Indexing => tr(locale, MessageKey::NavIndexing),
-                ViewId::Storage => tr(locale, MessageKey::NavStorage),
-                ViewId::Models => tr(locale, MessageKey::NavModels),
-                ViewId::Settings => tr(locale, MessageKey::NavSettings),
-            }
-        };
-        let items = ViewId::ALL
-            .iter()
-            .map(|view| SideBarItem {
-                view_id: *view,
-                icon: icon_for(*view),
-                tooltip: tooltip_for(*view).into(),
-                on_press: Message::Switch(*view),
-            })
-            .collect();
-        let side_bar = app_side_bar(
-            SideBar {
-                items,
-                active: self.state.active_view,
-            },
-            LayoutDirection::Ltr,
-        );
 
-        // Startup wizard takes priority over normal navigation (design §startup).
+        // ── Startup wizard takes priority ──────────────────────────────
         if self.state.wizard.is_some() {
             return views::wizard_view(&self.state);
         }
 
-        let body = match self.state.active_view {
-            ViewId::Search => views::search_view(&self.state),
-            ViewId::Sources => views::sources_view(&self.state),
+        // ── Sidebar: three top-level groups ───────────────────────────
+        let sidebar_items: Vec<SideBarItem<Message, NavGroup>> = vec![
+            SideBarItem {
+                view_id: NavGroup::Search,
+                icon: Icon::Lucide(LucideIcon::Search),
+                tooltip: tr(locale, MessageKey::NavSearch).to_string(),
+                on_press: Message::SwitchGroup(NavGroup::Search),
+            },
+            SideBarItem {
+                view_id: NavGroup::Ai,
+                icon: Icon::Lucide(LucideIcon::BrainCircuit),
+                tooltip: tr(locale, MessageKey::NavAi).to_string(),
+                on_press: Message::SwitchGroup(NavGroup::Ai),
+            },
+            SideBarItem {
+                view_id: NavGroup::Settings,
+                icon: Icon::Lucide(LucideIcon::Settings),
+                tooltip: tr(locale, MessageKey::NavSettings).to_string(),
+                on_press: Message::SwitchGroup(NavGroup::Settings),
+            },
+        ];
+        let side_bar = app_side_bar(
+            SideBar {
+                items: sidebar_items,
+                active: self.state.active_view.group(),
+            },
+            LayoutDirection::Ltr,
+        );
+
+        // ── Tab bar: sub-views within the active group ─────────────────
+        let tab_bar_el: Option<Element<'_, Message>> =
+            match self.state.active_view.group() {
+                NavGroup::Search => {
+                    Some(build_tab_bar(
+                        vec![
+                            Tab { id: ViewId::Search,  label: tr(locale, MessageKey::NavSearch).to_string(),  icon: None },
+                            Tab { id: ViewId::Sources, label: tr(locale, MessageKey::NavSources).to_string(), icon: None },
+                        ],
+                        self.state.active_view,
+                    ))
+                }
+                NavGroup::Ai => {
+                    Some(build_tab_bar(
+                        vec![
+                            Tab { id: ViewId::Indexing, label: tr(locale, MessageKey::NavIndexing).to_string(), icon: None },
+                            Tab { id: ViewId::Storage,  label: tr(locale, MessageKey::NavStorage).to_string(),  icon: None },
+                            Tab { id: ViewId::Models,   label: tr(locale, MessageKey::NavModels).to_string(),   icon: None },
+                        ],
+                        self.state.active_view,
+                    ))
+                }
+                NavGroup::Settings => None,
+            };
+
+        // ── Active page body ───────────────────────────────────────────
+        let page_body = match self.state.active_view {
+            ViewId::Search   => views::search_view(&self.state),
+            ViewId::Sources  => views::sources_view(&self.state),
             ViewId::Indexing => views::indexing_view(&self.state),
-            ViewId::Storage => views::storage_view(&self.state),
-            ViewId::Models => views::models_view(&self.state),
+            ViewId::Storage  => views::storage_view(&self.state),
+            ViewId::Models   => views::models_view(&self.state),
             ViewId::Settings => views::settings_view(&self.state),
+        };
+
+        // Compose: tab bar (if any) stacked above the page body.
+        let body: Element<'_, Message> = if let Some(tabs) = tab_bar_el {
+            iced::widget::column![tabs, page_body]
+                .spacing(0)
+                .into()
+        } else {
+            page_body
         };
 
         render(AppLayout::new(body).side_bar(side_bar))
     }
 
-    /// Window title.
     pub fn title(&self) -> String {
         tr(self.state.locale, MessageKey::AppTitle).to_string()
     }

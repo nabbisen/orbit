@@ -9,6 +9,14 @@ use crate::i18n::Locale;
 use orbok_models::SearchCapability;
 use orbok_search::SearchMode;
 
+/// Top-level navigation group for the two-level sidebar + tab layout.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NavGroup {
+    Search,
+    Ai,
+    Settings,
+}
+
 /// Top-level pages (GUI external design §3.1 order).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ViewId {
@@ -29,7 +37,26 @@ impl ViewId {
         ViewId::Models,
         ViewId::Settings,
     ];
+
+    /// Which top-level navigation group this view belongs to.
+    pub fn group(self) -> NavGroup {
+        match self {
+            ViewId::Search | ViewId::Sources => NavGroup::Search,
+            ViewId::Indexing | ViewId::Storage | ViewId::Models => NavGroup::Ai,
+            ViewId::Settings => NavGroup::Settings,
+        }
+    }
+
+    /// Default view to activate when the user first enters a group.
+    pub fn group_default(group: NavGroup) -> Self {
+        match group {
+            NavGroup::Search => ViewId::Search,
+            NavGroup::Ai => ViewId::Indexing,
+            NavGroup::Settings => ViewId::Settings,
+        }
+    }
 }
+
 
 /// Sidebar index-health summary.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -137,6 +164,7 @@ impl Default for AppState {
 #[derive(Debug, Clone)]
 pub enum Message {
     Switch(ViewId),
+    SwitchGroup(NavGroup),
     QueryChanged(String),
     SubmitSearch,
     SearchResultsReady(Vec<SearchResultDisplay>),
@@ -168,6 +196,7 @@ impl AppState {
     pub fn update(&mut self, message: &Message) {
         match message {
             Message::Switch(view) => self.active_view = *view,
+            Message::SwitchGroup(group) => self.active_view = ViewId::group_default(*group),
             Message::QueryChanged(query) => self.query = query.clone(),
             Message::SubmitSearch => {
                 let trimmed = self.query.trim();

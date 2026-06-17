@@ -23,4 +23,4 @@ pub mod views;
 mod tests;
 
 pub use shell::OrbokApp;
-pub use state::{AppState, IndexHealth, Message, SourceCard, ViewId, WizardFileCheck, WizardState};
+pub use state::{AppState, IndexHealth, Message, NavGroup, SourceCard, ViewId, WizardFileCheck, WizardState};

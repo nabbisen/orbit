@@ -12,6 +12,7 @@ pub fn message(key: MessageKey) -> &'static str {
         NavIndexing => "インデックス",
         NavStorage => "ストレージ",
         NavModels => "モデル",
+        NavAi => "AI",
         NavSettings => "設定",
         SearchPlaceholder => "ローカル文書を検索...",
         SearchButton => "検索",
