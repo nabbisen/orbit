@@ -8,6 +8,7 @@
 use crate::i18n::Locale;
 use orbok_models::SearchCapability;
 use orbok_search::SearchMode;
+use crate::notice::UserNotice;
 
 /// Top-level navigation group for the two-level sidebar + tab layout.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -147,6 +148,8 @@ pub struct AppState {
     pub source_path_input: String,
     /// When false (default), hide technical detail. Mature users can toggle on.
     pub show_advanced: bool,
+    /// Active user-facing notice (problem or confirmation), or `None`.
+    pub notice: Option<UserNotice>,
 }
 
 impl Default for AppState {
@@ -169,6 +172,7 @@ impl Default for AppState {
             wizard_path_input: String::new(),
             source_path_input: String::new(),
             show_advanced: false,
+            notice: None,
         }
     }
 }
@@ -179,6 +183,8 @@ pub enum Message {
     Switch(ViewId),
     SwitchGroup(NavGroup),
     ToggleAdvanced,
+    ShowNotice(UserNotice),
+    ClearNotice,
     QueryChanged(String),
     SubmitSearch,
     SearchResultsReady(Vec<SearchResultDisplay>),
@@ -224,6 +230,8 @@ impl AppState {
             Message::Switch(view) => self.active_view = *view,
             Message::SwitchGroup(group) => self.active_view = ViewId::group_default(*group),
             Message::ToggleAdvanced => self.show_advanced = !self.show_advanced,
+            Message::ShowNotice(n) => self.notice = Some(n.clone()),
+            Message::ClearNotice => self.notice = None,
             Message::QueryChanged(query) => self.query = query.clone(),
             Message::SubmitSearch => {
                 let trimmed = self.query.trim();
@@ -238,9 +246,11 @@ impl AppState {
                 self.search_results = results.clone();
                 self.search_running = false;
                 self.selected_result = None;
+                self.notice = None;
             }
             Message::SearchError(_) => {
                 self.search_running = false;
+                self.notice = Some(UserNotice::SearchDidNotFinish);
             }
             Message::SelectResult(idx) => self.selected_result = Some(*idx),
             Message::OpenSourceFile(_) => {} // handled by orbok-app
@@ -310,6 +320,7 @@ self.wizard = Some(WizardState::NotConfigured);
             Message::SourceAdded(card) => {
                 self.sources.push(card.clone());
                 self.source_path_input = String::new();
+                self.notice = Some(UserNotice::FolderAdded);
             }
             Message::SourceRemoved(id) => self.sources.retain(|s| s.source_id != *id),
             Message::ScanCompleted(health) | Message::HealthUpdated(health) => {

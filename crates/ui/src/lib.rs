@@ -16,6 +16,7 @@ pub use lucide_icons::LUCIDE_FONT_BYTES;
 
 pub mod i18n;
 pub mod shell;
+pub mod notice;
 pub mod state;
 pub mod views;
 

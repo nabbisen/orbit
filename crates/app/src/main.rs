@@ -97,10 +97,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     app.update(Message::SourceAdded(card));
                                     match bootstrap::scan_and_index_source(&catalog, &cache, &source_id) {
                                         Ok(health) => app.update(Message::ScanCompleted(health)),
-                                        Err(e) => tracing::error!("scan failed: {e}"),
+                                        Err(e) => {
+                                            tracing::error!("scan failed: {e}");
+                                            app.update(Message::ShowNotice(
+                                                orbok_ui::notice::UserNotice::FolderCouldNotBeAdded,
+                                            ));
+                                        }
                                     }
                                 }
-                                Err(e) => tracing::error!("add source failed: {e}"),
+                                Err(e) => {
+                                    tracing::error!("add source failed: {e}");
+                                    app.update(Message::ShowNotice(
+                                        orbok_ui::notice::UserNotice::FolderCouldNotBeAdded,
+                                    ));
+                                }
                             }
                         }
                     }

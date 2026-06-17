@@ -15,17 +15,46 @@ use lucide_icons::iced as icons;
 use orbok_models::SearchCapability;
 
 /// Small icon+label button. `icon_fn` is a lucide `icon_*()` function.
+/// Padding gives a comfortable click target (UX review: ~44px tall).
 fn icon_btn<'a>(
     icon_el: iced::widget::Text<'a>,
     label: &'a str,
     msg: Message,
 ) -> iced::widget::Button<'a, Message> {
-    button(row![icon_el.size(14), text(label).size(13)].spacing(4)).on_press(msg)
+    button(row![icon_el.size(16), text(label).size(15)].spacing(6))
+        .padding(Padding::from([12.0, 16.0]))
+        .on_press(msg)
+}
+
+/// A friendly, actionable notice card (UX review §8). Shows a plain title,
+/// an explanation, and — for problems — a recovery action. Confirmations
+/// show a Dismiss action instead. Status is conveyed in words, never colour
+/// alone, satisfying the accessibility requirement.
+fn friendly_notice<'a>(
+    locale: Locale,
+    notice: &crate::notice::UserNotice,
+) -> Element<'a, Message> {
+    let action_label = notice
+        .action(locale)
+        .unwrap_or_else(|| tr(locale, MessageKey::NoticeDismiss));
+    container(
+        column![
+            text(notice.title(locale).to_string()).size(18),
+            text(notice.body(locale).to_string()).size(15),
+            button(text(action_label.to_string()).size(15))
+                .padding(Padding::from([10.0, 16.0]))
+                .on_press(Message::ClearNotice),
+        ]
+        .spacing(8),
+    )
+    .padding(Padding::from([16.0, 16.0]))
+    .width(Length::Fill)
+    .into()
 }
 
 fn page<'a>(content: iced::widget::Column<'a, Message>) -> Element<'a, Message> {
     container(content.spacing(10))
-        .padding(Padding::from([24.0, 32.0]))
+        .padding(Padding::from([28.0, 40.0]))
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
@@ -49,6 +78,12 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
         row![container(input).width(Length::Fill), submit].spacing(8),
     ];
 
+    // Surface any active notice (problem or confirmation) at the top of the
+    // page so failures are never silent (UX review P0).
+    if let Some(notice) = &state.notice {
+        content = content.push(friendly_notice(locale, notice));
+    }
+
     // Search mode is "Auto" by default — only mature users need the
     // Exact/Conceptual switch. Hidden behind the Advanced toggle (less is more).
     if state.show_advanced {
@@ -71,8 +106,8 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
         content = content.push(
             column![
                 text(tr(locale, MessageKey::SearchNoSourcesTitle)).size(18),
-                text(tr(locale, MessageKey::SearchNoSourcesBody)).size(13),
-                button(text(tr(locale, MessageKey::SearchAddSource)).size(13))
+                text(tr(locale, MessageKey::SearchNoSourcesBody)).size(15),
+                button(text(tr(locale, MessageKey::SearchAddSource)).size(15))
                     .on_press(Message::Switch(crate::state::ViewId::Sources)),
             ]
             .spacing(6),
@@ -83,7 +118,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
                 .push(text(tr(locale, MessageKey::SearchKeywordOnlyNotice)).size(12));
         }
         if state.search_running {
-            content = content.push(text("Searching…").size(13));
+            content = content.push(text("Searching…").size(15));
         } else if let Some(last) = &state.last_query {
             if state.search_results.is_empty() {
                 content = content.push(
@@ -108,7 +143,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
                     let card = container(
                         column![
                             text(title_str.to_string()).size(15),
-                            text(result.display_path.clone()).size(11),
+                            text(result.display_path.clone()).size(12),
                             if !heading_str.is_empty() { text(heading_str.to_string()).size(11) }
                             else { text("").size(11) },
                             text(snippet_str.chars().take(120).collect::<String>()).size(12),
@@ -155,17 +190,21 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
     .on_input(Message::SourcePathChanged)
     .on_submit(Message::RequestAddSource)
     .padding(8);
-    let recursive_note = text("All sub-folders are scanned recursively.").size(11);
+    let recursive_note = text("All sub-folders are scanned recursively.").size(12);
     let mut content = column![
         heading(tr(locale, MessageKey::SourcesTitle)),
         row![add_btn, container(add_input).width(Length::Fill)].spacing(8),
         recursive_note,
     ];
+
+    if let Some(notice) = &state.notice {
+        content = content.push(friendly_notice(locale, notice));
+    }
     if state.sources.is_empty() {
         content = content.push(
             column![
                 text(tr(locale, MessageKey::SourcesEmptyTitle)).size(18),
-                text(tr(locale, MessageKey::SourcesEmptyBody)).size(13),
+                text(tr(locale, MessageKey::SourcesEmptyBody)).size(15),
             ]
             .spacing(6),
         );
@@ -181,7 +220,7 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
                 container(
                     column![
                         text(card.display_name.clone()).size(15),
-                        text(card.display_path.clone()).size(11),
+                        text(card.display_path.clone()).size(12),
                         text(source_summary(locale, card.indexed, card.stale, card.failed))
                             .size(12),
                         row![
@@ -242,7 +281,7 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
 
     let mut breakdown = column![
         text(tr(locale, MessageKey::StorageTitle)).size(26),
-        text(tr(locale, MessageKey::StorageIntro)).size(13),
+        text(tr(locale, MessageKey::StorageIntro)).size(15),
         text(format!("{gib:.3} GiB total")).size(20),
     ]
     .spacing(4);
@@ -279,7 +318,7 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
             ] {
                 if bytes > 0 {
                     breakdown = breakdown.push(
-                        text(format!("  {label}: {:.1} MiB", mib(bytes))).size(13),
+                        text(format!("  {label}: {:.1} MiB", mib(bytes))).size(15),
                     );
                 }
             }
@@ -290,8 +329,8 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
         breakdown,
         text(tr(locale, MessageKey::StorageSafeCleanupHeading)).size(15),
         row![
-            button(text(tr(locale, MessageKey::StorageClearSnippets)).size(13)),
-            button(text(tr(locale, MessageKey::StorageClearSearchCache)).size(13)),
+            button(text(tr(locale, MessageKey::StorageClearSnippets)).size(15)),
+            button(text(tr(locale, MessageKey::StorageClearSearchCache)).size(15)),
         ]
         .spacing(8),
         text(tr(locale, MessageKey::StorageDangerHeading)).size(15),

@@ -968,3 +968,57 @@ dependencies — no transitive dep conflicts.
 
 ### Tests
 **194 tests / 0 failures.**
+
+---
+
+## [0.9.11] — 2026-06-10 — Non-technical user UX hardening
+
+Implements the substance of the UX architect's review for non-technical users.
+The crate structure and message architecture are unchanged; the review's
+proposed parallel `screens/`+`copy.rs` layout was not adopted (it would have
+duplicated working code), but every user-facing recommendation was applied.
+
+### Added — visible notices (replaces silent failures, P0)
+
+New `orbok-ui::notice::UserNotice` — a centralized, friendly, actionable
+message type covering both problems and confirmations:
+
+- Problems: download failed, folder could not be added, search failed,
+  files moved/missing — each with a plain title, explanation, and a recovery
+  action ("Try again" / "Choose another folder").
+- Confirmations: folder added, search ready, previews cleared.
+
+`AppState.notice: Option<UserNotice>` with `ShowNotice` / `ClearNotice`
+messages. A `friendly_notice` card renders at the top of the Search and
+Sources views. Status is conveyed in words, never colour alone.
+
+Wired so that:
+- Download failure → returns to setup **and** shows "Download did not finish"
+  (was silent).
+- Folder-add / scan failure → shows "Folder was not added" (was logged only).
+- Search failure → shows "Search did not finish" (was a no-op).
+- Successful search clears any active notice.
+- Folder added → shows "Folder added" confirmation.
+
+### Changed — plain language (P0)
+
+User-visible labels reworded for a general audience (keys unchanged):
+- "Indexing" → "Preparing" / "Preparing search"
+- "Index is up to date" → "Search is ready"
+- "Semantic search" → "search by meaning"; "keyword search" → "basic search"
+- Storage buckets: "Caches" → "Temporary previews", "Search index" →
+  "Search data", "AI models" → "Search helper"
+- "Reset catalog" → "Reset saved app data"
+
+Applied to both English and Japanese catalogs.
+
+### Changed — readability and click targets (P0)
+
+- Core body text 13 px → 15 px; secondary metadata 11 px → 12 px (11 px no
+  longer used for any readable content).
+- Buttons via `icon_btn` now carry `[12, 16]` padding for a ~44 px target.
+- Page padding 24/32 → 28/40 for calmer layout.
+
+### Tests
+**196 tests / 0 failures** (184 non-GUI + 12 orbok-ui, incl. 2 new notice
+tests). All 17 new i18n keys are covered by the catalog-completeness test.

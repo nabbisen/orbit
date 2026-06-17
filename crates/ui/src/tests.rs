@@ -52,6 +52,23 @@ const ALL_KEYS: &[MessageKey] = &[
     MessageKey::SettingsLanguageHeading,
     MessageKey::SettingsPrivacyHeading,
     MessageKey::SettingsPrivacyLocalOnly,
+    MessageKey::NoticeDownloadFailTitle,
+    MessageKey::NoticeDownloadFailBody,
+    MessageKey::NoticeFolderFailTitle,
+    MessageKey::NoticeFolderFailBody,
+    MessageKey::NoticeSearchFailTitle,
+    MessageKey::NoticeSearchFailBody,
+    MessageKey::NoticeFilesMissingTitle,
+    MessageKey::NoticeFilesMissingBody,
+    MessageKey::NoticeFolderAddedTitle,
+    MessageKey::NoticeFolderAddedBody,
+    MessageKey::NoticeSearchReadyTitle,
+    MessageKey::NoticeSearchReadyBody,
+    MessageKey::NoticePreviewsClearedTitle,
+    MessageKey::NoticePreviewsClearedBody,
+    MessageKey::NoticeActionTryAgain,
+    MessageKey::NoticeActionChooseFolder,
+    MessageKey::NoticeDismiss,
     MessageKey::Cancel,
     MessageKey::Confirm,
 ];
@@ -131,3 +148,38 @@ fn navigation_order_is_search_first() {
 }
 
 mod smoke_views;
+
+// UX review §7: failures surface a visible notice; success clears it.
+#[test]
+fn failures_surface_notice_success_clears_it() {
+    use crate::notice::UserNotice;
+    let mut state = AppState::default();
+    assert!(state.notice.is_none(), "no notice initially");
+
+    // A search error must produce a visible, friendly notice.
+    state.update(&Message::SearchError("backend exploded".into()));
+    assert_eq!(state.notice, Some(UserNotice::SearchDidNotFinish));
+
+    // A successful result must clear the notice.
+    state.update(&Message::SearchResultsReady(vec![]));
+    assert!(state.notice.is_none(), "successful search clears the notice");
+
+    // ClearNotice dismisses any active notice.
+    state.update(&Message::ShowNotice(UserNotice::DownloadDidNotFinish));
+    assert!(state.notice.is_some());
+    state.update(&Message::ClearNotice);
+    assert!(state.notice.is_none(), "ClearNotice dismisses the notice");
+}
+
+// UX review: a problem notice offers a recovery action; a confirmation does not.
+#[test]
+fn problem_notices_offer_action_confirmations_do_not() {
+    use crate::notice::UserNotice;
+    let loc = Locale::En;
+    assert!(UserNotice::DownloadDidNotFinish.action(loc).is_some());
+    assert!(UserNotice::SearchDidNotFinish.action(loc).is_some());
+    assert!(UserNotice::FolderAdded.action(loc).is_none());
+    assert!(UserNotice::SearchReady.action(loc).is_none());
+    assert!(UserNotice::DownloadDidNotFinish.is_problem());
+    assert!(!UserNotice::FolderAdded.is_problem());
+}

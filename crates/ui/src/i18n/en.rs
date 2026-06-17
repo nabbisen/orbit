@@ -9,7 +9,7 @@ pub fn message(key: MessageKey) -> &'static str {
         LocalOnlyBadge => "Local Only",
         NavSearch => "Search",
         NavSources => "Sources",
-        NavIndexing => "Indexing",
+        NavIndexing => "Preparing",
         NavStorage => "Storage",
         NavModels => "Models",
         NavAi => "AI",
@@ -21,7 +21,7 @@ pub fn message(key: MessageKey) -> &'static str {
         SearchAddSource => "Add Source",
         SearchNoResults => "No results found",
         SearchKeywordOnlyNotice => {
-            "Semantic search is unavailable. Keyword search still works."
+            "Search by meaning is not set up yet. Basic search still works."
         }
         SourcesTitle => "Sources",
         SourcesEmptyTitle => "No sources added",
@@ -33,22 +33,22 @@ pub fn message(key: MessageKey) -> &'static str {
         SourcesStatusActive => "Active",
         SourcesStatusPaused => "Paused",
         SourcesStatusMissing => "Missing",
-        IndexingTitle => "Indexing",
-        IndexingIdle => "Index is up to date",
+        IndexingTitle => "Preparing search",
+        IndexingIdle => "Search is ready",
         IndexingHealthIndexed => "Indexed",
         IndexingHealthStale => "Stale",
         IndexingHealthFailed => "Failed",
         IndexingHealthQueued => "Queued",
         StorageTitle => "Storage",
         StorageIntro => "See what orbok stores and clean up safely.",
-        StorageGroupSearchIndex => "Search index",
-        StorageGroupModels => "AI models",
-        StorageGroupCaches => "Caches",
+        StorageGroupSearchIndex => "Search data",
+        StorageGroupModels => "Search helper",
+        StorageGroupCaches => "Temporary previews",
         StorageSafeCleanupHeading => "Safe cleanup",
-        StorageClearSnippets => "Clear temporary snippets",
-        StorageClearSearchCache => "Clear expired search cache",
+        StorageClearSnippets => "Clear temporary previews",
+        StorageClearSearchCache => "Clear old search results",
         StorageDangerHeading => "Dangerous",
-        StorageResetCatalog => "Reset catalog...",
+        StorageResetCatalog => "Reset saved app data...",
         StorageResetWarning => {
             "This removes registered sources and all indexes. \
              Your source files are never deleted."
@@ -59,8 +59,8 @@ pub fn message(key: MessageKey) -> &'static str {
         ModelsStatusAvailable => "Available",
         ModelsStatusMissing => "Missing",
         ModelsKeywordOnlyHint => {
-            "Keyword search still works. Install or locate an embedding \
-             model to enable conceptual search."
+            "Basic search still works. Add a search helper to also \
+             search by meaning."
         }
         SettingsTitle => "Settings",
         SettingsLanguageHeading => "Language",
@@ -78,7 +78,7 @@ pub fn message(key: MessageKey) -> &'static str {
         BadgeKeyword => "Keyword",
         BadgeSemantic => "Semantic",
         BadgeFused => "Fused",
-        WizardTitleNotConfigured => "Set up semantic search",
+        WizardTitleNotConfigured => "Set up search by meaning",
         WizardTitleFileMissing => "Embedding model not found",
         WizardTitleValidating => "Checking model folder",
         WizardTitleReady => "Embedding model ready",
@@ -103,6 +103,32 @@ pub fn message(key: MessageKey) -> &'static str {
         WizardValidationOk => "found",
         WizardValidationFail => "not found",
         WizardReadyBody => "Semantic search is now available.",
+        NoticeDownloadFailTitle => "Download did not finish",
+        NoticeDownloadFailBody => {
+            "We could not finish the download. Please check your \
+             connection and try again."
+        }
+        NoticeFolderFailTitle => "Folder was not added",
+        NoticeFolderFailBody => {
+            "We could not add that folder. Please choose another folder \
+             or check that you can open it."
+        }
+        NoticeSearchFailTitle => "Search did not finish",
+        NoticeSearchFailBody => "Something went wrong while searching. Please try again.",
+        NoticeFilesMissingTitle => "Files may have moved",
+        NoticeFilesMissingBody => {
+            "Some files are no longer where orbok expected them. This can \
+             happen if a drive was disconnected or files were moved."
+        }
+        NoticeFolderAddedTitle => "Folder added",
+        NoticeFolderAddedBody => "orbok is preparing your search now.",
+        NoticeSearchReadyTitle => "Search is ready",
+        NoticeSearchReadyBody => "Your files are ready to search.",
+        NoticePreviewsClearedTitle => "Temporary previews cleared",
+        NoticePreviewsClearedBody => "Freed up space. Your files are untouched.",
+        NoticeActionTryAgain => "Try again",
+        NoticeActionChooseFolder => "Choose another folder",
+        NoticeDismiss => "Dismiss",
         Cancel => "Cancel",
         Confirm => "Confirm",
     }
