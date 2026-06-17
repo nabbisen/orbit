@@ -83,7 +83,7 @@ impl DocumentExtractor for PdfExtractor {
         let pages: Vec<(u32, u16)> = doc.page_iter().collect();
         let total_pages = pages.len() as u32;
 
-        for (page_idx, (obj_id, gen_id)) in pages.iter().enumerate() {
+        for (page_idx, (obj_id, _gen_id)) in pages.iter().enumerate() {
             let page_num = (page_idx + 1) as u32;
             let text = extract_page_text(&doc, *obj_id, page_num)?;
             if text.trim().is_empty() {

@@ -491,3 +491,64 @@ in release mode, both metrics will improve further.
 - `rfcs/archive/`: 1 RFC (RFC-026)
 - `rfcs/draft/`: 0 (empty)
 - `rfcs/proposed/`: 0 (empty)
+
+---
+
+## [0.9.0] — 2026-06-07 — Release Candidate
+
+> **v1.0.0 not yet released.** This is the release candidate.
+> v1.0.0 requires explicit project owner confirmation.
+
+### Added
+
+**DOCX extractor** (`orbok-extract/src/docx.rs`)
+- Microsoft Word 2007+ (`.docx`) files extracted via ZIP+XML parsing.
+- Reads `word/document.xml`, recovers paragraph text from `<w:t>` runs.
+- `LocationQuality::Approximate` (paragraph order preserved; no byte offsets).
+- Registered in `ExtractorRegistry` and `PluginRegistry`.
+- Failure-isolated: parse errors return typed `ParserError`, no panic.
+
+**HTML extractor** (`orbok-extract/src/html.rs`)
+- HTML/HTM files extracted via pure state-machine tag stripper.
+- Block-level elements (`<p>`, `<div>`, `<h1>`–`<h6>`, `<li>`, etc.) produce paragraph breaks.
+- `<h1>`–`<h6>` headings tracked in `heading_path` (e.g. "Guide > Install").
+- `<script>`, `<style>`, `<head>` content suppressed.
+- Common entities decoded (`&amp;`, `&lt;`, `&gt;`, `&nbsp;`, `&quot;`).
+- `LocationQuality::Approximate`.
+- Registered for `.html` and `.htm`.
+
+**End-to-end pipeline integration test**
+- `e2e_full_pipeline_write_scan_index_search` in v09_rc:
+  writes Markdown + HTML files, runs scan → extract → index → search,
+  then verifies:
+  - `ERR-4042` found and ranked first in `auth.md`
+  - `snippet cache cleanup` returns results
+  - HTML `client_secret` content is indexed and searchable
+
+**Pre-release gate tests**
+- `all_documented_file_types_have_extractor`: every extension claimed in
+  `docs/src/users/file_types.md` has a registered extractor.
+- `plugin_registry_all_extractors_have_privacy_notes`: all 5 plugins
+  (markdown, docx, html, plain-text, pdf) have license + privacy note.
+- `startup_recovery_clean_on_fresh_catalog`: RFC-018 recovery path.
+- `pipeline_leaves_no_running_jobs_after_completion`: clean shutdown
+  contract (no jobs stuck in `running`).
+
+### Fixed
+- **HTML skip-depth bug**: nested `<style>` inside `<head>` incremented
+  `skip_depth` without a matching decrement, causing the entire document
+  body to be silently skipped. Fixed: nested skip-depth only counts
+  same-tag nesting (e.g. `<head>…<head>…</head>…</head>`).
+- **Heading detection order**: closing `</h1>` was matched by the
+  generic BLOCK_TAGS branch before reaching the heading branch, emitting
+  headings as plain paragraphs. Fixed by checking heading close tags
+  first in the dispatch chain.
+- All 6 compiler warnings across orbok-search, orbok-extract,
+  orbok-workers resolved. Build is warning-free.
+
+### Tests
+- `orbok-extract`: 29 tests (DOCX and HTML covered by v09_rc in
+  orbok-workers, which is the integration host).
+- `orbok-workers`: 68 tests (+12 covering DOCX, HTML, E2E pipeline,
+  and pre-release gates).
+- Workspace total: **169 tests / 0 failures / 0 warnings**.

@@ -10,6 +10,8 @@ pub mod normalize;
 pub mod registry;
 pub mod types;
 
+pub mod docx;
+pub mod html;
 mod markdown;
 pub mod plugin;
 pub mod pdf;

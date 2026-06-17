@@ -9,12 +9,13 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
-lopdf = "0.34"
 orbok-core = { workspace = true }
 orbok-db = { workspace = true }
 orbok-fs = { workspace = true }
+lopdf = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
+zip = { workspace = true }
 
 [dev-dependencies]
 orbok-embed = { workspace = true }

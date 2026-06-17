@@ -5,10 +5,9 @@
 //! accounting per row is expensive; page-level and aggregate-query
 //! measurements are fast and accurate enough for the Storage view.
 
-use orbok_core::{OrbokError, OrbokResult, StorageCategory, now_iso8601};
+use orbok_core::{OrbokResult, StorageCategory};
 use orbok_db::Catalog;
 use orbok_db::repo::StorageAccountingRepository;
-use rusqlite::params;
 use std::path::Path;
 
 /// Compute and persist storage accounting for the Storage view

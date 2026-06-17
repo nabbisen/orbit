@@ -26,12 +26,9 @@ pub fn contains_cjk(s: &str) -> bool {
     s.chars().any(|c| {
         matches!(c,
             '\u{1100}'..='\u{11FF}'   // Hangul Jamo
-            | '\u{3000}'..='\u{9FFF}' // CJK block + kana + hangul
+            | '\u{3000}'..='\u{9FFF}' // CJK + kana (covers hiragana, katakana, CJK)
             | '\u{F900}'..='\u{FAFF}' // CJK compatibility
-            | '\u{FF00}'..='\u{FFEF}' // Fullwidth + halfwidth
-            | '\u{3040}'..='\u{309F}' // Hiragana
-            | '\u{30A0}'..='\u{30FF}' // Katakana
-            | '\u{4E00}'..='\u{9FFF}' // CJK unified ideographs
+            | '\u{FF00}'..='\u{FFEF}' // Fullwidth + halfwidth forms
         )
     })
 }

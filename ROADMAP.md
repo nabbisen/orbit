@@ -192,3 +192,25 @@ Three conditions must be verified before v1.0.0 is released:
 - XLSX, PPTX extraction (new RFC)
 - Plugin dynamic loading (RFC-028 full activation)
 - Mobile/browser companion (new RFC)
+
+## v0.9.0 RC status
+
+| Item | Status |
+|---|:---:|
+| DOCX extractor (ZIP+XML) | ✓ |
+| HTML extractor (tag stripper) | ✓ |
+| End-to-end pipeline integration test | ✓ |
+| Pre-release gate tests | ✓ |
+| Zero compiler warnings | ✓ |
+| 169 tests / 0 failures | ✓ |
+
+## v1.0.0 checklist (awaiting owner confirmation)
+
+- [ ] Real embedding model installed and validated
+- [ ] Benchmark with real model: recall@5 ≥ 0.75
+- [ ] Release build p99 ≤ 200 ms on 1,000-document corpus
+- [ ] Manual QA signed off: Linux
+- [ ] Manual QA signed off: macOS
+- [ ] Manual QA signed off: Windows
+- [ ] CHANGELOG finalized
+- [ ] **Explicit owner confirmation received**

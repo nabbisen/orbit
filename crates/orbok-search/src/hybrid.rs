@@ -2,14 +2,13 @@
 //! retrieval through RRF fusion. Degrades gracefully when either source
 //! is unavailable (RFC-009 §21).
 
-use crate::fts5::Fts5KeywordEngine;
 use crate::multilingual::MultilingualKeywordEngine;
 use crate::rrf::{FusedCandidate, rrf_fuse};
 use crate::service::{MatchBadge, SearchResult};
 use crate::snippet::{chunk_record_for, load_snippet};
 use crate::vector::ExactVectorSearch;
 use crate::KeywordSearchEngine;
-use orbok_core::{ChunkId, FileId, OrbokResult};
+use orbok_core::OrbokResult;
 use orbok_db::Catalog;
 use orbok_models::{CrossEncoderReranker, EmbeddingModel, RerankCandidate, l2_normalize};
 use std::path::Path;

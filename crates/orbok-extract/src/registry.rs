@@ -1,6 +1,8 @@
 //! Extractor registry (RFC-005 §6: selection by file type, typed
 //! unsupported results).
 
+use crate::docx::DocxExtractor;
+use crate::html::HtmlExtractor;
 use crate::markdown::MarkdownExtractor;
 use crate::pdf::PdfExtractor;
 use crate::text::PlainTextExtractor;
@@ -17,7 +19,7 @@ pub struct ExtractorRegistry {
 impl Default for ExtractorRegistry {
     fn default() -> Self {
         Self {
-            extractors: vec![Box::new(MarkdownExtractor), Box::new(PlainTextExtractor), Box::new(PdfExtractor)],
+            extractors: vec![Box::new(MarkdownExtractor), Box::new(DocxExtractor), Box::new(HtmlExtractor), Box::new(PlainTextExtractor), Box::new(PdfExtractor)],
         }
     }
 }

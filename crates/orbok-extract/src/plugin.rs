@@ -70,10 +70,36 @@ pub struct PluginRegistry {
 
 impl Default for PluginRegistry {
     fn default() -> Self {
+        use crate::docx::DocxExtractor;
+        use crate::html::HtmlExtractor;
         use crate::markdown::MarkdownExtractor;
         use crate::pdf::PdfExtractor;
         use crate::text::PlainTextExtractor;
         let mut reg = Self { plugins: Vec::new() };
+        reg.register_builtin(
+            PluginManifest {
+                plugin_id: "docx-v1",
+                display_name: "Microsoft Word (DOCX)",
+                extensions: &["docx"],
+                author: "orbok built-in",
+                license: "Apache-2.0",
+                builtin: true,
+                privacy_note: "Does not transmit content externally.",
+            },
+            Box::new(DocxExtractor),
+        );
+        reg.register_builtin(
+            PluginManifest {
+                plugin_id: "html-v1",
+                display_name: "HTML",
+                extensions: &["html", "htm"],
+                author: "orbok built-in",
+                license: "Apache-2.0",
+                builtin: true,
+                privacy_note: "Does not transmit content externally.",
+            },
+            Box::new(HtmlExtractor),
+        );
         reg.register_builtin(
             PluginManifest {
                 plugin_id: "markdown-v1",
