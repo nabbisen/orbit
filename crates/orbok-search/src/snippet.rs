@@ -76,3 +76,24 @@ pub fn chunk_record_for(catalog: &Catalog, chunk_id: &orbok_core::ChunkId)
         Err(e) => Err(OrbokError::Database(e.to_string())),
     }
 }
+
+/// Sanitize a snippet for safe display in the UI (RFC-015 §18, FR-091).
+///
+/// Escapes `< > & " '` so that snippet text rendered in the GUI cannot
+/// be interpreted as HTML markup. This is a defense-in-depth measure;
+/// the iced/snora renderer does not evaluate HTML from text widgets,
+/// but the escaping ensures correctness regardless of rendering backend.
+pub fn html_escape(raw: &str) -> String {
+    let mut out = String::with_capacity(raw.len() + 16);
+    for c in raw.chars() {
+        match c {
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '&' => out.push_str("&amp;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            _ => out.push(c),
+        }
+    }
+    out
+}

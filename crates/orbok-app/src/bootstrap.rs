@@ -12,7 +12,7 @@ use std::path::PathBuf;
 
 /// Resolve the orbok local-data directory.
 pub fn data_dir() -> PathBuf {
-    if let Ok(env) = std::env::var("ORBIT_DATA_DIR") {
+    if let Ok(env) = std::env::var("ORBOK_DATA_DIR") {
         return PathBuf::from(env);
     }
     dirs::data_local_dir()

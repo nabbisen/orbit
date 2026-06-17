@@ -222,3 +222,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `orbok-models`: 7 tests (+2 reranker tests).
 - `orbok-workers`: 26 tests (+14 covering RFC-010/011/013/014).
 - Workspace total: **110 tests / 0 failures**.
+
+---
+
+## [0.5.0] — 2026-06-07
+
+### Added
+
+**RFC-012 — Model Registry and Installation Workflow (M12)**
+- `ModelRepository` in orbok-db: full CRUD over the `models` catalog table
+  with `insert`, `get`, `list_by_role`, `list_all`, `set_status`,
+  `validate` (file-existence + dimension check), `locate` (register
+  existing on-disk model), and `mark_embedding_dependents_stale`.
+- `ModelRole` and `ModelStatus` enums with catalog-string round-trips.
+- `ModelId` typed ID added to orbok-core.
+- App works in keyword-only mode with empty model registry (RFC-012 §17).
+- No model download occurs without explicit user action.
+
+**RFC-015 — Security Hardening**
+- `html_escape(raw)` in `orbok-search::snippet`: escapes `<>&"'` in
+  snippet text before passing to the UI (RFC-015 §18 defense-in-depth).
+- Security test module documents and exercises existing protections:
+  PathGuard outside-source rejection, path-traversal via `..`, symlink
+  escape blocking (all implemented in RFC-003/004, now explicitly
+  labelled as security tests per RFC-015 §19).
+
+**RFC-016 — Benchmark and Retrieval Evaluation Harness**
+- New `orbok-bench` crate:
+  - `corpus::generate(dir, n)` — synthetic Markdown documents (8
+    templates: auth, storage, search, API, security, Japanese, code,
+    models).
+  - `queries::LABELED_QUERIES` — 8 labeled queries with expected
+    document patterns.
+  - `metrics::measure_search_latency` — p50/p95/p99 ms measurement
+    with 3 warm-up rounds.
+  - `metrics::compute_recall` — recall@5 against labeled queries.
+  - `report::BenchmarkResult::write_json/write_markdown` — machine-
+    readable and human-readable output (RFC-016 §12).
+- Benchmark smoke test verifies the harness runs on a 10-document
+  corpus without errors.
+
+**RFC-017 — Packaging and Distribution**
+- `--version` / `-V` flag in the orbok binary.
+- `build.rs` in orbok-app embeds `CARGO_PKG_VERSION`.
+- `scripts/checksum.sh` generates SHA-256 checksums for release archives.
+
+**RFC-018 — Crash Recovery and Diagnostics**
+- `run_startup_recovery(catalog, cache_path)` in orbok-workers:
+  - Resets `running` → `queued` for jobs left by a crashed session.
+  - Returns `RecoveryReport` with counts of reset and pending jobs.
+  - Detects missing or corrupt cache DB (backup + recreate path).
+- `check_catalog_integrity(catalog)` → `IntegrityReport`: detects
+  orphaned child chunks, orphaned keyword/embedding records, and files
+  without a parent source. Read-only; does not repair.
+- `RecoveryReport` and `IntegrityReport` are printed at startup if
+  anomalies are found.
+
+**orbok-ui**
+- `StorageDataReady` message and `storage_rows` field already wired
+  in v0.4; `update_storage_accounting` now called after each pipeline
+  run to keep storage view current.
+
+### Tests
+- `orbok-db`: 15 tests (model repo tested via v05 integration suite).
+- `orbok-workers`: 37 tests (+11 covering RFC-012/015/016/018).
+- Workspace total: **115 tests / 0 failures**.

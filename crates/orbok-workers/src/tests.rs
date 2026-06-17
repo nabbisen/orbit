@@ -3,3 +3,5 @@ mod embedding_hybrid;
 mod pipeline;
 
 mod v04_features;
+
+mod v05_features;

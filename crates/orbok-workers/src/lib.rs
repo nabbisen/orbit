@@ -17,6 +17,7 @@
 mod chunk_and_index;
 mod embedding;
 mod extract;
+pub mod recovery;
 pub mod storage;
 
 #[cfg(test)]
@@ -25,6 +26,7 @@ mod tests;
 pub use chunk_and_index::ChunkAndIndexWorker;
 pub use embedding::EmbeddingWorker;
 pub use extract::ExtractionWorker;
+pub use recovery::{IntegrityReport, RecoveryReport, check_catalog_integrity, run_startup_recovery};
 pub use storage::update_storage_accounting;
 
 use orbok_core::OrbokResult;

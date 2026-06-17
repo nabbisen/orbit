@@ -20,5 +20,6 @@ orbok-extract = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]
+orbok-bench = { path = "../orbok-bench" }
 orbok-ui = { workspace = true }
 tempfile = { workspace = true }
