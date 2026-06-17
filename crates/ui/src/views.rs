@@ -44,22 +44,27 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
         .padding(8);
     let submit = icon_btn(icons::icon_search(), tr(locale, MessageKey::SearchButton), Message::SubmitSearch);
 
-    let _mode = state.search_mode; // TODO: highlight active mode button
-    let mode_selector = row![
-        text(tr(locale, MessageKey::SearchModeLabel)).size(12),
-        button(text(tr(locale, MessageKey::SearchModeAuto)).size(11))
-            .on_press(Message::SetSearchMode(orbok_search::SearchMode::Auto)),
-        button(text(tr(locale, MessageKey::SearchModeExact)).size(11))
-            .on_press(Message::SetSearchMode(orbok_search::SearchMode::Exact)),
-        button(text(tr(locale, MessageKey::SearchModeConceptual)).size(11))
-            .on_press(Message::SetSearchMode(orbok_search::SearchMode::Conceptual)),
-    ]
-    .spacing(4);
     let mut content = column![
         heading(tr(locale, MessageKey::NavSearch)),
         row![container(input).width(Length::Fill), submit].spacing(8),
-        mode_selector,
     ];
+
+    // Search mode is "Auto" by default — only mature users need the
+    // Exact/Conceptual switch. Hidden behind the Advanced toggle (less is more).
+    if state.show_advanced {
+        content = content.push(
+            row![
+                text(tr(locale, MessageKey::SearchModeLabel)).size(12),
+                button(text(tr(locale, MessageKey::SearchModeAuto)).size(11))
+                    .on_press(Message::SetSearchMode(orbok_search::SearchMode::Auto)),
+                button(text(tr(locale, MessageKey::SearchModeExact)).size(11))
+                    .on_press(Message::SetSearchMode(orbok_search::SearchMode::Exact)),
+                button(text(tr(locale, MessageKey::SearchModeConceptual)).size(11))
+                    .on_press(Message::SetSearchMode(orbok_search::SearchMode::Conceptual)),
+            ]
+            .spacing(4),
+        );
+    }
 
     if state.sources.is_empty() {
         // Required empty state: no sources (GUI design §7.6).
@@ -107,7 +112,23 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
                             if !heading_str.is_empty() { text(heading_str.to_string()).size(11) }
                             else { text("").size(11) },
                             text(snippet_str.chars().take(120).collect::<String>()).size(12),
-                            text(result.badges.join("  ")).size(11),
+                            {
+                                // Less is more: by default show only status
+                                // badges that affect trust (Stale/Missing).
+                                // Match-type badges are advanced detail.
+                                let shown: Vec<String> = if state.show_advanced {
+                                    result.badges.clone()
+                                } else {
+                                    result.badges.iter()
+                                        .filter(|b| {
+                                            let l = b.to_lowercase();
+                                            l.contains("stale") || l.contains("missing")
+                                        })
+                                        .cloned()
+                                        .collect()
+                                };
+                                text(shown.join("  ")).size(11)
+                            },
                         ]
                         .spacing(2),
                     )
@@ -186,15 +207,23 @@ pub fn indexing_view(state: &AppState) -> Element<'_, Message> {
         container(column![text(label).size(12), text(value.to_string()).size(20)].spacing(2))
             .padding(10)
     };
+    // Less is more: always show "Indexed". Show queued/stale/failed cells
+    // only when they are non-zero (or when advanced view is on), so a healthy
+    // idle state is a single clean number rather than three zeros of noise.
+    let mut cells = row![cell(tr(locale, MessageKey::IndexingHealthIndexed), h.indexed)]
+        .spacing(10);
+    if h.queued > 0 || state.show_advanced {
+        cells = cells.push(cell(tr(locale, MessageKey::IndexingHealthQueued), h.queued));
+    }
+    if h.stale > 0 || state.show_advanced {
+        cells = cells.push(cell(tr(locale, MessageKey::IndexingHealthStale), h.stale));
+    }
+    if h.failed > 0 || state.show_advanced {
+        cells = cells.push(cell(tr(locale, MessageKey::IndexingHealthFailed), h.failed));
+    }
     let content = column![
         heading(tr(locale, MessageKey::IndexingTitle)),
-        row![
-            cell(tr(locale, MessageKey::IndexingHealthIndexed), h.indexed),
-            cell(tr(locale, MessageKey::IndexingHealthQueued), h.queued),
-            cell(tr(locale, MessageKey::IndexingHealthStale), h.stale),
-            cell(tr(locale, MessageKey::IndexingHealthFailed), h.failed),
-        ]
-        .spacing(10),
+        cells,
         text(if h.queued == 0 {
             tr(locale, MessageKey::IndexingIdle).to_string()
         } else {
@@ -219,12 +248,40 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
     .spacing(4);
 
     if !state.storage_rows.is_empty() {
-        for (category, bytes, count) in &state.storage_rows {
-            if *bytes > 0 || *count > 0 {
-                let mib = *bytes as f64 / (1024.0 * 1024.0);
-                breakdown = breakdown.push(
-                    text(format!("  {category}: {mib:.1} MiB ({count} items)")).size(12),
-                );
+        if state.show_advanced {
+            // Advanced: raw per-category breakdown.
+            for (category, bytes, count) in &state.storage_rows {
+                if *bytes > 0 || *count > 0 {
+                    let mib = *bytes as f64 / (1024.0 * 1024.0);
+                    breakdown = breakdown.push(
+                        text(format!("  {category}: {mib:.1} MiB ({count} items)")).size(12),
+                    );
+                }
+            }
+        } else {
+            // Default: three friendly buckets — no engine jargon (less is more).
+            let mut search_index = 0u64;
+            let mut ai_models = 0u64;
+            let mut caches = 0u64;
+            for (category, bytes, _) in &state.storage_rows {
+                match category.as_str() {
+                    "keyword_index" | "vector_index" => search_index += bytes,
+                    "model_files" => ai_models += bytes,
+                    "snippet_cache" | "search_cache" | "temporary_extraction" => caches += bytes,
+                    _ => {} // persistent_catalog, logs — folded into total only
+                }
+            }
+            let mib = |b: u64| b as f64 / (1024.0 * 1024.0);
+            for (label, bytes) in [
+                (tr(locale, MessageKey::StorageGroupSearchIndex), search_index),
+                (tr(locale, MessageKey::StorageGroupModels), ai_models),
+                (tr(locale, MessageKey::StorageGroupCaches), caches),
+            ] {
+                if bytes > 0 {
+                    breakdown = breakdown.push(
+                        text(format!("  {label}: {:.1} MiB", mib(bytes))).size(13),
+                    );
+                }
             }
         }
     }
@@ -283,6 +340,20 @@ pub fn settings_view(state: &AppState) -> Element<'_, Message> {
         language_row,
         text(tr(locale, MessageKey::SettingsPrivacyHeading)).size(15),
         text(tr(locale, MessageKey::SettingsPrivacyLocalOnly)).size(13),
+        text(tr(locale, MessageKey::SettingsAdvancedHeading)).size(15),
+        row![
+            button(
+                text(if state.show_advanced {
+                    tr(locale, MessageKey::SettingsAdvancedOn)
+                } else {
+                    tr(locale, MessageKey::SettingsAdvancedOff)
+                })
+                .size(13),
+            )
+            .on_press(Message::ToggleAdvanced),
+            text(tr(locale, MessageKey::SettingsAdvancedHint)).size(11),
+        ]
+        .spacing(8),
     ];
     page(content)
 }

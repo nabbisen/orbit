@@ -48,6 +48,13 @@ pub const RECOMMENDED: ModelSpec = ModelSpec {
 /// Called inside `tokio::spawn`; every `send` failure is silently
 /// ignored (it means the UI was closed or the subscription was dropped).
 pub async fn run(dest_dir: PathBuf, mut tx: Sender<Message>) {
+    tracing::info!(
+        repo = RECOMMENDED.hf_repo,
+        model = RECOMMENDED.display_name,
+        license = RECOMMENDED.license,
+        size = RECOMMENDED.size_hint,
+        "starting model download from HuggingFace"
+    );
     let files_total = RECOMMENDED.files.len() as u32;
 
     for (idx, (rel_path, url)) in RECOMMENDED.files.iter().enumerate() {

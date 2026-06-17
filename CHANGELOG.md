@@ -873,3 +873,40 @@ for streaming background work into the UI.
 
 ### Tests
 **184 tests / 0 failures.**
+
+---
+
+## [0.9.8] — 2026-06-08 — Less is more: progressive disclosure
+
+### Changed
+
+Applied the project's core UI principle — *less is more* — by removing
+technical noise from the default views and deferring it behind a single
+**Advanced view** toggle (Settings → Advanced view). New users see a clean,
+task-focused interface; mature users opt into detail.
+
+**Search view**
+- The Auto/Exact/Conceptual mode selector is hidden by default. Auto handles
+  the common case; the switch appears only in Advanced view. New users just
+  type and search.
+- Result cards show only trust-relevant status badges (Stale/Missing) by
+  default. Match-type badges (Keyword/Semantic/file-type) are Advanced-only.
+
+**Indexing view (AI → Indexing)**
+- "Indexed" count is always shown. Queued / Stale / Failed cells appear only
+  when non-zero (or in Advanced view). A healthy idle index is now a single
+  clean number instead of three zeros.
+
+**Storage view (AI → Storage)**
+- Default view groups usage into three plain-language buckets: Search index,
+  AI models, Caches. The raw per-engine category breakdown
+  (`keyword_index`, `vector_index`, `snippet_cache`, …) is Advanced-only.
+
+**Settings view**
+- New "Advanced view" toggle with explanatory hint. Off by default.
+
+### State
+`AppState.show_advanced: bool` (default `false`); `Message::ToggleAdvanced`.
+
+### Tests
+**184 tests / 0 failures.**

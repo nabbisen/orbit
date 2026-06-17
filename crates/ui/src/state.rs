@@ -145,6 +145,8 @@ pub struct AppState {
     pub wizard_path_input: String,
     /// Text input for the "add source" path field.
     pub source_path_input: String,
+    /// When false (default), hide technical detail. Mature users can toggle on.
+    pub show_advanced: bool,
 }
 
 impl Default for AppState {
@@ -166,6 +168,7 @@ impl Default for AppState {
             wizard: None,
             wizard_path_input: String::new(),
             source_path_input: String::new(),
+            show_advanced: false,
         }
     }
 }
@@ -175,6 +178,7 @@ impl Default for AppState {
 pub enum Message {
     Switch(ViewId),
     SwitchGroup(NavGroup),
+    ToggleAdvanced,
     QueryChanged(String),
     SubmitSearch,
     SearchResultsReady(Vec<SearchResultDisplay>),
@@ -219,6 +223,7 @@ impl AppState {
         match message {
             Message::Switch(view) => self.active_view = *view,
             Message::SwitchGroup(group) => self.active_view = ViewId::group_default(*group),
+            Message::ToggleAdvanced => self.show_advanced = !self.show_advanced,
             Message::QueryChanged(query) => self.query = query.clone(),
             Message::SubmitSearch => {
                 let trimmed = self.query.trim();
@@ -296,7 +301,7 @@ impl AppState {
                 // Switch directly to wizard-accepted flow.
                 self.wizard = Some(WizardState::Ready { model_dir: dest_dir.clone() });
             }
-            Message::DownloadFailed(reason) => {
+            Message::DownloadFailed(_reason) => {
                 // Return to NotConfigured so the user can try again.
 self.wizard = Some(WizardState::NotConfigured);
             }

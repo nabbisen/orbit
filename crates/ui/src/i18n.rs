@@ -92,6 +92,9 @@ pub enum MessageKey {
     // Storage view
     StorageTitle,
     StorageIntro,
+    StorageGroupSearchIndex,
+    StorageGroupModels,
+    StorageGroupCaches,
     StorageSafeCleanupHeading,
     StorageClearSnippets,
     StorageClearSearchCache,
@@ -109,6 +112,10 @@ pub enum MessageKey {
     SettingsTitle,
     SettingsLanguageHeading,
     SettingsPrivacyHeading,
+    SettingsAdvancedHeading,
+    SettingsAdvancedOn,
+    SettingsAdvancedOff,
+    SettingsAdvancedHint,
     SettingsPrivacyLocalOnly,
     // Search modes (RFC-009 §8)
     SearchModeLabel,
