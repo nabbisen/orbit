@@ -1,123 +1,189 @@
-//! Startup wizard view (design §wizard).
+//! Wizard views: model setup, download progress, file-check, and ready pages.
 //!
-//! Shown instead of the normal shell when `AppState::wizard` is `Some`.
-//! Four states map to the designed pages:
-//! - `NotConfigured` → first-launch setup
-//! - `FileMissing`   → model was registered, file is gone
-//! - `Checked`       → path submitted, file checks shown inline
-//! - `Ready`         → all files valid, ready to continue
+//! Design (GUI spec §6 and RFC-012): The wizard runs at every launch when the
+//! embedding model is missing or invalid. It has four pages:
+//!
+//! 1. **Setup** — shown on `NotConfigured` or `FileMissing`. Primary action is
+//!    "Download from HuggingFace"; secondary is "Locate existing files".
+//! 2. **Downloading** — progress bar while the model is being fetched.
+//! 3. **Checked** — shows per-file ✓/✗ after the user locates files manually.
+//! 4. **Ready** — confirmation that the model is loaded; wizard dismisses.
 
-use crate::i18n::{MessageKey, Locale, tr};
-use crate::state::{AppState, Message, WizardFileCheck, WizardState};
 use lucide_icons::iced as icons;
-use iced::widget::{button, column, container, row, text, text_input};
-use iced::{Element, Length, Padding};
+use crate::i18n::{Locale, MessageKey, tr};
+use crate::state::{AppState, Message, WizardFileCheck, WizardState};
+use iced::widget::{button, column, container, progress_bar, row, text, text_input};
+use iced::{Element, Length};
 
-/// Render the appropriate wizard page based on `state.wizard`.
+/// Dispatch to the correct wizard page.
 pub fn wizard_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
-    let wizard = match &state.wizard {
-        Some(w) => w,
-        None => return text("").into(),
-    };
-    let inner = match wizard {
-        WizardState::NotConfigured => page_input(locale, state, None, None),
+    match state.wizard.as_ref().expect("wizard_view called without active wizard") {
+        WizardState::NotConfigured => page_setup(locale, state, None),
         WizardState::FileMissing { previous_dir, checks } => {
-            page_input(locale, state, Some(previous_dir), Some(checks))
+            page_setup(locale, state, Some((previous_dir.as_str(), checks.as_slice())))
         }
+        WizardState::Downloading {
+            current_file,
+            bytes,
+            total,
+            files_done,
+            files_total,
+            ..
+        } => page_downloading(locale, current_file, *bytes, *total, *files_done, *files_total),
         WizardState::Checked { model_dir, checks, all_ok } => {
             page_checked(locale, state, model_dir, checks, *all_ok)
         }
         WizardState::Ready { model_dir } => page_ready(locale, model_dir),
-    };
-    container(inner)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .padding(Padding::from([40.0, 32.0]))
-        .into()
+    }
 }
 
-// ── Page: input (NotConfigured or FileMissing) ────────────────────────
+// ── Page: setup ──────────────────────────────────────────────────────
 
-fn page_input<'a>(
+fn page_setup<'a>(
     locale: Locale,
     state: &'a AppState,
-    previous_dir: Option<&'a str>,
-    file_checks: Option<&'a [crate::state::WizardFileCheck]>,
+    missing: Option<(&'a str, &'a [WizardFileCheck])>,
 ) -> Element<'a, Message> {
-    let (title_key, body_key) = if previous_dir.is_some() {
-        (MessageKey::WizardTitleFileMissing, MessageKey::WizardBodyFileMissing)
-    } else {
-        (MessageKey::WizardTitleNotConfigured, MessageKey::WizardBodyNotConfigured)
-    };
-
     let mut col = column![
-        text(tr(locale, title_key)).size(22),
-        text(tr(locale, body_key)).size(13),
+        text(tr(locale, MessageKey::WizardTitleNotConfigured))
+            .size(22),
+        text(tr(locale, MessageKey::WizardBodyNotConfigured))
+            .size(13),
     ]
-    .spacing(10);
+    .spacing(8);
 
-    // Show the previous path struck-through when file is missing.
-    if let Some(prev) = previous_dir {
-        col = col.push(
-            column![
-                text(tr(locale, MessageKey::WizardPreviousPathLabel)).size(12),
-                text(format!("  {prev}")).size(11),
+    // ── Primary action: Download ──────────────────────────────────────
+    let download_card = container(
+        column![
+            row![
+                icons::icon_download().size(16),
+                text(tr(locale, MessageKey::WizardDownloadAction)).size(14),
             ]
-            .spacing(2),
-        );
-    } else {
-        // Show what files are needed + download hint.
-        col = col.push(
-            column![
-                text(tr(locale, MessageKey::WizardFilesNeededLabel)).size(12),
-                text("  onnx/model.onnx").size(11),
-                text("  tokenizer.json").size(11),
-                text(tr(locale, MessageKey::WizardDownloadHint)).size(11),
-            ]
-            .spacing(2),
-        );
+            .spacing(6),
+            text("multilingual-e5-small · Apache 2.0 · ~93 MB · 100+ languages")
+                .size(11),
+            button(
+                row![
+                    icons::icon_download().size(13),
+                    text(tr(locale, MessageKey::WizardDownloadAction)).size(13),
+                ]
+                .spacing(4),
+            )
+            .on_press(Message::DownloadModel),
+        ]
+        .spacing(6),
+    )
+    .padding(12);
+    col = col.push(download_card);
+
+    // ── Separator ────────────────────────────────────────────────────
+    col = col.push(text("— or —").size(11));
+
+    // ── Secondary action: locate existing files ───────────────────────
+    col = col.push(
+        text(tr(locale, MessageKey::WizardBodyFileMissing)).size(12),
+    );
+
+    // Show previous path hint when files were missing.
+    if let Some((prev_dir, checks)) = missing {
+        col = col.push(text(prev_dir).size(11));
+        for fc in checks {
+            let (icon, note) = if fc.found { ("✓", "") } else { ("✗", "  ← missing") };
+            col = col.push(text(format!("{icon}  {}{note}", fc.relative_path)).size(11));
+        }
     }
 
-    col = col.push(
-        text_input(
-            tr(locale, MessageKey::WizardPathInputPlaceholder),
-            &state.wizard_path_input,
-        )
-        .on_input(Message::WizardPathChanged)
-        .on_submit(Message::WizardValidate)
-        .padding(8),
-    );
+    let path_input = text_input(
+        tr(locale, MessageKey::WizardPathPlaceholder),
+        &state.wizard_path_input,
+    )
+    .on_input(Message::WizardPathChanged)
+    .on_submit(Message::WizardValidate)
+    .padding(8);
 
     col = col.push(
         row![
-            button(iced::widget::row![icons::icon_scan_eye().size(14), iced::widget::text(tr(locale, MessageKey::WizardActionValidate)).size(13)].spacing(4))
-                .on_press(Message::WizardValidate),
+            container(path_input).width(Length::Fill),
+            button(
+                row![
+                    icons::icon_folder_open().size(13),
+                    text(tr(locale, MessageKey::WizardActionValidate)).size(13),
+                ]
+                .spacing(4),
+            )
+            .on_press(Message::WizardValidate),
         ]
         .spacing(8),
     );
 
+    // ── Tertiary action: skip ─────────────────────────────────────────
     col = col.push(
         button(text(tr(locale, MessageKey::WizardActionSkip)).size(12))
             .on_press(Message::WizardSkip),
     );
 
-    // If we have file-check results (FileMissing state), show which files
-    // are present/absent so the user knows exactly what to fix.
-    if let Some(checks) = file_checks {
-        for fc in checks {
-            let (icon, label_suffix) = if fc.found {
-                ("✓", "(found)")
-            } else {
-                ("✗", "(missing)")
-            };
-            col = col.push(
-                text(format!("{icon}  {}  {label_suffix}", fc.relative_path)).size(12),
-            );
-        }
-    }
+    container(col.spacing(10))
+        .padding(iced::Padding::from([32.0, 40.0]))
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
+}
 
-    col.into()
+// ── Page: download progress ──────────────────────────────────────────
+
+fn page_downloading<'a>(
+    locale: Locale,
+    current_file: &'a str,
+    bytes: u64,
+    total: Option<u64>,
+    files_done: u32,
+    files_total: u32,
+) -> Element<'a, Message> {
+    let overall_label = format!("File {}/{}", files_done + 1, files_total);
+
+    // Progress fraction for the current file (0.0 – 1.0).
+    let frac: f32 = match total {
+        Some(t) if t > 0 => (bytes as f32 / t as f32).min(1.0),
+        _ => 0.0,
+    };
+
+    let bytes_label = if let Some(t) = total {
+        format!(
+            "{} / {}",
+            human_bytes(bytes),
+            human_bytes(t),
+        )
+    } else {
+        human_bytes(bytes)
+    };
+
+    let pct_label = if total.is_some() {
+        format!("  ({:.0}%)", frac * 100.0)
+    } else {
+        String::new()
+    };
+
+    let col = column![
+        row![
+            icons::icon_download().size(16),
+            text(tr(locale, MessageKey::WizardDownloadProgress)).size(20),
+        ]
+        .spacing(6),
+        text("multilingual-e5-small · Apache 2.0")
+            .size(11),
+        text(overall_label).size(12),
+        text(format!("↓  {current_file}")).size(13),
+        progress_bar(0.0..=1.0, frac),
+        text(format!("{bytes_label}{pct_label}")).size(11),
+    ]
+    .spacing(10);
+
+    container(col)
+        .padding(iced::Padding::from([32.0, 40.0]))
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
 }
 
 // ── Page: file check results ─────────────────────────────────────────
@@ -129,51 +195,53 @@ fn page_checked<'a>(
     checks: &'a [WizardFileCheck],
     all_ok: bool,
 ) -> Element<'a, Message> {
-    let title = tr(locale, MessageKey::WizardTitleValidating);
     let mut col = column![
-        text(title).size(22),
+        text(tr(locale, MessageKey::WizardTitleValidating)).size(20),
         text(model_dir).size(11),
     ]
-    .spacing(10);
+    .spacing(8);
 
-    for check in checks {
-        let status = if check.found {
-            let mb = check.size_mb.map(|m| format!("  {m:.1} MB")).unwrap_or_default();
-            format!(
-                "✓ {}{}  {}",
-                check.relative_path,
-                mb,
-                tr(locale, MessageKey::WizardValidationOk)
-            )
-        } else {
-            format!(
-                "✗ {}  {}",
-                check.relative_path,
-                tr(locale, MessageKey::WizardValidationFail)
-            )
-        };
-        col = col.push(text(status).size(12));
+    for fc in checks {
+        let (icon, style) = if fc.found { ("✓", "") } else { ("✗", "  ← missing") };
+        let size_info = fc.size_mb.map(|m| format!("  ({m} MB)")).unwrap_or_default();
+        col = col.push(
+            text(format!("{icon}  {}{size_info}{style}", fc.relative_path)).size(12),
+        );
     }
 
     if all_ok {
         col = col.push(
-            button(text(tr(locale, MessageKey::WizardActionUseModel)).size(13))
-                .on_press(Message::WizardAccept),
+            button(
+                row![
+                    icons::icon_check_circle().size(13),
+                    text(tr(locale, MessageKey::WizardActionUseModel)).size(13),
+                ]
+                .spacing(4),
+            )
+            .on_press(Message::WizardAccept),
         );
     } else {
-        // Allow re-entering path if checks failed.
+        col = col.push(text(tr(locale, MessageKey::WizardBodyFileMissing)).size(12));
+        let path_input = text_input(
+            tr(locale, MessageKey::WizardPathPlaceholder),
+            &state.wizard_path_input,
+        )
+        .on_input(Message::WizardPathChanged)
+        .on_submit(Message::WizardValidate)
+        .padding(8);
         col = col.push(
-            text_input(
-                tr(locale, MessageKey::WizardPathInputPlaceholder),
-                &state.wizard_path_input,
-            )
-            .on_input(Message::WizardPathChanged)
-            .on_submit(Message::WizardValidate)
-            .padding(8),
-        );
-        col = col.push(
-            button(iced::widget::row![icons::icon_scan_eye().size(14), iced::widget::text(tr(locale, MessageKey::WizardActionValidate)).size(13)].spacing(4))
+            row![
+                container(path_input).width(Length::Fill),
+                button(
+                    row![
+                        icons::icon_scan_eye().size(13),
+                        text(tr(locale, MessageKey::WizardActionValidate)).size(13),
+                    ]
+                    .spacing(4),
+                )
                 .on_press(Message::WizardValidate),
+            ]
+            .spacing(8),
         );
     }
 
@@ -181,19 +249,51 @@ fn page_checked<'a>(
         button(text(tr(locale, MessageKey::WizardActionSkip)).size(12))
             .on_press(Message::WizardSkip),
     );
-    col.into()
+
+    container(col.spacing(10))
+        .padding(iced::Padding::from([32.0, 40.0]))
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
 }
 
-// ── Page: ready ──────────────────────────────────────────────────────
+// ── Page: ready ───────────────────────────────────────────────────────
 
 fn page_ready<'a>(locale: Locale, model_dir: &'a str) -> Element<'a, Message> {
-    column![
-        text(tr(locale, MessageKey::WizardTitleReady)).size(22),
-        text(tr(locale, MessageKey::WizardReadyBody)).size(13),
+    let col = column![
+        row![
+            icons::icon_check_circle().size(18),
+            text(tr(locale, MessageKey::WizardTitleReady)).size(20),
+        ]
+        .spacing(6),
         text(model_dir).size(11),
-        button(text(tr(locale, MessageKey::WizardActionContinue)).size(13))
-            .on_press(Message::WizardAccept),
+        text(tr(locale, MessageKey::WizardReadyBody)).size(13),
+        button(
+            row![
+                icons::icon_check_circle().size(13),
+                text(tr(locale, MessageKey::WizardActionUseModel)).size(13),
+            ]
+            .spacing(4),
+        )
+        .on_press(Message::WizardAccept),
     ]
-    .spacing(10)
-    .into()
+    .spacing(10);
+
+    container(col)
+        .padding(iced::Padding::from([32.0, 40.0]))
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
+}
+
+// ── helpers ───────────────────────────────────────────────────────────
+
+fn human_bytes(n: u64) -> String {
+    if n >= 1_000_000 {
+        format!("{:.1} MB", n as f64 / 1_000_000.0)
+    } else if n >= 1_000 {
+        format!("{:.0} KB", n as f64 / 1_000.0)
+    } else {
+        format!("{n} B")
+    }
 }

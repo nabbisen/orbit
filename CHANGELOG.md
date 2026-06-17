@@ -823,3 +823,53 @@ crates/
 ```
 
 184 tests / 0 failures.
+
+---
+
+## [0.9.7] — 2026-06-08 — HuggingFace model download
+
+### Added
+
+**Model download from HuggingFace** (`crates/app/src/download.rs`, `reqwest 0.12`)
+
+The startup wizard no longer requires users to prepare model files manually.
+"Download from HuggingFace" is now the primary action on the setup screen.
+
+**Wizard setup screen redesign**
+
+The initial screen now has three clearly ranked actions:
+
+1. **Download from HuggingFace** (primary) — shows model name, license, and
+   size before the user commits: "multilingual-e5-small · Apache 2.0 · ~93 MB · 100+ languages"
+2. **Locate existing files** (secondary) — the previous manual path flow,
+   preserved for users who already have files
+3. **Skip — keyword search only** (tertiary)
+
+**Download progress screen** (`WizardState::Downloading`)
+
+While downloading, the wizard shows:
+- Current file name
+- `progress_bar` widget tracking bytes received vs total
+- Human-readable size counter: "84.2 MB / 95.0 MB  (88%)"
+- File N-of-M indicator
+
+When the download completes, the wizard automatically advances to `WizardState::Ready`
+and the user clicks "Use model" to dismiss. If the download fails, the wizard
+returns to `NotConfigured` so the user can retry.
+
+**`iced::Task<Message>` return from update closure**
+
+The iced update closure now returns `Task<Message>` instead of `()`. All
+existing branches return `Task::none()`; `DownloadModel` returns
+`Task::stream(receiver)` where the receiver carries live progress messages
+from the background download task. This is the idiomatic iced 0.14 pattern
+for streaming background work into the UI.
+
+### New messages
+`DownloadModel`, `DownloadStarted`, `DownloadFileProgress`, `DownloadAllComplete`, `DownloadFailed`
+
+### New dependencies
+`reqwest 0.12` (`rustls-tls` + `stream`, no OpenSSL), `tokio` in `orbok-app`
+
+### Tests
+**184 tests / 0 failures.**

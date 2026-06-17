@@ -9,6 +9,7 @@
 //! 6. launch main GUI
 
 mod bootstrap;
+mod download;
 mod settings;
 
 use orbok_ui::{Message, OrbokApp};
@@ -43,9 +44,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     iced::application(
         move || OrbokApp::with_state(state.clone()),
-        move |app: &mut OrbokApp, message: Message| {
+        move |app: &mut OrbokApp, message: Message| -> iced::Task<Message> {
             // Handle backend effects before passing message to UI state.
             match &message {
+                Message::DownloadModel => {
+                    let dest = data_dir
+                        .join("models")
+                        .join("multilingual-e5-small");
+                    std::fs::create_dir_all(&dest).ok();
+                    let dest_str = dest.to_string_lossy().to_string();
+                    app.update(Message::DownloadStarted { dest_dir: dest_str });
+                    let (tx, rx) = iced::futures::channel::mpsc::channel::<Message>(64);
+                    tokio::spawn(download::run(dest, tx));
+                    return iced::Task::stream(rx);
+                }
                 Message::WizardValidate => {
                     let path = app.state.wizard_path_input.trim().to_string();
                     let outcome = verify_embedding_model(Some(&path));
@@ -55,7 +67,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         checks,
                         all_ok,
                     });
-                    return;
+                    return iced::Task::none();
                 }
                 Message::WizardAccept => {
                     // Persist the accepted model directory to OrbokSettings.
@@ -92,7 +104,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                         }
                     }
-                    return;
+                    return iced::Task::none();
                 }
                 Message::SourceRemoved(source_id) => {
                     if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
@@ -112,12 +124,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 Ok(results) => {
                                     app.update(message.clone());
                                     app.update(Message::SearchResultsReady(results));
-                                    return;
+                                    return iced::Task::none();
                                 }
                                 Err(e) => {
                                     app.update(message.clone());
                                     app.update(Message::SearchError(e.to_string()));
-                                    return;
+                                    return iced::Task::none();
                                 }
                             }
                         }
@@ -126,6 +138,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 _ => {}
             }
             app.update(message);
+            iced::Task::none()
         },
         OrbokApp::view,
     )

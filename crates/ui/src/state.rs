@@ -111,6 +111,16 @@ pub enum WizardState {
     Checked { model_dir: String, checks: Vec<WizardFileCheck>, all_ok: bool },
     /// All files verified — ready to proceed.
     Ready { model_dir: String },
+    /// HuggingFace download in progress.
+    Downloading {
+        dest_dir: String,
+        /// Filename currently being downloaded.
+        current_file: String,
+        bytes: u64,
+        total: Option<u64>,
+        files_done: u32,
+        files_total: u32,
+    },
 }
 
 /// The whole-app view model.
@@ -187,6 +197,18 @@ pub enum Message {
     SourceAdded(SourceCard),
     SourceRemoved(String),   // source_id
     ScanCompleted(IndexHealth),
+    // Download
+    DownloadModel,
+    DownloadStarted { dest_dir: String },
+    DownloadFileProgress {
+        file: String,
+        bytes: u64,
+        total: Option<u64>,
+        files_done: u32,
+        files_total: u32,
+    },
+    DownloadAllComplete { dest_dir: String },
+    DownloadFailed(String),
     // Startup population
     HealthUpdated(IndexHealth),
     SourcesLoaded(Vec<SourceCard>),
@@ -244,6 +266,39 @@ impl AppState {
                 self.capability = SearchCapability::KeywordOnly;
                 self.wizard = None;
                 self.wizard_path_input = String::new();
+            }
+            Message::DownloadModel => {
+                // Transition handled in orbok-app main.rs (needs the data_dir).
+                // The UI just switches to a "waiting" state until DownloadStarted arrives.
+            }
+            Message::DownloadStarted { dest_dir } => {
+                self.wizard = Some(WizardState::Downloading {
+                    dest_dir: dest_dir.clone(),
+                    current_file: String::new(),
+                    bytes: 0,
+                    total: None,
+                    files_done: 0,
+                    files_total: 2,
+                });
+            }
+            Message::DownloadFileProgress { file, bytes, total, files_done, files_total } => {
+                if let Some(WizardState::Downloading { current_file, bytes: b, total: t, files_done: fd, files_total: ft, .. }) =
+                    &mut self.wizard
+                {
+                    *current_file = file.clone();
+                    *b = *bytes;
+                    *t = *total;
+                    *fd = *files_done;
+                    *ft = *files_total;
+                }
+            }
+            Message::DownloadAllComplete { dest_dir } => {
+                // Switch directly to wizard-accepted flow.
+                self.wizard = Some(WizardState::Ready { model_dir: dest_dir.clone() });
+            }
+            Message::DownloadFailed(reason) => {
+                // Return to NotConfigured so the user can try again.
+self.wizard = Some(WizardState::NotConfigured);
             }
             Message::SourcePathChanged(p) => self.source_path_input = p.clone(),
             Message::RequestAddSource => {} // handled in orbok-app
