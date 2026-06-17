@@ -11,7 +11,8 @@ pub mod registry;
 pub mod types;
 
 mod markdown;
-mod pdf;
+pub mod plugin;
+pub mod pdf;
 mod text;
 
 #[cfg(test)]
@@ -19,6 +20,7 @@ mod tests;
 
 pub use registry::ExtractorRegistry;
 pub use chunker::chunk;
+pub use plugin::{PluginManifest, PluginRegistry};
 pub use types::{
     DocumentExtractor, ExtractOutput, ExtractedSegment, LocationQuality, SegmentKind,
 };

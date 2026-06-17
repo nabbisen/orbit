@@ -132,4 +132,30 @@ impl<'a> EmbeddingRepository<'a> {
             .map_err(db_err)?;
         Ok(n as u64)
     }
+    /// Store an INT8-quantized embedding (RFC-024 Space Saving mode).
+    pub fn upsert_i8(
+        &self,
+        chunk_id: &orbok_core::ChunkId,
+        model_id: &orbok_core::ModelId,
+        dimension: u32,
+        i8_vector: &[i8],
+    ) -> OrbokResult<()> {
+        let id = orbok_core::EmbeddingId::generate();
+        let now = orbok_core::now_iso8601();
+        let blob: Vec<u8> = i8_vector.iter().map(|&b| b as u8).collect();
+        let conn = self.catalog.lock();
+        conn.execute(
+            "INSERT INTO embeddings \
+             (embedding_id, chunk_id, model_id, vector_format, dimension, norm, \
+              storage_location, vector_blob, status, created_at, updated_at) \
+             VALUES (?1,?2,?3,'int8',?4,'l2','sqlite_blob',?5,'active',?6,?6) \
+             ON CONFLICT(chunk_id, model_id, vector_format) DO UPDATE SET \
+             vector_blob=?5, status='active', updated_at=?6",
+            rusqlite::params![id.as_str(), chunk_id.as_str(), model_id.as_str(),
+                              dimension as i64, blob, now],
+        )
+        .map_err(crate::catalog::db_err)?;
+        Ok(())
+    }
+
 }

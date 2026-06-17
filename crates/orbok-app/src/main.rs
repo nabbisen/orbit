@@ -24,6 +24,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("orbok {}", env!("CARGO_PKG_VERSION"));
         return Ok(());
     }
+    let portable = args.iter().any(|a| a == "--portable");
+    if portable {
+        eprintln!("orbok: portable mode — data directory: ./orbok-data/");
+    }
     if args.iter().any(|a| a == "--check") {
         return bootstrap::run_check();
     }

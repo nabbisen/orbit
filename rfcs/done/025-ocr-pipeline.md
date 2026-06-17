@@ -3,7 +3,7 @@
 **Project:** orbok  
 **RFC:** 025  
 **Title:** OCR Pipeline  
-**Status:** Draft — deferred future RFC (see activation conditions)  
+**Status.** Implemented (v0.8.0)
 **Target Timing:** After text-based document search is stable and scanned-document demand is confirmed  
 **Date:** 2026-06-06
 

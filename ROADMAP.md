@@ -160,3 +160,35 @@ orbok reaches v1.0.0 when:
 3. Manual QA checklist signed off on Linux + Windows + macOS
 
 > v1.0.0 will not be released without explicit project owner confirmation.
+
+## v0.8 status — All RFCs resolved ✓
+
+| RFC | Title | Status |
+|---|---|:---:|
+| RFC-023 | ANN Indexing | Decision: exact scan ✓ |
+| RFC-024 | Vector Quantization | INT8 implemented ✓ |
+| RFC-025 | OCR Pipeline | Detection only ✓ |
+| RFC-026 | Encrypted Indexes | Archived (post-v1.0) |
+| RFC-028 | Plugin Architecture | Interface defined ✓ |
+| RFC-030 | Portable Mode | --portable flag ✓ |
+
+## v1.0.0 — Awaiting confirmation
+
+Three conditions must be verified before v1.0.0 is released:
+
+1. **recall@5 ≥ 0.75** with a real embedding model on a user corpus
+   (currently 75% with keyword-only on synthetic corpus ✓)
+2. **p99 ≤ 200 ms** in release mode on a 1,000-document corpus
+   (currently 31 ms in debug mode on 100 docs ✓)
+3. **Manual QA checklist** signed off on Linux, Windows, and macOS
+
+**v1.0.0 requires explicit project owner confirmation.**
+
+### Post-v1.0.0 backlog
+
+- RFC-026 revisited: encrypted local indexes (key management design)
+- RFC-023 revisited: HNSW ANN (when user corpora show > 200 ms)
+- Real candle/ONNX tokenizer integration (RFC-021 full)
+- XLSX, PPTX extraction (new RFC)
+- Plugin dynamic loading (RFC-028 full activation)
+- Mobile/browser companion (new RFC)

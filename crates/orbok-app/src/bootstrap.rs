@@ -11,6 +11,7 @@ use orbok_ui::i18n::Locale;
 use std::path::PathBuf;
 
 /// Resolve the orbok local-data directory.
+/// See also `data_dir_for_args` for the `--portable` flag.
 pub fn data_dir() -> PathBuf {
     if let Ok(env) = std::env::var("ORBOK_DATA_DIR") {
         return PathBuf::from(env);
@@ -84,4 +85,17 @@ pub fn run_check() -> Result<(), Box<dyn std::error::Error>> {
 pub fn persist_locale(catalog: &Catalog, locale: &orbok_ui::i18n::Locale) -> OrbokResult<()> {
     orbok_db::repo::SettingsRepository::new(catalog)
         .set("ui.locale", &locale.as_str().to_string())
+}
+
+/// Resolve the orbok local-data directory.
+///
+/// Priority (RFC-030 §7):
+/// 1. `--portable` flag → `./orbok-data/` (current directory)
+/// 2. `ORBOK_DATA_DIR` env var
+/// 3. Platform standard app-data directory
+pub fn data_dir_for_args(portable: bool) -> std::path::PathBuf {
+    if portable {
+        return std::path::PathBuf::from("orbok-data");
+    }
+    data_dir()
 }

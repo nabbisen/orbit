@@ -137,3 +137,19 @@ fn extract_page_text(
         Err(_) => Ok(String::new()), // page-level failure isolation
     }
 }
+
+/// Detect whether a PDF appears to be scanned/image-only (RFC-025).
+///
+/// Returns `true` when the PDF has pages but extracted text is empty.
+/// In this case the user should be informed that OCR is needed.
+/// orbok v0.7 does not include an OCR engine; OCR is tracked in RFC-025.
+pub fn is_scanned_pdf(output: &super::types::ExtractOutput, page_count: usize) -> bool {
+    page_count > 0 && output.char_count == 0
+}
+
+/// Helper: try to get page count from a PDF without failing.
+pub fn pdf_page_count(path: &std::path::Path) -> usize {
+    lopdf::Document::load(path)
+        .map(|d| d.get_pages().len())
+        .unwrap_or(0)
+}
