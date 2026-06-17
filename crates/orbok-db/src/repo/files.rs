@@ -255,7 +255,39 @@ impl<'a> FileRepository<'a> {
         }
         Ok(out)
     }
+
+    /// Count files with a specific status across all sources.
+    pub fn count_with_status(&self, status: FileStatus) -> OrbokResult<u64> {
+        let conn = self.catalog.lock();
+        let n: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM files WHERE file_status = ?1",
+                rusqlite::params![status.as_str()],
+                |r| r.get(0),
+            )
+            .map_err(crate::catalog::db_err)?;
+        Ok(n as u64)
+    }
+
+    /// Count files for a specific source with a specific status.
+    pub fn count_for_source_with_status(
+        &self,
+        source_id: &orbok_core::SourceId,
+        status: FileStatus,
+    ) -> OrbokResult<u64> {
+        let conn = self.catalog.lock();
+        let n: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM files WHERE source_id = ?1 AND file_status = ?2",
+                rusqlite::params![source_id.as_str(), status.as_str()],
+                |r| r.get(0),
+            )
+            .map_err(crate::catalog::db_err)?;
+        Ok(n as u64)
+    }
+
 }
+
 
 fn row_to_record(row: &Row<'_>) -> rusqlite::Result<OrbokResult<FileRecord>> {
     let status: String = row.get(11)?;

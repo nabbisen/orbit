@@ -612,3 +612,59 @@ in release mode, both metrics will improve further.
 ### Tests
 - `orbok-workers`: 75 tests (+7 model_verifier).
 - Workspace total: **175 tests / 0 failures**.
+
+---
+
+## [0.9.2] — 2026-06-07 — Source management + hybrid search wiring
+
+### Added
+
+**EmbeddingWorker model selection**
+- `EmbeddingWorker::with_model(catalog, cache, model, model_id)` —
+  constructor accepting any `Box<dyn EmbeddingModel>`. Tests can pass
+  `MockEmbeddingModel`; production builds pass the factory result from
+  `orbok_embed::create_embedding_model`.
+
+**HybridSearchService in bootstrap** (`run_search`)
+- `bootstrap::run_search` now uses `HybridSearchService` throughout.
+- When `OrbokSettings.embedding_model_dir` is set: calls
+  `orbok_embed::create_embedding_model` with a `recommended_config`.
+  If the `tract` feature is compiled and the model file exists, real
+  semantic search is used. Otherwise falls back to keyword-only with
+  no error — the capability degradation is logged at `warn` level.
+
+**Source management backend**
+- `bootstrap::add_source(catalog, path)` — resolves tilde, canonicalizes,
+  inserts source record, returns `SourceCard`.
+- `bootstrap::scan_and_index_source(catalog, cache, source_id)` — runs
+  `Scanner` → `ExtractionWorker` → `ChunkAndIndexWorker` synchronously,
+  returns updated `IndexHealth`.
+- `bootstrap::remove_source(catalog, source_id)` — calls
+  `delete_with_all_data`.
+- `bootstrap::get_health(catalog)` — queries `count_with_status` across
+  all file statuses; populates `IndexHealth`.
+- `bootstrap::get_sources(catalog)` — loads all sources with per-source
+  indexed/stale/failed counts.
+
+**FileRepository count methods** (`orbok-db`)
+- `count_with_status(status)` — global file count by status.
+- `count_for_source_with_status(source_id, status)` — source-scoped count.
+
+**Sources view** (`orbok-ui`)
+- Path text-input always visible: user types/pastes a folder path and
+  presses Enter or clicks the button to add a source.
+- Per-source Remove button dispatches `Message::SourceRemoved(source_id)`.
+- `Message::SourcePathChanged`, `RequestAddSource`, `SourceAdded`,
+  `SourceRemoved`, `ScanCompleted`, `HealthUpdated`, `SourcesLoaded`
+  added to the message vocabulary.
+- `SourceCard.source_id: String` — backend ID field for remove operations.
+
+**Startup population**
+- `load_initial_state` now populates `AppState.health` and
+  `AppState.sources` from the catalog at startup, so the Indexing
+  sidebar and Sources view show real data immediately.
+
+### Tests
+- `orbok-workers`: 84 tests (+9 covering source management, health
+  queries, EmbeddingWorker model selection, hybrid search routing).
+- Workspace total: **184 tests / 0 failures**.

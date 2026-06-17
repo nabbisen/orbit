@@ -67,6 +67,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                 }
+                Message::RequestAddSource => {
+                    let path = app.state.source_path_input.trim().to_string();
+                    if !path.is_empty() {
+                        if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
+                            let cache = orbok_cache::CacheService::new(&data_dir);
+                            match bootstrap::add_source(&catalog, &path) {
+                                Ok(card) => {
+                                    let source_id = card.source_id.clone();
+                                    app.update(message.clone());
+                                    app.update(Message::SourceAdded(card));
+                                    match bootstrap::scan_and_index_source(&catalog, &cache, &source_id) {
+                                        Ok(health) => app.update(Message::ScanCompleted(health)),
+                                        Err(e) => tracing::error!("scan failed: {e}"),
+                                    }
+                                }
+                                Err(e) => tracing::error!("add source failed: {e}"),
+                            }
+                        }
+                    }
+                    return;
+                }
+                Message::SourceRemoved(source_id) => {
+                    if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
+                        let _ = bootstrap::remove_source(&catalog, source_id);
+                    }
+                }
                 Message::PersistLocale(locale) => {
                     if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
                         let _ = bootstrap::persist_locale(&catalog, locale);

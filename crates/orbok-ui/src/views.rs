@@ -113,16 +113,28 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
     page(content)
 }
 
-/// Sources view (§8): list or empty state.
+/// Sources view (§8): add-source input, list or empty state.
 pub fn sources_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
-    let mut content = column![heading(tr(locale, MessageKey::SourcesTitle))];
+    // Add-source input row — always visible.
+    let add_input = text_input(
+        tr(locale, MessageKey::SourcesAddFolder),
+        &state.source_path_input,
+    )
+    .on_input(Message::SourcePathChanged)
+    .on_submit(Message::RequestAddSource)
+    .padding(8);
+    let add_btn = button(text(tr(locale, MessageKey::SourcesAddFolder)).size(13))
+        .on_press(Message::RequestAddSource);
+    let mut content = column![
+        heading(tr(locale, MessageKey::SourcesTitle)),
+        row![container(add_input).width(Length::Fill), add_btn].spacing(8),
+    ];
     if state.sources.is_empty() {
         content = content.push(
             column![
                 text(tr(locale, MessageKey::SourcesEmptyTitle)).size(18),
                 text(tr(locale, MessageKey::SourcesEmptyBody)).size(13),
-                button(text(tr(locale, MessageKey::SourcesAddFolder)).size(13)),
             ]
             .spacing(6),
         );
@@ -133,6 +145,7 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
             } else {
                 tr(locale, MessageKey::SourcesStatusPaused)
             };
+            let src_id = card.source_id.clone();
             content = content.push(
                 container(
                     column![
@@ -140,7 +153,11 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
                         text(card.display_path.clone()).size(11),
                         text(source_summary(locale, card.indexed, card.stale, card.failed))
                             .size(12),
-                        text(status).size(11),
+                        row![
+                            text(status).size(11),
+                            button(text("Remove").size(11))
+                                .on_press(Message::SourceRemoved(src_id)),
+                        ].spacing(8),
                     ]
                     .spacing(2),
                 )

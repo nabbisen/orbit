@@ -15,6 +15,7 @@ name = "orbok"
 path = "src/main.rs"
 
 [dependencies]
+orbok-embed = { workspace = true }
 app-json-settings = { workspace = true }
 serde = { workspace = true }
 orbok-core = { workspace = true }

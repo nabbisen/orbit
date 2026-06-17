@@ -49,6 +49,7 @@ pub struct SourceCard {
     pub stale: u64,
     pub failed: u64,
     pub active: bool,
+    pub source_id: String,
 }
 
 /// A search result ready for display — pure data, no backend types
@@ -105,6 +106,8 @@ pub struct AppState {
     pub wizard: Option<WizardState>,
     /// Text-input path the user is typing in the wizard.
     pub wizard_path_input: String,
+    /// Text input for the "add source" path field.
+    pub source_path_input: String,
 }
 
 impl Default for AppState {
@@ -125,6 +128,7 @@ impl Default for AppState {
             storage_total_bytes: 0,
             wizard: None,
             wizard_path_input: String::new(),
+            source_path_input: String::new(),
         }
     }
 }
@@ -149,6 +153,15 @@ pub enum Message {
     WizardChecked { model_dir: String, checks: Vec<WizardFileCheck>, all_ok: bool },
     WizardAccept,
     WizardSkip,
+    // Source management
+    SourcePathChanged(String),
+    RequestAddSource,
+    SourceAdded(SourceCard),
+    SourceRemoved(String),   // source_id
+    ScanCompleted(IndexHealth),
+    // Startup population
+    HealthUpdated(IndexHealth),
+    SourcesLoaded(Vec<SourceCard>),
 }
 
 impl AppState {
@@ -203,6 +216,18 @@ impl AppState {
                 self.wizard = None;
                 self.wizard_path_input = String::new();
             }
+            Message::SourcePathChanged(p) => self.source_path_input = p.clone(),
+            Message::RequestAddSource => {} // handled in orbok-app
+            Message::SourceAdded(card) => {
+                self.sources.push(card.clone());
+                self.source_path_input = String::new();
+            }
+            Message::SourceRemoved(id) => self.sources.retain(|s| s.source_id != *id),
+            Message::ScanCompleted(health) | Message::HealthUpdated(health) => {
+                self.health = *health;
+                // Update per-source counts from the fresh health data.
+            }
+            Message::SourcesLoaded(cards) => self.sources = cards.clone(),
         }
     }
 }
