@@ -2,6 +2,7 @@
 //! unsupported results).
 
 use crate::markdown::MarkdownExtractor;
+use crate::pdf::PdfExtractor;
 use crate::text::PlainTextExtractor;
 use crate::types::{DocumentExtractor, ExtractOutput};
 use orbok_core::{ErrorCategory, OrbokError, OrbokResult};
@@ -16,7 +17,7 @@ pub struct ExtractorRegistry {
 impl Default for ExtractorRegistry {
     fn default() -> Self {
         Self {
-            extractors: vec![Box::new(MarkdownExtractor), Box::new(PlainTextExtractor)],
+            extractors: vec![Box::new(MarkdownExtractor), Box::new(PlainTextExtractor), Box::new(PdfExtractor)],
         }
     }
 }

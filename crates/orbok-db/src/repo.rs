@@ -13,7 +13,7 @@ pub mod sources;
 pub mod storage;
 
 pub use chunks::{ChunkRecord, ChunkRepository, ChunkSpec};
-pub use models::{ModelRecord, ModelRepository, ModelRole, ModelStatus, NewModel};
+pub use models::{ModelRecord, ModelRepository, ModelRole, ModelStatus, NewModel, verify_model_sha256};
 pub use embeddings::{EmbeddingRecord, EmbeddingRepository, NewEmbedding};
 pub use cleanup::CleanupExecutor;
 pub use events::{EventRepository, Severity};

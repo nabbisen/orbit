@@ -290,3 +290,5 @@ fn children_point_to_parent() {
             "child chunk {} must point to parent", spec.chunk_ordinal);
     }
 }
+
+mod v07_features;

@@ -11,6 +11,7 @@ pub mod registry;
 pub mod types;
 
 mod markdown;
+mod pdf;
 mod text;
 
 #[cfg(test)]

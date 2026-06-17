@@ -3,7 +3,7 @@
 **Project:** orbok  
 **RFC:** 021  
 **Title:** Default Embedding Model Selection  
-**Status:** Draft — deferred future RFC (see activation conditions)  
+**Status.** Implemented (v0.7.0)
 **Target Timing:** After basic embedding pipeline and benchmark corpus are complete  
 **Date:** 2026-06-06
 

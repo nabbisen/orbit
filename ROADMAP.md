@@ -134,3 +134,29 @@ orbok reaches v1.0.0 when:
 2. Benchmarks meet RFC-019 targets: recall@5 ≥ 0.75, p99 ≤ 200 ms.
 3. All three platforms (Linux/Windows/macOS) pass the manual QA checklist.
 4. Release level RL-4 is achieved.
+
+## v0.7 status
+
+| Item | Status |
+|---|:---:|
+| RFC-021 Default Embedding Model (multilingual-e5-small) | ✓ |
+| RFC-022 PDF Extraction (lopdf) | ✓ |
+| RFC-029 Model Integrity + Trust | ✓ |
+| orbok-embed crate (feature-flagged backends) | ✓ |
+
+## v0.8 targets (path to v1.0.0)
+
+**Remaining draft RFCs (7):**
+- RFC-023: Vector ANN Indexing (HNSW for > 100k chunks)
+- RFC-024: Vector Quantization (INT8 / binary)
+- RFC-025: OCR Pipeline (image PDFs, screenshots)
+- RFC-026: Encrypted Local Indexes
+- RFC-028: Plugin Extractor Architecture
+- RFC-030: Portable Mode (single-dir deployment)
+
+**v1.0.0 gate (3 conditions — awaiting confirmation):**
+1. recall@5 ≥ 0.75 on labeled query set with real model
+2. p99 search latency ≤ 200 ms on 1,000-doc corpus
+3. Manual QA checklist signed off on Linux + Windows + macOS
+
+> v1.0.0 will not be released without explicit project owner confirmation.

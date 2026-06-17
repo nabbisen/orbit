@@ -10,12 +10,13 @@ members = [
     "crates/orbok-models",
     "crates/orbok-workers",
     "crates/orbok-bench",
+    "crates/orbok-embed",
     "crates/orbok-ui",
     "crates/orbok-app",
 ]
 
 [workspace.package]
-version = "0.6.0"
+version = "0.7.0"
 edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
@@ -26,16 +27,17 @@ repository = "https://github.com/nabbisen/orbok"
 
 [workspace.dependencies]
 # internal crates
-orbok-core = { version = "0.6.0", path = "crates/orbok-core" }
-orbok-db = { version = "0.6.0", path = "crates/orbok-db" }
-orbok-fs = { version = "0.6.0", path = "crates/orbok-fs" }
-orbok-cache = { version = "0.6.0", path = "crates/orbok-cache" }
-orbok-extract = { version = "0.6.0", path = "crates/orbok-extract" }
-orbok-search = { version = "0.6.0", path = "crates/orbok-search" }
-orbok-models = { version = "0.6.0", path = "crates/orbok-models" }
-orbok-workers = { version = "0.6.0", path = "crates/orbok-workers" }
-orbok-bench = { version = "0.6.0", path = "crates/orbok-bench" }
-orbok-ui = { version = "0.6.0", path = "crates/orbok-ui" }
+orbok-core = { version = "0.7.0", path = "crates/orbok-core" }
+orbok-db = { version = "0.7.0", path = "crates/orbok-db" }
+orbok-fs = { version = "0.7.0", path = "crates/orbok-fs" }
+orbok-cache = { version = "0.7.0", path = "crates/orbok-cache" }
+orbok-extract = { version = "0.7.0", path = "crates/orbok-extract" }
+orbok-search = { version = "0.7.0", path = "crates/orbok-search" }
+orbok-models = { version = "0.7.0", path = "crates/orbok-models" }
+orbok-workers = { version = "0.7.0", path = "crates/orbok-workers" }
+orbok-bench = { version = "0.7.0", path = "crates/orbok-bench" }
+orbok-embed = { version = "0.7.0", path = "crates/orbok-embed" }
+orbok-ui = { version = "0.7.0", path = "crates/orbok-ui" }
 
 # database — pinned to 0.40 to match localcache 0.20.0
 # (single libsqlite3-sys rule; see RFC-002 amendment / Appendix A §21)

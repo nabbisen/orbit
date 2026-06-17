@@ -303,3 +303,25 @@ fn row_to_record(row: &rusqlite::Row<'_>) -> rusqlite::Result<ModelRecord> {
         last_validated_at: row.get(10)?,
     })
 }
+
+/// Verify a model file's SHA-256 against an expected hash
+/// (RFC-029 §5 integrity checking).
+///
+/// `expected_hash` is a lowercase hex SHA-256 string (64 chars).
+/// Returns `Ok(true)` on match, `Ok(false)` on mismatch, `Err` on I/O
+/// error. The file path is not logged (NFR-014).
+pub fn verify_model_sha256(path: &str, expected_hash: &str) -> OrbokResult<bool> {
+    use sha2::{Digest, Sha256};
+    use std::io::Read;
+    let mut file = std::fs::File::open(path)
+        .map_err(|e| orbok_core::OrbokError::Io(e))?;
+    let mut hasher = Sha256::new();
+    let mut buf = [0u8; 64 * 1024];
+    loop {
+        let n = file.read(&mut buf).map_err(orbok_core::OrbokError::Io)?;
+        if n == 0 { break; }
+        hasher.update(&buf[..n]);
+    }
+    let actual = format!("{:x}", hasher.finalize());
+    Ok(actual == expected_hash)
+}

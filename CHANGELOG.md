@@ -344,3 +344,65 @@ Complete mdbook documentation covering all three user personas:
 ### Tests
 - `orbok-workers`: 46 tests (+9 covering M10/M12/RFC-019).
 - Workspace total: **124 tests / 0 failures**.
+
+---
+
+## [0.7.0] — 2026-06-07
+
+> **Note:** v1.0.0 is not yet confirmed. This release advances the
+> pre-1.0 roadmap. See `ROADMAP.md` for v1.0.0 criteria.
+
+### Added
+
+**RFC-021 — Default Embedding Model Selection**
+- New `orbok-embed` crate with the embedding backend factory:
+  `create_embedding_model(config)` dispatches by `InferenceBackend`.
+- `Mock` backend (always compiled): deterministic 8-dim vectors,
+  no model files required — used in all tests.
+- `OnnxRuntime` backend (`--features tract`): loads `.onnx` model via
+  the pure-Rust `tract-onnx` runtime; `tract_backend.rs` is only
+  compiled with the feature flag.
+- `Candle` backend (`--features candle`): HuggingFace candle runtime;
+  `candle_backend.rs` is only compiled with the feature flag.
+- Without the feature flag, non-mock backends return an informative
+  `OrbokError::Cache` with the feature flag name.
+- **Recommended default model: `multilingual-e5-small`** (384-dim,
+  Apache 2.0, 100-language support, ~118 MB). Selected because orbok's
+  target use case includes mixed Japanese-English documents (RFC-014).
+  `RECOMMENDED_HF_MODEL_ID`, `RECOMMENDED_MODEL_DIMENSION`, and
+  `recommended_config(weights_path)` documented in the crate.
+- Storage impact: 384-dim = 1.5 KiB/chunk (FP32). At 100k chunks: ~147 MB.
+
+**RFC-022 — PDF Extraction Backend**
+- `PdfExtractor` in `orbok-extract` using **lopdf** (pure Rust, MIT,
+  no C FFI). Selected over pdfium (requires native library) for v0.7.
+- Page-level text extraction: each page becomes one `ExtractedSegment`
+  with `LocationQuality::PageOnly` (honest; line numbers unavailable).
+  UI must not show false line numbers for PDF results.
+- Failure isolation: per-page errors are swallowed; one bad page never
+  stops extraction of the rest of the document (RFC-005 §13).
+- Encrypted PDF → `EncryptedDocument` error category.
+- Scanned/image-only PDF → zero segments, no error.
+- `PdfExtractor` registered in `ExtractorRegistry` for `.pdf` extension.
+- Japanese UTF-8 PDFs extract correctly; legacy SJIS/EUC not attempted.
+
+**RFC-029 — Model Download Integrity and Trust**
+- `verify_model_sha256(path, expected_hash)` in orbok-db: streams the
+  model file and compares against a user-provided SHA-256 hex string.
+- Returns `Ok(true)` on match, `Ok(false)` on mismatch, `Err` on I/O
+  error. Path is not logged (NFR-014).
+- `ModelRepository::locate()` registers an existing on-disk model file
+  (manual placement, no automatic download — RFC-029 §9).
+- `models.license_summary` stores the license string shown to the user
+  before a model is used.
+- `InferenceBackend` enum and `EmbeddingModelConfig`/`RerankerConfig`
+  types added to `orbok-models` for full config-driven backend selection.
+
+### Tests
+- `orbok-embed`: 4 tests (mock backend, feature-flag error, defaults).
+- `orbok-extract`: 29 tests (+14 covering RFC-021/022/029).
+- Workspace total: **142 tests / 0 failures**.
+
+### RFCs
+- RFC-021, RFC-022, RFC-029 moved from `rfcs/draft/` to `rfcs/done/`.
+- 26 of 31 RFCs now in `done/`.
