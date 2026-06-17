@@ -1,20 +1,20 @@
 # RFC-024: Vector Quantization
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 024  
 **Title:** Vector Quantization  
 **Status:** Draft — deferred future RFC (see activation conditions)  
 **Target Timing:** After vector storage size is measured on realistic corpora  
 **Date:** 2026-06-06
 
-> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbit`.
+> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbok`.
 
 ---
 
 
 ## 1. Summary
 
-This future RFC will decide whether and how `orbit` should quantize embedding vectors.
+This future RFC will decide whether and how `orbok` should quantize embedding vectors.
 
 The initial implementation should prioritize correctness and benchmark baseline quality before quantization.
 

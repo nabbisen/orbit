@@ -1,6 +1,6 @@
 # RFC-009: Hybrid Search and RRF Fusion
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 009  
 **Title:** Hybrid Search and RRF Fusion  
 **Status:** Proposed  
@@ -11,11 +11,11 @@
 
 ## 1. Summary
 
-This RFC defines how `orbit` combines keyword search and vector search into a unified result ranking.
+This RFC defines how `orbok` combines keyword search and vector search into a unified result ranking.
 
 The central decision is:
 
-> `orbit` should use Reciprocal Rank Fusion as the initial hybrid ranking method because it is simple, robust, score-scale independent, and appropriate for combining keyword and vector retrieval.
+> `orbok` should use Reciprocal Rank Fusion as the initial hybrid ranking method because it is simple, robust, score-scale independent, and appropriate for combining keyword and vector retrieval.
 
 ---
 
@@ -346,7 +346,7 @@ Search result cache may store:
 
 It should not store raw query text if privacy setting disables search history.
 
-`localcache` should not be used for query-level search result cache. The orbit catalog/cache tables are sufficient.
+`localcache` should not be used for query-level search result cache. The orbok catalog/cache tables are sufficient.
 
 ---
 

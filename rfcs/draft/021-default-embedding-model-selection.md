@@ -1,22 +1,22 @@
 # RFC-021: Default Embedding Model Selection
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 021  
 **Title:** Default Embedding Model Selection  
 **Status:** Draft — deferred future RFC (see activation conditions)  
 **Target Timing:** After basic embedding pipeline and benchmark corpus are complete  
 **Date:** 2026-06-06
 
-> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbit`.
+> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbok`.
 
 ---
 
 
 ## 1. Summary
 
-This future RFC will select the first recommended default embedding model for `orbit`.
+This future RFC will select the first recommended default embedding model for `orbok`.
 
-The initial implementation should support an embedding model abstraction without overcommitting to a specific model. This RFC should be activated only when `orbit` has stable chunking, local embedding backend abstraction, vector storage, benchmark corpus, retrieval quality metrics, and model registry workflow.
+The initial implementation should support an embedding model abstraction without overcommitting to a specific model. This RFC should be activated only when `orbok` has stable chunking, local embedding backend abstraction, vector storage, benchmark corpus, retrieval quality metrics, and model registry workflow.
 
 ## 2. Motivation
 

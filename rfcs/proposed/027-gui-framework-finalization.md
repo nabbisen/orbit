@@ -1,6 +1,6 @@
 # RFC-027: GUI Framework Finalization
 
-**Project:** orbit
+**Project:** orbok
 **RFC:** 027
 **Title:** GUI Framework Finalization
 **Status:** Proposed
@@ -13,11 +13,11 @@ project-owner decision mandating `snora` v0.8 as the GUI framework.
 
 ## 1. Summary
 
-This RFC finalizes the GUI framework for `orbit`.
+This RFC finalizes the GUI framework for `orbok`.
 
 The decision is:
 
-> `orbit` uses a **native Rust GUI** built on **iced 0.14** through the
+> `orbok` uses a **native Rust GUI** built on **iced 0.14** through the
 > **`snora` v0.8** framework (`snora` / `snora-widgets` / `snora-core`).
 > There is no WebView, no embedded browser, and no local HTTP API in v1.
 
@@ -35,11 +35,11 @@ the other RFCs.
 
 ### 2.1. Fit
 
-`snora`'s own fit guidance describes `orbit` almost verbatim: a
+`snora`'s own fit guidance describes `orbok` almost verbatim: a
 local-first desktop app that runs heavy work (AI inference, file
 processing) alongside an interactive UI, with standard desktop chrome
 (header / sidebar / body / footer) and a small set of overlays. The
-`orbit` GUI/UX external design (§4 Global Application Shell) maps 1-to-1
+`orbok` GUI/UX external design (§4 Global Application Shell) maps 1-to-1
 onto `snora`'s `AppLayout` slots.
 
 ### 2.2. Security surface
@@ -55,9 +55,9 @@ RFC-015:
   a local API is structurally impossible because no socket exists.
 
 The RFC-003 boundary rule ("the frontend never receives unrestricted
-file-system access") is preserved in a new form: the `orbit-ui` crate
+file-system access") is preserved in a new form: the `orbok-ui` crate
 **must not** perform direct file-system access (`std::fs`, `tokio::fs`,
-etc.). All file operations go through `orbit-core` service interfaces,
+etc.). All file operations go through `orbok-core` service interfaces,
 which enforce source-membership validation exactly as RFC-003 requires.
 This rule is enforceable by code review and a lint/CI grep, and keeps the
 boundary meaningful even without a process boundary.
@@ -89,7 +89,7 @@ NFR-050.
 
 | Risk | Assessment |
 |---|---|
-| iced API churn between releases | Accepted; `snora` absorbs part of it, and the UI crate is isolated behind `orbit-core` service interfaces |
+| iced API churn between releases | Accepted; `snora` absorbs part of it, and the UI crate is isolated behind `orbok-core` service interfaces |
 | Slower UI iteration than web stacks | Accepted; the GUI/UX design is already fully specified, reducing exploration cost |
 | Rich-text/preview rendering is more manual | Accepted; RFC-013 preview shows escaped plain text by design (RFC-015 §safe rendering) |
 | Accessibility tree exposure (screen readers) is weaker in iced than in native/web stacks today | Tracked; revisit when iced's a11y integration matures. Non-color status badges, focus visibility, and keyboard navigation are implemented now |
@@ -103,13 +103,13 @@ NFR-050.
 
 ```text
 single process
-├── orbit-ui (iced + snora)          ← view layer, no file access
+├── orbok-ui (iced + snora)          ← view layer, no file access
 │      │ iced Messages / Tasks
-├── orbit-core services              ← application boundary (was "/api/*")
+├── orbok-core services              ← application boundary (was "/api/*")
 │      │
-├── orbit-fs / orbit-extract / orbit-search / orbit-models
-├── orbit-db    (catalog: orbit-catalog.sqlite3)
-└── orbit-cache (localcache: orbit-cache.sqlite3)
+├── orbok-fs / orbok-extract / orbok-search / orbok-models
+├── orbok-db    (catalog: orbok-catalog.sqlite3)
+└── orbok-cache (localcache: orbok-cache.sqlite3)
 ```
 
 The conceptual REST groups of external design §8 (`/api/search/*`,
@@ -137,7 +137,7 @@ RFC-004 §15.
 One `ViewId` per top-level page (Search, Sources, Indexing, Storage,
 Models, Settings), each view a plain function over a view-model struct,
 per the `snora` `multi_view` pattern. View-model structs live in
-`orbit-ui` and contain only display data — no repository or path types.
+`orbok-ui` and contain only display data — no repository or path types.
 
 ---
 
@@ -145,11 +145,11 @@ per the `snora` `multi_view` pattern. View-model structs live in
 
 | RFC | Consequence |
 |---|---|
-| RFC-003 | "Frontend" boundary reinterpreted as the `orbit-ui` crate boundary; backend validation rules unchanged |
+| RFC-003 | "Frontend" boundary reinterpreted as the `orbok-ui` crate boundary; backend validation rules unchanged |
 | RFC-013 | Layouts implemented with iced widgets; semantics unchanged |
 | RFC-015 | §local API hardening (loopback binding, CSRF token, origin checks) becomes **not applicable in v1**; recorded as an amendment in that RFC. WebView-specific rules likewise dormant. All file-boundary, log-hygiene, and safe-rendering rules remain in force |
 | RFC-017 | Packaging targets a native binary; no WebView runtime dependency |
-| RFC-031 | i18n catalog lives in `orbit-ui`; see RFC-031 |
+| RFC-031 | i18n catalog lives in `orbok-ui`; see RFC-031 |
 
 ---
 
@@ -174,7 +174,7 @@ standard.
 
 - App shell renders header, sidebar with six views, body, and footer.
 - View switching works via sidebar.
-- `orbit-ui` contains no direct file-system access (CI-checkable).
+- `orbok-ui` contains no direct file-system access (CI-checkable).
 - Dialog and toast overlays function for at least one workflow each.
 - The packaged binary starts on Linux, Windows, and macOS.
 - Keyboard navigation works for primary actions.
@@ -185,7 +185,7 @@ standard.
 ## 7. Testing Strategy
 
 - View-model construction and message-update logic unit-tested headlessly.
-- `orbit-ui` compiles in CI without a display server.
+- `orbok-ui` compiles in CI without a display server.
 - Manual smoke matrix per platform for shell, overlays, and focus order
   (RFC-019 release gate).
 
@@ -194,5 +194,5 @@ standard.
 ## 8. Decision
 
 Adopt **iced 0.14 via snora v0.8** as the production GUI framework.
-No WebView and no local HTTP API in v1. The `orbit-ui` crate is the
+No WebView and no local HTTP API in v1. The `orbok-ui` crate is the
 frontend boundary and performs no direct file access.

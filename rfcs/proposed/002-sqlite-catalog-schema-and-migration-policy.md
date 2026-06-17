@@ -1,6 +1,6 @@
 # RFC-002: SQLite Catalog Schema and Migration Policy
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 002  
 **Title:** SQLite Catalog Schema and Migration Policy  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines the initial SQLite catalog design for `orbit`.
+This RFC defines the initial SQLite catalog design for `orbok`.
 
 SQLite is used as the local search catalog and state database. It is not merely a cache. It stores persistent catalog data, rebuildable index metadata, ephemeral cache records, migration state, and storage accounting.
 
@@ -19,7 +19,7 @@ SQLite is used as the local search catalog and state database. It is not merely 
 
 ## 2. Motivation
 
-`orbit` requires a durable local database for:
+`orbok` requires a durable local database for:
 
 - registered sources;
 - source policies;
@@ -34,7 +34,7 @@ SQLite is used as the local search catalog and state database. It is not merely 
 
 Using SQLite via `rusqlite` provides a lightweight, single-file, no-daemon storage layer appropriate for a local-first desktop application.
 
-`orbit` may additionally use `localcache` as a separate SQLite-backed cache engine for file-derived rebuildable and ephemeral payloads. The `orbit` catalog and the `localcache` database should remain separate.
+`orbok` may additionally use `localcache` as a separate SQLite-backed cache engine for file-derived rebuildable and ephemeral payloads. The `orbok` catalog and the `localcache` database should remain separate.
 
 However, the database must be designed with clear lifecycle semantics so that cleanup, rebuilds, and migrations are safe.
 
@@ -501,7 +501,7 @@ CREATE INDEX idx_app_events_created_at ON app_events(created_at);
 
 ## 7.14. Cache Engine Registry
 
-The `orbit` catalog may track cache engines and namespaces used by external/cache-layer storage such as `localcache`.
+The `orbok` catalog may track cache engines and namespaces used by external/cache-layer storage such as `localcache`.
 
 This table is metadata about cache usage. It does not duplicate or manage `localcache`'s internal schema.
 
@@ -535,11 +535,11 @@ CREATE INDEX idx_cache_engines_data_class ON cache_engines(data_class);
 Recommended file split:
 
 ```text
-orbit-catalog.sqlite3
-orbit-cache.sqlite3
+orbok-catalog.sqlite3
+orbok-cache.sqlite3
 ```
 
-The `localcache` database must not share `orbit`'s migration table or `PRAGMA user_version`.
+The `localcache` database must not share `orbok`'s migration table or `PRAGMA user_version`.
 
 
 ## 8. Repository Layer
@@ -592,7 +592,7 @@ If `localcache` is used:
 - use a separate database file;
 - define one namespace per payload family;
 - store namespace metadata in `cache_engines` or equivalent settings;
-- route all calls through an orbit-owned cache service;
+- route all calls through an orbok-owned cache service;
 - never treat `localcache` as the source catalog;
 - account for localcache storage in `storage_accounting`.
 
@@ -649,15 +649,15 @@ See `appendices/APPENDIX-A-localcache-integration.md`.
 
 Normative summary:
 
-- `orbit-catalog.sqlite3` remains authoritative.
-- `orbit-cache.sqlite3` may be managed by `localcache`.
+- `orbok-catalog.sqlite3` remains authoritative.
+- `orbok-cache.sqlite3` may be managed by `localcache`.
 - `cache_engines` tracks namespace and payload-version metadata only.
 
 ---
 
 ## 16. Amendment (2026-06-06): rusqlite Version Alignment
 
-`orbit-db` must pin `rusqlite = "0.40"` with the `bundled` feature.
+`orbok-db` must pin `rusqlite = "0.40"` with the `bundled` feature.
 
 Reason: the adopted cache engine `localcache` v0.19.1 (Appendix A)
 depends on `rusqlite` 0.40 (`bundled`), and Cargo permits only one

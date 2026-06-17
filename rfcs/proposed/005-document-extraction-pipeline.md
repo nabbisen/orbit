@@ -1,6 +1,6 @@
 # RFC-005: Document Extraction Pipeline
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 005  
 **Title:** Document Extraction Pipeline  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines the document extraction pipeline for `orbit`.
+This RFC defines the document extraction pipeline for `orbok`.
 
 Extraction converts supported source files into normalized text streams and location hints that later stages can chunk, index, embed, and display.
 
@@ -23,7 +23,7 @@ The extraction pipeline must be versioned, failure-isolated, and privacy-conscio
 
 ## 2. Motivation
 
-`orbit` cannot search local documents unless it can extract text. However, document extraction is messy:
+`orbok` cannot search local documents unless it can extract text. However, document extraction is messy:
 
 - PDFs may have unreliable reading order;
 - DOCX structure may not map cleanly to byte offsets;
@@ -223,7 +223,7 @@ payload_version = EXTRACTED_SEGMENT_BUNDLE_SCHEMA_VERSION
 Important rules:
 
 1. The cached extraction payload is not authoritative.
-2. The authoritative extraction record remains in the `orbit` catalog.
+2. The authoritative extraction record remains in the `orbok` catalog.
 3. Cached extracted text may contain sensitive document content.
 4. Privacy-strict mode may disable this cache.
 5. Storage view must report this cache under temporary extraction or rebuildable index data.
@@ -231,7 +231,7 @@ Important rules:
 
 ## 11. Temporary Extracted Text Policy
 
-`orbit` should not permanently store full extracted text by default.
+`orbok` should not permanently store full extracted text by default.
 
 Allowed behavior:
 
@@ -243,7 +243,7 @@ Allowed behavior:
 
 If an implementation temporarily stores extracted text on disk, it must:
 
-- store it under orbit's cache directory;
+- store it under orbok's cache directory;
 - mark it as ephemeral;
 - apply cleanup/TTL;
 - avoid logs containing its contents;
@@ -380,9 +380,9 @@ Examples:
 |---|---|
 | unsupported_format | This file type is not supported yet. |
 | encrypted_document | This document appears to be encrypted or password-protected. |
-| parser_error | orbit could not extract text from this file. |
+| parser_error | orbok could not extract text from this file. |
 | file_too_large | This file exceeds the configured size limit. |
-| permission_denied | orbit cannot read this file. Check permissions. |
+| permission_denied | orbok cannot read this file. Check permissions. |
 
 ---
 
@@ -427,15 +427,15 @@ PDF and DOCX tests may initially use small fixture files and assert coarse locat
 Recommended Rust modules:
 
 ```text
-orbit-extract::traits
-orbit-extract::text
-orbit-extract::markdown
-orbit-extract::html
-orbit-extract::pdf
-orbit-extract::docx
-orbit-extract::csv
-orbit-extract::code
-orbit-extract::normalize
+orbok-extract::traits
+orbok-extract::text
+orbok-extract::markdown
+orbok-extract::html
+orbok-extract::pdf
+orbok-extract::docx
+orbok-extract::csv
+orbok-extract::code
+orbok-extract::normalize
 ```
 
 Recommended pipeline:
@@ -480,5 +480,5 @@ Normative summary:
 
 - extraction may reuse fresh localcache payloads;
 - extracted text cache is optional and privacy-sensitive;
-- extraction records in the orbit catalog remain authoritative;
+- extraction records in the orbok catalog remain authoritative;
 - localcache payload version must change when extraction payload schema changes.

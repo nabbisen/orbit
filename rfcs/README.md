@@ -1,4 +1,4 @@
-# orbit RFCs
+# orbok RFCs
 
 Lifecycle policy: [RFC 000](./done/000-rfc-lifecycle-policy.md).
 The folder an RFC lives in is the source of truth for its state.

@@ -1,6 +1,6 @@
 # RFC-012: Model Registry and Installation Workflow
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 012  
 **Title:** Model Registry and Installation Workflow  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines the local model registry and model installation/locate workflow for `orbit`.
+This RFC defines the local model registry and model installation/locate workflow for `orbok`.
 
 The central decision is:
 
@@ -21,7 +21,7 @@ The central decision is:
 
 ## 2. Motivation
 
-`orbit` uses local AI models for semantic search and optional reranking.
+`orbok` uses local AI models for semantic search and optional reranking.
 
 Model handling affects:
 
@@ -286,7 +286,7 @@ embedding-bundle:<model_id>:fp32:v1
 
 When a model is removed or disabled, related localcache namespaces may become stale and should be eligible for cleanup.
 
-The model registry remains in the `orbit` catalog, not localcache.
+The model registry remains in the `orbok` catalog, not localcache.
 
 ---
 

@@ -1,6 +1,6 @@
 # RFC-031: GUI Internationalization (i18n)
 
-**Project:** orbit
+**Project:** orbok
 **RFC:** 031
 **Title:** GUI Internationalization
 **Status:** Proposed
@@ -11,12 +11,12 @@
 
 ## 1. Summary
 
-This RFC defines how the `orbit` GUI supports multiple languages.
+This RFC defines how the `orbok` GUI supports multiple languages.
 
 The decision is:
 
 > All user-facing GUI strings are resolved through a compile-time-checked
-> message catalog in `orbit-ui`. English (`en`) is the source locale and
+> message catalog in `orbok-ui`. English (`en`) is the source locale and
 > Japanese (`ja`) is the first additional locale. Views never contain
 > hard-coded user-facing string literals.
 
@@ -73,7 +73,7 @@ support multiple languages (i18n)", which no earlier RFC covered.
 A typed, in-crate catalog rather than a runtime translation framework:
 
 ```rust
-// orbit-ui/src/i18n/
+// orbok-ui/src/i18n/
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
 pub enum Locale {
     #[default]
@@ -146,9 +146,9 @@ avoid-list (BM25, RRF, cross-encoder, …) applies equally to Japanese.
 
 ## 6. Rules
 
-1. `orbit-ui` view code must not contain user-facing string literals;
+1. `orbok-ui` view code must not contain user-facing string literals;
    CI may grep view modules for quoted literals as a heuristic gate.
-2. Backend crates (`orbit-core`, `orbit-db`, …) return typed errors and
+2. Backend crates (`orbok-core`, `orbok-db`, …) return typed errors and
    enums, never display strings; the UI maps them to `MessageKey`s.
    This keeps the backend locale-free and the boundary clean.
 3. Date/time/size formatting is centralized in the i18n module.
@@ -187,6 +187,6 @@ avoid-list (BM25, RRF, cross-encoder, …) applies equally to Japanese.
 
 ## 10. Decision
 
-Adopt a compile-time-checked typed message catalog in `orbit-ui` with
+Adopt a compile-time-checked typed message catalog in `orbok-ui` with
 `en` (source) and `ja` locales, locale setting persisted in
 `app_settings`, and a documented migration path to Fluent.

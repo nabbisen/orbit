@@ -17,8 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 **Foundation (M0–M1)**
 - Rust 2024 edition Cargo workspace with nine crates:
-  `orbit-core`, `orbit-db`, `orbit-fs`, `orbit-cache`,
-  `orbit-extract`, `orbit-search`, `orbit-models`, `orbit-ui`, `orbit-app`.
+  `orbok-core`, `orbok-db`, `orbok-fs`, `orbok-cache`,
+  `orbok-extract`, `orbok-search`, `orbok-models`, `orbok-ui`, `orbok-app`.
 - RFC lifecycle policy (RFC-000): `rfcs/{proposed,done,archive}` folder
   structure with numbered RFCs, README index.
 - RFC-001: three-layer data lifecycle (persistent catalog / rebuildable

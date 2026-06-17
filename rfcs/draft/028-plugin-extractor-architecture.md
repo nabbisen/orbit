@@ -1,20 +1,20 @@
 # RFC-028: Plugin Extractor Architecture
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 028  
 **Title:** Plugin Extractor Architecture  
 **Status:** Draft — deferred future RFC (see activation conditions)  
 **Target Timing:** After built-in extractors stabilize and external extension need is confirmed  
 **Date:** 2026-06-06
 
-> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbit`.
+> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbok`.
 
 ---
 
 
 ## 1. Summary
 
-This future RFC will define whether `orbit` should support plugin-based document extractors.
+This future RFC will define whether `orbok` should support plugin-based document extractors.
 
 Plugin extractors could allow custom formats, but they expand the security and maintenance surface. Built-in extractors should stabilize first.
 

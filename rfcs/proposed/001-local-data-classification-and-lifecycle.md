@@ -1,6 +1,6 @@
 # RFC-001: Local Data Classification and Lifecycle
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 001  
 **Title:** Local Data Classification and Lifecycle  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines the local data classification model for `orbit`.
+This RFC defines the local data classification model for `orbok`.
 
 The core decision is to classify all application-managed data into three lifecycle classes:
 
@@ -21,13 +21,13 @@ The core decision is to classify all application-managed data into three lifecyc
 
 This classification is foundational. It determines database design, cleanup behavior, UI wording, storage accounting, backup expectations, and user trust.
 
-`orbit` may use the `localcache` crate for file-derived caches, but such data must still be classified under this lifecycle model.
+`orbok` may use the `localcache` crate for file-derived caches, but such data must still be classified under this lifecycle model.
 
 ---
 
 ## 2. Motivation
 
-`orbit` is designed to avoid duplicating source files while still providing high-quality local search. This requires storing derived data such as file metadata, chunk locations, keyword indexes, and embeddings.
+`orbok` is designed to avoid duplicating source files while still providing high-quality local search. This requires storing derived data such as file metadata, chunk locations, keyword indexes, and embeddings.
 
 Without explicit lifecycle classification, several risks appear:
 
@@ -70,13 +70,13 @@ The application needs a strict vocabulary for what it stores and why.
 
 A user-owned file on the local filesystem.
 
-`orbit` may read source files only when they are under user-approved sources and policy allows access.
+`orbok` may read source files only when they are under user-approved sources and policy allows access.
 
-`orbit` must not delete source files.
+`orbok` must not delete source files.
 
 ## 5.2. Source
 
-A user-approved file or directory that `orbit` may scan.
+A user-approved file or directory that `orbok` may scan.
 
 A source may be:
 
@@ -198,7 +198,7 @@ It must not be used as persistent catalog data.
 
 Examples:
 
-| localcache Payload | orbit Lifecycle Class |
+| localcache Payload | orbok Lifecycle Class |
 |---|---|
 | Extracted segment bundle | Rebuildable index or ephemeral cache, depending on retention |
 | Chunk bundle | Rebuildable index |
@@ -206,7 +206,7 @@ Examples:
 | Preview helper payload | Ephemeral cache |
 | Temporary document analysis | Ephemeral cache |
 
-The authoritative source list, file catalog, index job state, and user settings must remain in the orbit catalog.
+The authoritative source list, file catalog, index job state, and user settings must remain in the orbok catalog.
 
 ## 9. Cleanup Policy
 
@@ -293,7 +293,7 @@ Use:
 - “Clear temporary cache”
 - “Delete semantic search index”
 - “Rebuild exact search index”
-- “Reset orbit catalog”
+- “Reset orbok catalog”
 - “Source files will not be deleted”
 
 Avoid:
@@ -312,7 +312,7 @@ Avoid:
 - Ordinary cleanup cannot delete persistent source settings.
 - Storage usage is reportable by lifecycle category.
 - Tests prove persistent data survives safe cleanup.
-- User-facing copy distinguishes source files from orbit indexes.
+- User-facing copy distinguishes source files from orbok indexes.
 - Rebuildable data deletion marks required reindexing state.
 
 ---
@@ -391,6 +391,6 @@ See `appendices/APPENDIX-A-localcache-integration.md`.
 Normative summary:
 
 - `localcache` may manage rebuildable and ephemeral file-derived payloads.
-- `localcache` must be accessed through an `orbit` cache service wrapper.
-- `localcache` cleanup must be driven by an `orbit` cleanup plan.
+- `localcache` must be accessed through an `orbok` cache service wrapper.
+- `localcache` cleanup must be driven by an `orbok` cleanup plan.
 - `localcache` data must be reported in the Storage view by lifecycle category.

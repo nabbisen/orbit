@@ -1,26 +1,26 @@
 # RFC-026: Encrypted Local Indexes
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 026  
 **Title:** Encrypted Local Indexes  
 **Status:** Draft — deferred future RFC (see activation conditions)  
 **Target Timing:** After lifecycle, storage, and key-management requirements are clarified  
 **Date:** 2026-06-06
 
-> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbit`.
+> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbok`.
 
 ---
 
 
 ## 1. Summary
 
-This future RFC will decide whether `orbit` should encrypt local indexes, caches, or model-derived data at rest.
+This future RFC will decide whether `orbok` should encrypt local indexes, caches, or model-derived data at rest.
 
 Encryption may improve protection against offline access, but it adds key-management complexity and may create a false sense of security if not designed carefully.
 
 ## 2. Motivation
 
-`orbit` stores sensitive local derived data: file paths, keyword indexes, embeddings, snippets, extracted segment cache, search history, and localcache payloads.
+`orbok` stores sensitive local derived data: file paths, keyword indexes, embeddings, snippets, extracted segment cache, search history, and localcache payloads.
 
 Users may ask for local-at-rest protection, but encryption raises key-management questions.
 

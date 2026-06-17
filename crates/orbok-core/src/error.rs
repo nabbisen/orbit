@@ -1,0 +1,109 @@
+//! Application error types.
+//!
+//! Backend crates return typed errors; the UI maps them to i18n message
+//! keys (RFC-031 §6 rule 2). Error categories follow the failure
+//! taxonomies of RFC-004 §16 and RFC-005 §13.
+
+use thiserror::Error;
+
+/// Stable error categories recorded in the catalog
+/// (`extraction_records.error_category`, `index_jobs.error_category`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ErrorCategory {
+    SourceMissing,
+    PermissionDenied,
+    PathCanonicalizationFailed,
+    SymlinkPolicyBlocked,
+    FileTooLarge,
+    UnsupportedType,
+    UnsupportedFormat,
+    EncodingError,
+    ParserError,
+    EncryptedDocument,
+    FileChangedDuringRead,
+    ReadError,
+    HashError,
+    Timeout,
+    OutOfMemory,
+    Canceled,
+    ModelUnavailable,
+    InternalError,
+}
+
+impl ErrorCategory {
+    /// Stable catalog string (snake_case, as in RFC-004/RFC-005).
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ErrorCategory::SourceMissing => "source_missing",
+            ErrorCategory::PermissionDenied => "permission_denied",
+            ErrorCategory::PathCanonicalizationFailed => "path_canonicalization_failed",
+            ErrorCategory::SymlinkPolicyBlocked => "symlink_policy_blocked",
+            ErrorCategory::FileTooLarge => "file_too_large",
+            ErrorCategory::UnsupportedType => "unsupported_type",
+            ErrorCategory::UnsupportedFormat => "unsupported_format",
+            ErrorCategory::EncodingError => "encoding_error",
+            ErrorCategory::ParserError => "parser_error",
+            ErrorCategory::EncryptedDocument => "encrypted_document",
+            ErrorCategory::FileChangedDuringRead => "file_changed_during_read",
+            ErrorCategory::ReadError => "read_error",
+            ErrorCategory::HashError => "hash_error",
+            ErrorCategory::Timeout => "timeout",
+            ErrorCategory::OutOfMemory => "out_of_memory",
+            ErrorCategory::Canceled => "canceled",
+            ErrorCategory::ModelUnavailable => "model_unavailable",
+            ErrorCategory::InternalError => "internal_error",
+        }
+    }
+}
+
+/// Top-level orbok error.
+///
+/// Messages intentionally avoid document contents; paths appear only
+/// where required for actionability (NFR-014 log hygiene).
+#[derive(Debug, Error)]
+pub enum OrbokError {
+    #[error("database error: {0}")]
+    Database(String),
+
+    #[error("migration failed at version {version}: {message}")]
+    MigrationFailed { version: i64, message: String },
+
+    #[error("path is outside all active sources")]
+    PathOutsideSources,
+
+    #[error("path canonicalization failed: {0}")]
+    PathCanonicalization(String),
+
+    #[error("blocked by source policy: {0}")]
+    PolicyBlocked(&'static str),
+
+    #[error("source not found")]
+    SourceNotFound,
+
+    #[error("file not found in catalog")]
+    FileNotFound,
+
+    #[error("cleanup plan would touch persistent catalog data")]
+    CleanupWouldTouchPersistentData,
+
+    #[error("cache engine error: {0}")]
+    Cache(String),
+
+    #[error("extraction failed: {category:?}")]
+    Extraction {
+        category: ErrorCategory,
+        message: String,
+    },
+
+    #[error("invalid value in catalog column {column}: {value}")]
+    InvalidCatalogValue { column: &'static str, value: String },
+
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("operation canceled")]
+    Canceled,
+}
+
+/// Convenience result alias.
+pub type OrbokResult<T> = Result<T, OrbokError>;

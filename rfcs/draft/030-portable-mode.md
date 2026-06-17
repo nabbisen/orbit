@@ -1,20 +1,20 @@
 # RFC-030: Portable Mode
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 030  
 **Title:** Portable Mode  
 **Status:** Draft — deferred future RFC (see activation conditions)  
 **Target Timing:** When portable/USB/self-contained distribution becomes a concrete product goal  
 **Date:** 2026-06-06
 
-> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbit`.
+> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbok`.
 
 ---
 
 
 ## 1. Summary
 
-This future RFC will define a portable mode for `orbit`.
+This future RFC will define a portable mode for `orbok`.
 
 Portable mode would keep app data near the executable or in a user-selected directory instead of the platform default application data directory.
 
@@ -39,7 +39,7 @@ Reconsider this RFC when:
 | Mode | Description |
 |---|---|
 | standard | platform app data directory |
-| portable-near-exe | `./orbit-data` near executable |
+| portable-near-exe | `./orbok-data` near executable |
 | portable-explicit | user passes `--data-dir` |
 | project workspace | data stored under selected project folder |
 
@@ -56,11 +56,11 @@ This is explicit and useful for development/testing.
 Portable mode layout:
 
 ```text
-orbit-portable/
-├── orbit executable
-└── orbit-data/
-    ├── orbit-catalog.sqlite3
-    ├── orbit-cache.sqlite3
+orbok-portable/
+├── orbok executable
+└── orbok-data/
+    ├── orbok-catalog.sqlite3
+    ├── orbok-cache.sqlite3
     ├── models/
     ├── vector-index/
     ├── keyword-index/
@@ -81,7 +81,7 @@ Portable mode risks copied indexes, weaker OS protection, path confusion, and lo
 UI must warn:
 
 ```text
-Portable mode stores orbit indexes in this folder. These indexes may contain sensitive derived data.
+Portable mode stores orbok indexes in this folder. These indexes may contain sensitive derived data.
 ```
 
 ## 8. Non-Goals

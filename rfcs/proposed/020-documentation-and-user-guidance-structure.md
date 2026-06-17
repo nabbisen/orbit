@@ -1,6 +1,6 @@
 # RFC-020: Documentation and User Guidance Structure
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 020  
 **Title:** Documentation and User Guidance Structure  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines the documentation structure for `orbit`.
+This RFC defines the documentation structure for `orbok`.
 
 The central decision is:
 
@@ -21,7 +21,7 @@ The central decision is:
 
 ## 2. Motivation
 
-`orbit` has several concepts that can confuse users:
+`orbok` has several concepts that can confuse users:
 
 - local-only search;
 - derived indexes;
@@ -113,7 +113,7 @@ docs/
 
 README should include only:
 
-- what orbit is;
+- what orbok is;
 - local-first promise;
 - core features;
 - quick install/run;
@@ -180,7 +180,7 @@ Must explain:
 
 Must explain:
 
-- what orbit stores;
+- what orbok stores;
 - persistent catalog;
 - exact index;
 - semantic index;
@@ -275,13 +275,13 @@ Avoid absolute claims:
 Bad:
 
 ```text
-orbit completely protects your privacy.
+orbok completely protects your privacy.
 ```
 
 Preferred:
 
 ```text
-orbit processes document search locally by default and does not upload document contents unless a future optional feature explicitly says so.
+orbok processes document search locally by default and does not upload document contents unless a future optional feature explicitly says so.
 ```
 
 Documentation must be honest about:

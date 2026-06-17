@@ -1,8 +1,8 @@
-orbit
+orbok
 Copyright 2026 nabbisen
 
 This product includes software developed by nabbisen.
-https://github.com/nabbisen/orbit
+https://github.com/nabbisen/orbok
 
 Third-party dependencies are listed in Cargo.lock and their licenses
 are available in the respective crate source distributions.

@@ -1,6 +1,6 @@
 # RFC-011: Storage Dashboard and Cleanup UX
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 011  
 **Title:** Storage Dashboard and Cleanup UX  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines the Storage Dashboard and cleanup UX for `orbit`.
+This RFC defines the Storage Dashboard and cleanup UX for `orbok`.
 
 The central decision is:
 
@@ -23,7 +23,7 @@ This RFC turns the data lifecycle model from RFC-001 into concrete product behav
 
 ## 2. Motivation
 
-`orbit` is storage-conscious by design. It avoids duplicating source files, but it still stores derived data:
+`orbok` is storage-conscious by design. It avoids duplicating source files, but it still stores derived data:
 
 - file catalog records;
 - chunk metadata;
@@ -43,7 +43,7 @@ Storage transparency is central to user trust.
 
 ## 3. Goals
 
-- Show how much local storage `orbit` uses.
+- Show how much local storage `orbok` uses.
 - Break storage down by meaningful lifecycle categories.
 - Provide safe cleanup actions.
 - Provide rebuildable-index cleanup actions with clear warnings.
@@ -88,9 +88,9 @@ Recommended desktop layout:
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │ Storage                                                                      │
-│ See what orbit stores and clean up safely.                                   │
+│ See what orbok stores and clean up safely.                                   │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ Total orbit storage: 1.42 GB                                                  │
+│ Total orbok storage: 1.42 GB                                                  │
 │                                                                              │
 │ ┌───────────────────────────┐ ┌────────────────────────────────────────────┐ │
 │ │ Storage Breakdown          │ │ Cleanup Actions                            │ │
@@ -105,7 +105,7 @@ Recommended desktop layout:
 │ └───────────────────────────┘ │ [Delete exact index and rebuild later]      │ │
 │                               │                                            │ │
 │                               │ Dangerous                                  │ │
-│                               │ [Reset orbit catalog...]                   │ │
+│                               │ [Reset orbok catalog...]                   │ │
 │                               └────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -154,7 +154,7 @@ Destructive reset deletes persistent catalog data.
 
 Examples:
 
-- reset orbit catalog;
+- reset orbok catalog;
 - remove all registered sources;
 - remove source policies;
 - remove file catalog.
@@ -184,7 +184,7 @@ pub struct CleanupPlan {
 
 Rules:
 
-- `deletes_source_files` must always be false for normal orbit cleanup.
+- `deletes_source_files` must always be false for normal orbok cleanup.
 - UI must display plan before high-risk actions.
 - Backend must execute only plans it created.
 
@@ -221,7 +221,7 @@ Recommended mapping:
 | `embedding-bundle:*` | Semantic search index |
 | `preview-cache:*` | Snippet cache |
 
-The Storage Manager must query `localcache` stats through the `orbit` cache service wrapper, not directly from UI code.
+The Storage Manager must query `localcache` stats through the `orbok` cache service wrapper, not directly from UI code.
 
 Cleanup must call:
 
@@ -293,7 +293,7 @@ Storage usage has not been calculated yet.
 
 ```text
 The cache database is missing or was removed.
-orbit can recreate it automatically.
+orbok can recreate it automatically.
 [Recreate Cache]
 ```
 
@@ -335,7 +335,7 @@ Required tests:
 7. localcache namespace size is included.
 8. Corrupt cache database can be rebuilt.
 9. Privacy-strict mode clears text-bearing caches.
-10. UI copy distinguishes source files from orbit indexes.
+10. UI copy distinguishes source files from orbok indexes.
 
 ---
 

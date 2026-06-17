@@ -1,6 +1,6 @@
 # RFC-013: Search View and Result Explanation UX
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 013  
 **Title:** Search View and Result Explanation UX  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines the Search View and result explanation UX for `orbit`.
+This RFC defines the Search View and result explanation UX for `orbok`.
 
 The central decision is:
 
@@ -23,7 +23,7 @@ The UI should not expose internal terminology by default, but it should provide 
 
 ## 2. Motivation
 
-`orbit` combines keyword search, vector search, RRF, and optional reranking. Without careful UX, users may not understand:
+`orbok` combines keyword search, vector search, RRF, and optional reranking. Without careful UX, users may not understand:
 
 - why a result appeared;
 - whether it matched exact words or semantic meaning;
@@ -223,7 +223,7 @@ Source file is currently unavailable. The drive may be disconnected or the file 
 ## 11.3. Permission Denied
 
 ```text
-orbit cannot read this file now. Check file permissions or remove it from the source.
+orbok cannot read this file now. Check file permissions or remove it from the source.
 [Retry] [Open Folder] [Details]
 ```
 
@@ -323,7 +323,7 @@ Accessibility requirements:
 
 ```text
 Nothing to search yet.
-Add a folder or file so orbit can build a local search index.
+Add a folder or file so orbok can build a local search index.
 [Add Source]
 ```
 

@@ -1,6 +1,6 @@
 # RFC-016: Benchmark and Retrieval Evaluation Plan
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 016  
 **Title:** Benchmark and Retrieval Evaluation Plan  
 **Status:** Proposed  
@@ -11,17 +11,17 @@
 
 ## 1. Summary
 
-This RFC defines the benchmark and retrieval evaluation plan for `orbit`.
+This RFC defines the benchmark and retrieval evaluation plan for `orbok`.
 
 The central decision is:
 
-> `orbit` must be evaluated across four dimensions: retrieval quality, latency, storage growth, and indexing cost. Storage efficiency and search quality must be measured together rather than optimized independently.
+> `orbok` must be evaluated across four dimensions: retrieval quality, latency, storage growth, and indexing cost. Storage efficiency and search quality must be measured together rather than optimized independently.
 
 ---
 
 ## 2. Motivation
 
-`orbit` combines exact search, semantic search, hybrid RRF, and optional reranking. It also aims to minimize storage by avoiding full source duplication and controlling derived indexes.
+`orbok` combines exact search, semantic search, hybrid RRF, and optional reranking. It also aims to minimize storage by avoiding full source duplication and controlling derived indexes.
 
 Without benchmarks, the project cannot safely decide:
 
@@ -63,7 +63,7 @@ The benchmark plan must be introduced before release hardening, not after perfor
 
 ## 5. Benchmark Categories
 
-`orbit` should benchmark:
+`orbok` should benchmark:
 
 1. **Retrieval Quality**
 2. **Search Latency**
@@ -239,17 +239,17 @@ Each query should have expected relevant document/chunk IDs.
 Recommended command:
 
 ```text
-orbit bench --suite retrieval
-orbit bench --suite indexing
-orbit bench --suite storage
-orbit bench --suite all
+orbok bench --suite retrieval
+orbok bench --suite indexing
+orbok bench --suite storage
+orbok bench --suite all
 ```
 
 Recommended output:
 
 ```text
-target/orbit-bench/results/<timestamp>.json
-target/orbit-bench/results/<timestamp>.md
+target/orbok-bench/results/<timestamp>.json
+target/orbok-bench/results/<timestamp>.md
 ```
 
 JSON is for tooling. Markdown is for human review.

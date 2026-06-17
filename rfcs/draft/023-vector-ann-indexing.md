@@ -1,20 +1,20 @@
 # RFC-023: Vector ANN Indexing
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 023  
 **Title:** Vector ANN Indexing  
 **Status:** Draft — deferred future RFC (see activation conditions)  
 **Target Timing:** After exact vector search benchmark shows unacceptable latency  
 **Date:** 2026-06-06
 
-> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbit`.
+> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbok`.
 
 ---
 
 
 ## 1. Summary
 
-This future RFC will decide whether `orbit` needs approximate nearest neighbor indexing for vector search.
+This future RFC will decide whether `orbok` needs approximate nearest neighbor indexing for vector search.
 
 The initial implementation should use exact vector search or a simple `VectorStore` abstraction until benchmarks demonstrate that exact search is too slow.
 

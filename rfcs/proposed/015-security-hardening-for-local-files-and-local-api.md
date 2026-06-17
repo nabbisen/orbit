@@ -1,6 +1,6 @@
 # RFC-015: Security Hardening for Local Files and Local API
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 015  
 **Title:** Security Hardening for Local Files and Local API  
 **Status:** Proposed  
@@ -11,11 +11,11 @@
 
 ## 1. Summary
 
-This RFC defines security hardening requirements for `orbit`.
+This RFC defines security hardening requirements for `orbok`.
 
 The central decision is:
 
-> `orbit` is local-first, but it must still be treated as a security-sensitive local application because it reads private files, stores derived indexes, and may expose a local UI/API boundary.
+> `orbok` is local-first, but it must still be treated as a security-sensitive local application because it reads private files, stores derived indexes, and may expose a local UI/API boundary.
 
 Local-first reduces cloud privacy risk, but it does not eliminate local security risk.
 
@@ -23,7 +23,7 @@ Local-first reduces cloud privacy risk, but it does not eliminate local security
 
 ## 2. Motivation
 
-`orbit` may process sensitive local documents. Risks include:
+`orbok` may process sensitive local documents. Risks include:
 
 - accidental indexing of secrets;
 - symlink escape from approved folders;
@@ -180,7 +180,7 @@ Rules:
 
 ## 10. Local API Hardening
 
-If `orbit` uses a local HTTP API:
+If `orbok` uses a local HTTP API:
 
 - bind to loopback only;
 - do not expose on LAN by default;
@@ -389,7 +389,7 @@ Required tests:
 
 ## 22. Decision
 
-Treat `orbit` as a security-sensitive local app.
+Treat `orbok` as a security-sensitive local app.
 
 Local-first is necessary but not sufficient; backend-enforced file boundaries, safe rendering, local API hardening, and privacy-aware logging are mandatory.
 
@@ -405,8 +405,8 @@ with **no WebView and no local HTTP API in v1**. Consequently:
   only if a local HTTP API or WebView frontend is introduced later, and
   must be re-activated in that RFC.
 - The frontend boundary requirement remains in force in a new form: the
-  `orbit-ui` crate must not perform direct file-system access; all file
-  operations are mediated by `orbit-core` services enforcing RFC-003
+  `orbok-ui` crate must not perform direct file-system access; all file
+  operations are mediated by `orbok-core` services enforcing RFC-003
   source-membership validation.
 - Safe-rendering requirements remain in force: extracted document text
   is rendered as plain text widgets only; HTML is never interpreted;

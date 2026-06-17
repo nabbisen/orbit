@@ -1,6 +1,6 @@
 # RFC-017: Packaging and Distribution Strategy
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 017  
 **Title:** Packaging and Distribution Strategy  
 **Status:** Proposed  
@@ -11,17 +11,17 @@
 
 ## 1. Summary
 
-This RFC defines the packaging and distribution strategy for `orbit`.
+This RFC defines the packaging and distribution strategy for `orbok`.
 
 The central decision is:
 
-> `orbit` should be distributed as a local desktop application with a Rust backend, clear local-data directories, optional local model installation, and reproducible release artifacts for Linux, Windows, and macOS.
+> `orbok` should be distributed as a local desktop application with a Rust backend, clear local-data directories, optional local model installation, and reproducible release artifacts for Linux, Windows, and macOS.
 
 ---
 
 ## 2. Motivation
 
-`orbit` is a local-first app that accesses files, stores local indexes, and may use local models. Packaging must therefore address:
+`orbok` is a local-first app that accesses files, stores local indexes, and may use local models. Packaging must therefore address:
 
 - cross-platform file locations;
 - model storage;
@@ -103,9 +103,9 @@ Use platform-appropriate directories.
 Logical layout:
 
 ```text
-orbit/
-├── orbit-catalog.sqlite3
-├── orbit-cache.sqlite3
+orbok/
+├── orbok-catalog.sqlite3
+├── orbok-cache.sqlite3
 ├── models/
 ├── vector-index/
 ├── keyword-index/
@@ -133,9 +133,9 @@ Examples:
 
 | Platform | Typical Location |
 |---|---|
-| Linux | `$XDG_DATA_HOME/orbit` or `~/.local/share/orbit` |
-| Windows | `%APPDATA%/orbit` or `%LOCALAPPDATA%/orbit` |
-| macOS | `~/Library/Application Support/orbit` |
+| Linux | `$XDG_DATA_HOME/orbok` or `~/.local/share/orbok` |
+| Windows | `%APPDATA%/orbok` or `%LOCALAPPDATA%/orbok` |
+| macOS | `~/Library/Application Support/orbok` |
 
 The exact crate and path policy should be implemented consistently.
 
@@ -165,17 +165,17 @@ GPU acceleration may be feature-gated or distributed separately later.
 Possible artifact variants:
 
 ```text
-orbit-linux-x86_64-cpu.tar.gz
-orbit-windows-x86_64-cpu.zip
-orbit-macos-aarch64-cpu.tar.gz
+orbok-linux-x86_64-cpu.tar.gz
+orbok-windows-x86_64-cpu.zip
+orbok-macos-aarch64-cpu.tar.gz
 ```
 
 Future:
 
 ```text
-orbit-linux-x86_64-cuda.tar.gz
-orbit-windows-x86_64-cuda.zip
-orbit-macos-aarch64-metal.tar.gz
+orbok-linux-x86_64-cuda.tar.gz
+orbok-windows-x86_64-cuda.zip
+orbok-macos-aarch64-metal.tar.gz
 ```
 
 Do not let GPU packaging block CPU release.
@@ -220,7 +220,7 @@ Release notes must mention schema changes.
 A future portable mode may use:
 
 ```text
-./orbit-data/
+./orbok-data/
 ```
 
 near the executable.

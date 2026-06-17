@@ -1,6 +1,6 @@
 # RFC-018: Crash Recovery, Diagnostics, and Repair Tools
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 018  
 **Title:** Crash Recovery, Diagnostics, and Repair Tools  
 **Status:** Proposed  
@@ -11,17 +11,17 @@
 
 ## 1. Summary
 
-This RFC defines crash recovery, diagnostics, and repair tooling for `orbit`.
+This RFC defines crash recovery, diagnostics, and repair tooling for `orbok`.
 
 The central decision is:
 
-> `orbit` must assume indexing can be interrupted. It must recover without corrupting the catalog, losing source settings, or presenting stale data as fresh.
+> `orbok` must assume indexing can be interrupted. It must recover without corrupting the catalog, losing source settings, or presenting stale data as fresh.
 
 ---
 
 ## 2. Motivation
 
-`orbit` performs long-running local operations:
+`orbok` performs long-running local operations:
 
 - scanning large folders;
 - extracting PDFs/DOCX files;
@@ -105,14 +105,14 @@ Interrupted job statuses:
 Recommended CLI/internal commands:
 
 ```text
-orbit repair catalog-check
-orbit repair cache-rebuild
-orbit repair storage-recount
-orbit repair mark-stale
-orbit repair remove-orphaned-indexes
-orbit repair rebuild-keyword-index
-orbit repair rebuild-vector-index
-orbit diagnostics export
+orbok repair catalog-check
+orbok repair cache-rebuild
+orbok repair storage-recount
+orbok repair mark-stale
+orbok repair remove-orphaned-indexes
+orbok repair rebuild-keyword-index
+orbok repair rebuild-vector-index
+orbok diagnostics export
 ```
 
 These may be exposed through UI later.
@@ -251,7 +251,7 @@ Avoid:
 Examples:
 
 ```text
-orbit recovered from an interrupted indexing job.
+orbok recovered from an interrupted indexing job.
 Some files were queued for retry.
 [View Indexing]
 ```

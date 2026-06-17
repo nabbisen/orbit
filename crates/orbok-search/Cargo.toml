@@ -1,0 +1,18 @@
+[package]
+name = "orbok-search"
+description = "orbok retrieval: keyword search engine trait and FTS5 implementation (RFC-007)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+orbok-core = { workspace = true }
+orbok-db = { workspace = true }
+rusqlite = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

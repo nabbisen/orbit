@@ -1,0 +1,18 @@
+[package]
+name = "orbok-extract"
+description = "orbok document extraction pipeline: extractor trait, normalization, text/markdown extractors (RFC-005)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+orbok-core = { workspace = true }
+orbok-fs = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

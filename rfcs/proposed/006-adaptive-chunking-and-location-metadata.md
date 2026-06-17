@@ -1,6 +1,6 @@
 # RFC-006: Adaptive Chunking and Location Metadata
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 006  
 **Title:** Adaptive Chunking and Location Metadata  
 **Status:** Proposed  
@@ -11,13 +11,13 @@
 
 ## 1. Summary
 
-This RFC defines how `orbit` converts extracted document segments into searchable chunks.
+This RFC defines how `orbok` converts extracted document segments into searchable chunks.
 
 Chunking is the bridge between document extraction and retrieval. Keyword search, vector search, snippet loading, result preview, and reranking all depend on stable chunk identity and source-location metadata.
 
 The central decision is:
 
-> `orbit` should use structure-aware chunking where possible, fallback paragraph/token chunking where necessary, and always store location quality explicitly.
+> `orbok` should use structure-aware chunking where possible, fallback paragraph/token chunking where necessary, and always store location quality explicitly.
 
 ---
 
@@ -25,7 +25,7 @@ The central decision is:
 
 The original requirement asked for dynamic chunking and parent/child chunk structure. That is correct, but insufficiently precise for implementation.
 
-`orbit` needs chunking that supports:
+`orbok` needs chunking that supports:
 
 - exact keyword retrieval;
 - semantic retrieval;
@@ -415,7 +415,7 @@ pub struct ChunkBundle {
 
 Rules:
 
-1. The authoritative chunk records remain in the `orbit` catalog.
+1. The authoritative chunk records remain in the `orbok` catalog.
 2. A localcache chunk bundle may be used to accelerate reindexing.
 3. Payload version must change when chunk bundle schema changes.
 4. The cache service must reject paths outside approved sources.

@@ -1,6 +1,6 @@
 # RFC-003: Source Registration and File Access Boundary
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 003  
 **Title:** Source Registration and File Access Boundary  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines how `orbit` registers local files and folders as searchable sources and how the backend enforces a safe file-access boundary.
+This RFC defines how `orbok` registers local files and folders as searchable sources and how the backend enforces a safe file-access boundary.
 
 The central rule is:
 
@@ -21,7 +21,7 @@ The central rule is:
 
 ## 2. Motivation
 
-`orbit` is a local-first app, but local-first does not automatically mean safe. A local document search app can accidentally expose sensitive files, index secrets, follow symlinks outside intended folders, or allow a local web UI to read arbitrary paths.
+`orbok` is a local-first app, but local-first does not automatically mean safe. A local document search app can accidentally expose sensitive files, index secrets, follow symlinks outside intended folders, or allow a local web UI to read arbitrary paths.
 
 Source registration and file access must therefore be explicit, auditable, and enforced by the backend.
 
@@ -287,7 +287,7 @@ Removing a source must clarify:
 - source files will not be deleted;
 - source registration can be removed;
 - rebuildable index data can optionally be removed;
-- all orbit data for the source can optionally be removed.
+- all orbok data for the source can optionally be removed.
 
 ---
 

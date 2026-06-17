@@ -1,13 +1,13 @@
 # RFC-029: Model Download Integrity and Trust Policy
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 029  
 **Title:** Model Download Integrity and Trust Policy  
 **Status:** Draft — deferred future RFC (see activation conditions)  
 **Target Timing:** Before enabling automatic or semi-automatic model downloads  
 **Date:** 2026-06-06
 
-> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbit`.
+> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbok`.
 
 ---
 
@@ -22,7 +22,7 @@ The current model workflow may allow explicit installation later, but automatic 
 
 Model files are large and may come from external sources. Risks include corrupted downloads, malicious model files, license confusion, unexpected network access, user privacy misunderstandings, supply-chain compromise, and incompatible model versions.
 
-`orbit` must not silently download models.
+`orbok` must not silently download models.
 
 ## 3. Activation Conditions
 

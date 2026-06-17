@@ -1,6 +1,6 @@
 # RFC-004: File Scanner and Change Detection
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 004  
 **Title:** File Scanner and Change Detection  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines how `orbit` scans registered sources, catalogs files, and detects file changes.
+This RFC defines how `orbok` scans registered sources, catalogs files, and detects file changes.
 
 The scanner is responsible for turning approved sources into file catalog records with accurate lifecycle states such as discovered, indexed, stale, missing, deleted, unsupported, permission denied, and failed.
 
@@ -116,7 +116,7 @@ The scanner remains authoritative for source traversal and file catalog state.
 
 `localcache` can be used later by indexing workers to decide whether a cached payload for a file is still fresh. This is an optimization after source policy validation and scan scheduling.
 
-Do not use `localcache::scan_dir_filtered` as the primary scanner in v1 because `orbit` must enforce its own source policies, hidden-file behavior, symlink policy, unsupported-file state, and UI-visible scan summaries.
+Do not use `localcache::scan_dir_filtered` as the primary scanner in v1 because `orbok` must enforce its own source policies, hidden-file behavior, symlink policy, unsupported-file state, and UI-visible scan summaries.
 
 ## 9. Change Detection Strategy
 
@@ -373,11 +373,11 @@ Required tests:
 Recommended Rust modules:
 
 ```text
-orbit-fs::scanner
-orbit-fs::policy
-orbit-fs::path_guard
-orbit-db::repositories::files
-orbit-core::jobs
+orbok-fs::scanner
+orbok-fs::policy
+orbok-fs::path_guard
+orbok-db::repositories::files
+orbok-core::jobs
 ```
 
 Recommended scanner interface:

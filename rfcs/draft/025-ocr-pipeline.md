@@ -1,13 +1,13 @@
 # RFC-025: OCR Pipeline
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 025  
 **Title:** OCR Pipeline  
 **Status:** Draft — deferred future RFC (see activation conditions)  
 **Target Timing:** After text-based document search is stable and scanned-document demand is confirmed  
 **Date:** 2026-06-06
 
-> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbit`.
+> **Future RFC Notice:** This RFC is intentionally deferred. It must be reconsidered only after the basic implementation tasks from RFC-001 through RFC-020 are substantially complete, tested, and benchmarked. It must not block the initial implementation of `orbok`.
 
 ---
 
@@ -16,7 +16,7 @@
 
 This future RFC will define OCR support for image files and scanned PDFs.
 
-OCR is valuable, but it is expensive, error-prone, and substantially expands the scope of `orbit`. It should not block the initial local text document search implementation.
+OCR is valuable, but it is expensive, error-prone, and substantially expands the scope of `orbok`. It should not block the initial local text document search implementation.
 
 ## 2. Motivation
 

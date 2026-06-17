@@ -1,6 +1,6 @@
 # RFC-010: Optional Local Reranking
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 010  
 **Title:** Optional Local Reranking  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines optional local reranking for `orbit`.
+This RFC defines optional local reranking for `orbok`.
 
 The central decision is:
 
@@ -261,7 +261,7 @@ Privacy policy:
 - use query hash where possible;
 - cache may be disabled in privacy-strict mode.
 
-Use the `orbit` cache tables or a dedicated ephemeral cache. Do not store rerank cache in `localcache` because it is query-derived rather than file-derived.
+Use the `orbok` cache tables or a dedicated ephemeral cache. Do not store rerank cache in `localcache` because it is query-derived rather than file-derived.
 
 ---
 

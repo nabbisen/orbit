@@ -1,6 +1,6 @@
-# orbit
+# orbok
 
-[![License](https://img.shields.io/github/license/nabbisen/orbit)](LICENSE)
+[![License](https://img.shields.io/github/license/nabbisen/orbok)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-2024_edition-orange.svg)]()
 
 **Local-first AI document search — private, storage-aware, offline.**
@@ -9,7 +9,7 @@
 
 ## Overview
 
-orbit searches your local files by combining exact keyword retrieval
+orbok searches your local files by combining exact keyword retrieval
 and dense vector (semantic) search, fused with Reciprocal Rank Fusion,
 with optional local reranking. Everything runs on your computer.
 Document contents are never sent to an external server.
@@ -19,9 +19,9 @@ and common source-code files.
 
 ---
 
-## Why orbit
+## Why orbok
 
-| Need | orbit |
+| Need | orbok |
 |---|---|
 | Search by exact identifier or error code | Keyword index (FTS5) |
 | Search by meaning or concept | Local embedding model |
@@ -35,16 +35,16 @@ and common source-code files.
 
 ```sh
 # Install (requires Rust 1.85+)
-cargo install --path crates/orbit-app
+cargo install --path crates/orbok-app
 
 # Launch the GUI
-orbit
+orbok
 
 # Validate backend without a display (CI / headless)
-ORBIT_DATA_DIR=/tmp/orbit-test orbit --check
+ORBIT_DATA_DIR=/tmp/orbok-test orbok --check
 ```
 
-On first launch, orbit asks you to add at least one source folder.
+On first launch, orbok asks you to add at least one source folder.
 It will scan that folder and build a local search index.
 
 Semantic search requires a local embedding model; keyword search
@@ -56,7 +56,7 @@ works with no models installed at all.
 
 ### Local-first by design
 
-orbit does not copy your source files. It stores derived indexes
+orbok does not copy your source files. It stores derived indexes
 (chunk offsets, FTS5 tokens, embeddings) and metadata. Full extracted
 text is not stored permanently by default.
 
@@ -90,8 +90,8 @@ models marks existing embeddings stale and queues a rebuild.
 
 ### Disk use
 
-orbit keeps separate databases: `orbit-catalog.sqlite3` for the
-authoritative catalog and `orbit-cache.sqlite3` for the localcache
+orbok keeps separate databases: `orbok-catalog.sqlite3` for the
+authoritative catalog and `orbok-cache.sqlite3` for the localcache
 payload store (per Appendix A of the RFC set).
 
 ---

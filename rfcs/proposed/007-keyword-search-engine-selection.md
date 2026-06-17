@@ -1,6 +1,6 @@
 # RFC-007: Keyword Search Engine Selection
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 007  
 **Title:** Keyword Search Engine Selection  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines the keyword search strategy for `orbit`.
+This RFC defines the keyword search strategy for `orbok`.
 
 The recommended initial decision is:
 
@@ -25,7 +25,7 @@ Keyword search must work without AI models. It is the baseline search capability
 
 Dense vector search is valuable for conceptual queries, but it can miss exact identifiers, error messages, code symbols, product numbers, file paths, and names.
 
-`orbit` must provide robust keyword search for:
+`orbok` must provide robust keyword search for:
 
 - exact terms;
 - identifiers;
@@ -35,7 +35,7 @@ Dense vector search is valuable for conceptual queries, but it can miss exact id
 - logs;
 - Japanese and mixed-language text.
 
-A keyword search engine is also important because `orbit` must remain useful before local AI models are installed.
+A keyword search engine is also important because `orbok` must remain useful before local AI models are installed.
 
 ---
 
@@ -104,7 +104,7 @@ Cons:
 Pros:
 
 - full control;
-- narrow fit for orbit;
+- narrow fit for orbok;
 - storage can be optimized.
 
 Cons:
@@ -192,7 +192,7 @@ This keeps a searchable index but does not expose FTS as the authoritative text 
 Important caveat:
 
 - Depending on SQLite FTS5 configuration, contentless FTS limits snippet generation.
-- `orbit` should generate display snippets by reading source files through chunk locations.
+- `orbok` should generate display snippets by reading source files through chunk locations.
 
 ## 8.2. Keyword Index Records
 

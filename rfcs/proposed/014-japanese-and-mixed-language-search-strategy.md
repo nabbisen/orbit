@@ -1,6 +1,6 @@
 # RFC-014: Japanese and Mixed-Language Search Strategy
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 014  
 **Title:** Japanese and Mixed-Language Search Strategy  
 **Status:** Proposed  
@@ -11,11 +11,11 @@
 
 ## 1. Summary
 
-This RFC defines the Japanese and mixed-language search strategy for `orbit`.
+This RFC defines the Japanese and mixed-language search strategy for `orbok`.
 
 The central decision is:
 
-> `orbit` must not assume whitespace-tokenized English text. It must explicitly support Japanese and mixed Japanese-English documents through normalization, tokenizer strategy, exact identifier preservation, and retrieval quality tests.
+> `orbok` must not assume whitespace-tokenized English text. It must explicitly support Japanese and mixed Japanese-English documents through normalization, tokenizer strategy, exact identifier preservation, and retrieval quality tests.
 
 This RFC supports both keyword and semantic search.
 
@@ -63,7 +63,7 @@ A naive whitespace-based keyword index will produce poor results.
 
 ## 5. Text Categories
 
-`orbit` should treat documents as mixed-content, not single-language only.
+`orbok` should treat documents as mixed-content, not single-language only.
 
 Content classes:
 

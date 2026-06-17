@@ -1,6 +1,6 @@
 # RFC-019: Test Matrix and Release Readiness
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 019  
 **Title:** Test Matrix and Release Readiness  
 **Status:** Proposed  
@@ -11,17 +11,17 @@
 
 ## 1. Summary
 
-This RFC defines the test matrix and release readiness gates for `orbit`.
+This RFC defines the test matrix and release readiness gates for `orbok`.
 
 The central decision is:
 
-> `orbit` must not be considered release-ready merely because it builds. It must pass lifecycle, security, retrieval, storage, recovery, and packaging gates.
+> `orbok` must not be considered release-ready merely because it builds. It must pass lifecycle, security, retrieval, storage, recovery, and packaging gates.
 
 ---
 
 ## 2. Motivation
 
-`orbit` combines local file access, database lifecycle, document parsing, search indexes, local AI models, cache management, and desktop packaging.
+`orbok` combines local file access, database lifecycle, document parsing, search indexes, local AI models, cache management, and desktop packaging.
 
 Risks are cross-cutting:
 

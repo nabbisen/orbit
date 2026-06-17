@@ -1,6 +1,6 @@
 # RFC-008: Embedding Model and Vector Storage
 
-**Project:** orbit  
+**Project:** orbok  
 **RFC:** 008  
 **Title:** Embedding Model and Vector Storage  
 **Status:** Proposed  
@@ -11,7 +11,7 @@
 
 ## 1. Summary
 
-This RFC defines the local embedding pipeline and vector storage strategy for `orbit`.
+This RFC defines the local embedding pipeline and vector storage strategy for `orbok`.
 
 The recommended initial decision is:
 
@@ -380,7 +380,7 @@ Use cases:
 Rules:
 
 1. `localcache` is not the vector search engine.
-2. Authoritative embedding metadata remains in `orbit` catalog.
+2. Authoritative embedding metadata remains in `orbok` catalog.
 3. Global retrieval uses `VectorStore`.
 4. Payload version changes when embedding bundle format changes.
 5. Namespace includes model ID and vector format.
