@@ -20,8 +20,6 @@ pub enum ViewId {
 }
 
 impl ViewId {
-    /// Sidebar order (Search first — search-first navigation, GUI
-    /// design §2.2).
     pub const ALL: &'static [ViewId] = &[
         ViewId::Search,
         ViewId::Sources,
@@ -32,7 +30,7 @@ impl ViewId {
     ];
 }
 
-/// Sidebar index-health summary (GUI design §5.2).
+/// Sidebar index-health summary.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct IndexHealth {
     pub indexed: u64,
@@ -41,8 +39,7 @@ pub struct IndexHealth {
     pub queued: u64,
 }
 
-/// One source card (GUI design §8.1), pre-localized display fields
-/// excepted — status text is resolved at render time via i18n.
+/// One source card for the Sources view.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SourceCard {
     pub display_name: String,
@@ -53,6 +50,18 @@ pub struct SourceCard {
     pub active: bool,
 }
 
+/// A search result ready for display — pure data, no backend types
+/// (RFC-027 boundary rule).
+#[derive(Debug, Clone, PartialEq)]
+pub struct SearchResultDisplay {
+    pub display_path: String,
+    pub title: Option<String>,
+    pub heading_path: Option<String>,
+    pub snippet: Option<String>,
+    pub keyword_rank: u32,
+    pub badges: Vec<String>,
+}
+
 /// The whole-app view model.
 #[derive(Debug, Clone)]
 pub struct AppState {
@@ -60,10 +69,11 @@ pub struct AppState {
     pub locale: Locale,
     pub query: String,
     pub last_query: Option<String>,
+    pub search_results: Vec<SearchResultDisplay>,
+    pub search_running: bool,
     pub health: IndexHealth,
     pub sources: Vec<SourceCard>,
     pub capability: SearchCapability,
-    /// Total orbok storage in bytes (Storage view headline).
     pub storage_total_bytes: u64,
 }
 
@@ -74,6 +84,8 @@ impl Default for AppState {
             locale: Locale::default(),
             query: String::new(),
             last_query: None,
+            search_results: Vec::new(),
+            search_running: false,
             health: IndexHealth::default(),
             sources: Vec::new(),
             capability: SearchCapability::KeywordOnly,
@@ -82,21 +94,18 @@ impl Default for AppState {
     }
 }
 
-/// UI messages. Backend-effecting intents (scan, cleanup, search) are
-/// surfaced as messages here and executed by `orbok-app`'s update glue,
-/// keeping this crate free of side effects.
+/// UI messages.
 #[derive(Debug, Clone)]
 pub enum Message {
     Switch(ViewId),
     QueryChanged(String),
     SubmitSearch,
+    SearchResultsReady(Vec<SearchResultDisplay>),
+    SearchError(String),
     SetLocale(Locale),
 }
 
 impl AppState {
-    /// Pure state transition. Side-effect intents (e.g. running the
-    /// search) are handled by the embedding application after calling
-    /// this.
     pub fn update(&mut self, message: &Message) {
         match message {
             Message::Switch(view) => self.active_view = *view,
@@ -105,7 +114,16 @@ impl AppState {
                 let trimmed = self.query.trim();
                 if !trimmed.is_empty() {
                     self.last_query = Some(trimmed.to_string());
+                    self.search_running = true;
+                    self.search_results.clear();
                 }
+            }
+            Message::SearchResultsReady(results) => {
+                self.search_results = results.clone();
+                self.search_running = false;
+            }
+            Message::SearchError(_) => {
+                self.search_running = false;
             }
             Message::SetLocale(locale) => self.locale = *locale,
         }

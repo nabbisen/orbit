@@ -201,7 +201,10 @@ impl CacheService {
             orbok_core::DataClass::RebuildableIndex => "rebuildable_index",
             _ => "ephemeral_cache",
         };
-        let id = format!("ce_{}", namespace.as_namespace().replace([':', '/'], "_"));
+        let id = format!(
+            "ce_{}",
+            namespace.as_namespace().replace([':', '/'], "_")
+        );
         let now = orbok_core::now_iso8601();
         let conn = catalog.lock();
         conn.execute(

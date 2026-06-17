@@ -3,7 +3,7 @@
 **Project:** orbok  
 **RFC:** 007  
 **Title:** Keyword Search Engine Selection  
-**Status:** Proposed  
+**Status.** Implemented (v0.2.0)
 **Target Milestone:** M6  
 **Date:** 2026-06-06  
 

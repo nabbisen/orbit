@@ -20,7 +20,7 @@ pub mod sensitive;
 #[cfg(test)]
 mod tests;
 
-pub use path_guard::{PathGuard, ValidatedPath};
+pub use path_guard::{GuardedSource, PathGuard, ValidatedPath};
 pub use policy::{CompiledPolicy, FileTypeClass};
 pub use scanner::{ScanOutcomeKind, ScanRequest, ScanSummary, Scanner};
 pub use sensitive::sensitive_warning;

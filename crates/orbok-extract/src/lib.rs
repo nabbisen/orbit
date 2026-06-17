@@ -5,6 +5,7 @@
 //! Extraction output is derived data — cacheable, rebuildable, never
 //! authoritative.
 
+pub mod chunker;
 pub mod normalize;
 pub mod registry;
 pub mod types;
@@ -16,4 +17,7 @@ mod text;
 mod tests;
 
 pub use registry::ExtractorRegistry;
-pub use types::{DocumentExtractor, ExtractOutput, ExtractedSegment, LocationQuality, SegmentKind};
+pub use chunker::chunk;
+pub use types::{
+    DocumentExtractor, ExtractOutput, ExtractedSegment, LocationQuality, SegmentKind,
+};

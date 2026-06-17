@@ -1,16 +1,16 @@
-//! Backend bootstrap: data-directory resolution, catalog open, and
-//! initial view-model population. The `--check` mode runs this without
-//! opening a window (useful on headless CI machines).
+//! Backend bootstrap: data-directory resolution, catalog open, initial
+//! view-model population, and worker pipeline execution.
 
-use orbok_db::repo::SettingsRepository;
+use orbok_core::OrbokResult;
 use orbok_db::{CATALOG_FILE_NAME, Catalog};
+use orbok_db::repo::SettingsRepository;
 use orbok_models::SearchCapability;
+use orbok_search::SearchService;
 use orbok_ui::AppState;
 use orbok_ui::i18n::Locale;
 use std::path::PathBuf;
 
 /// Resolve the orbok local-data directory.
-/// Priority: `ORBIT_DATA_DIR` env var → platform-standard app-data dir.
 pub fn data_dir() -> PathBuf {
     if let Ok(env) = std::env::var("ORBIT_DATA_DIR") {
         return PathBuf::from(env);
@@ -20,37 +20,49 @@ pub fn data_dir() -> PathBuf {
         .unwrap_or_else(|| PathBuf::from("orbok-data"))
 }
 
-/// Open the catalog (creating the data dir if needed) and run pending
-/// migrations. Returns an error if migration fails (RFC-002 §6.2:
-/// startup aborts).
-pub fn open_catalog(data_dir: &std::path::Path) -> orbok_core::OrbokResult<Catalog> {
+/// Open the catalog (creating the data dir if needed).
+pub fn open_catalog(data_dir: &std::path::Path) -> OrbokResult<Catalog> {
     std::fs::create_dir_all(data_dir)?;
     Catalog::open(data_dir.join(CATALOG_FILE_NAME))
 }
 
-/// Load the initial view model from persisted settings. Falls back to
-/// safe defaults when the catalog is empty or the setting is unset.
+/// Build the initial app state from persisted settings.
 pub fn load_initial_state() -> Result<AppState, Box<dyn std::error::Error>> {
     let dir = data_dir();
     let catalog = open_catalog(&dir)?;
     let settings = SettingsRepository::new(&catalog);
-
     let locale = settings
         .get::<String>("ui.locale")?
         .and_then(|s| Locale::parse(&s))
         .unwrap_or_default();
-
     let mut state = AppState::default();
     state.locale = locale;
-    // Embedding model: absent until M7 (keyword-only mode is the v0.1 default).
     state.capability = SearchCapability::KeywordOnly;
     Ok(state)
 }
 
-/// Headless backend validation (CI / display-less machines).
-///
-/// Verifies: data-dir creation, catalog open, migration success,
-/// schema version sanity. Exits 0 on success, non-zero on any error.
+/// Execute a keyword search and convert results to UI display structs.
+pub(crate) fn run_search(
+    catalog: &Catalog,
+    query: &str,
+    limit: u32,
+) -> Result<Vec<orbok_ui::state::SearchResultDisplay>, Box<dyn std::error::Error>> {
+    let service = SearchService::new(catalog);
+    let results = service.search(query, limit)?;
+    Ok(results
+        .into_iter()
+        .map(|r| orbok_ui::state::SearchResultDisplay {
+            display_path: r.display_path,
+            title: r.title,
+            heading_path: r.heading_path,
+            snippet: r.snippet,
+            keyword_rank: r.keyword_rank,
+            badges: r.badges.iter().map(|b| format!("{b:?}")).collect(),
+        })
+        .collect())
+}
+
+/// Headless backend validation (`--check` mode).
 pub fn run_check() -> Result<(), Box<dyn std::error::Error>> {
     let dir = data_dir();
     tracing::info!(path = %dir.display(), "opening catalog");

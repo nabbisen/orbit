@@ -1,6 +1,6 @@
 [package]
-name = "orbok-extract"
-description = "orbok document extraction pipeline: extractor trait, normalization, text/markdown extractors (RFC-005)"
+name = "orbok-workers"
+description = "orbok pipeline workers: extraction → chunking → keyword indexing (M5/M6)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -9,10 +9,13 @@ authors.workspace = true
 repository.workspace = true
 
 [dependencies]
+orbok-search = { workspace = true }
+rusqlite = { workspace = true }
 orbok-core = { workspace = true }
 orbok-db = { workspace = true }
 orbok-fs = { workspace = true }
-serde = { workspace = true }
+orbok-cache = { workspace = true }
+orbok-extract = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]

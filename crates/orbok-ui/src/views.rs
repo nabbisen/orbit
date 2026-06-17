@@ -53,10 +53,47 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
             content = content
                 .push(text(tr(locale, MessageKey::SearchKeywordOnlyNotice)).size(12));
         }
-        if let Some(last) = &state.last_query {
-            // M6: retrieval wiring follows; the shell echoes the query.
-            content = content.push(text(format!("» {last}")).size(13));
-            content = content.push(text(tr(locale, MessageKey::SearchNoResults)).size(13));
+        if state.search_running {
+            content = content.push(text("Searching…").size(13));
+        } else if let Some(last) = &state.last_query {
+            if state.search_results.is_empty() {
+                content = content.push(
+                    column![
+                        text(tr(locale, MessageKey::SearchNoResults)).size(15),
+                        text(format!("Query: {last}")).size(12),
+                    ]
+                    .spacing(4),
+                );
+            } else {
+                content = content.push(
+                    text(format!("{} results", state.search_results.len())).size(12),
+                );
+                for result in &state.search_results {
+                    let title_str = result.title.as_deref().unwrap_or(&result.display_path);
+                    let snippet_str = result
+                        .snippet
+                        .as_deref()
+                        .unwrap_or("(source unavailable)");
+                    let heading_str = result.heading_path.as_deref().unwrap_or("");
+                    content = content.push(
+                        container(
+                            column![
+                                text(title_str.to_string()).size(15),
+                                text(result.display_path.clone()).size(11),
+                                if !heading_str.is_empty() {
+                                    text(heading_str.to_string()).size(11)
+                                } else {
+                                    text("").size(11)
+                                },
+                                text(snippet_str.to_string()).size(12),
+                                text(result.badges.join("  ")).size(11),
+                            ]
+                            .spacing(2),
+                        )
+                        .padding(10),
+                    );
+                }
+            }
         }
     }
     page(content)

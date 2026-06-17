@@ -63,6 +63,22 @@ impl<'a> FileRepository<'a> {
         Self { catalog }
     }
 
+
+    /// Fetch a file record by its primary key.
+    pub fn get_by_id(&self, id: &FileId) -> OrbokResult<Option<FileRecord>> {
+        let conn = self.catalog.lock();
+        let mut stmt = conn
+            .prepare(&format!("SELECT {COLUMNS} FROM files WHERE file_id = ?1"))
+            .map_err(db_err)?;
+        let mut rows = stmt
+            .query_map(params![id.as_str()], row_to_record)
+            .map_err(db_err)?;
+        match rows.next() {
+            Some(r) => Ok(Some(r.map_err(db_err)??)),
+            None => Ok(None),
+        }
+    }
+
     /// Look up a file by its identity key (source, canonical path).
     pub fn get_by_path(
         &self,

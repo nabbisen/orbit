@@ -20,11 +20,14 @@
 
 mod fts5;
 mod query;
+pub mod service;
+pub mod snippet;
 
 #[cfg(test)]
 mod tests;
 
 pub use fts5::Fts5KeywordEngine;
+pub use service::{MatchBadge, SearchResult, SearchService};
 pub use query::build_match_expression;
 
 use orbok_core::{ChunkId, FileId, OrbokResult};

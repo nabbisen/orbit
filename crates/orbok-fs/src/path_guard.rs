@@ -111,9 +111,11 @@ fn hidden_below_root(root: &Path, canonical: &Path) -> bool {
     let Ok(relative) = canonical.strip_prefix(root) else {
         return false;
     };
-    relative
-        .components()
-        .any(|c| c.as_os_str().to_string_lossy().starts_with('.'))
+    relative.components().any(|c| {
+        c.as_os_str()
+            .to_string_lossy()
+            .starts_with('.')
+    })
 }
 
 /// True when any component of `path` strictly below `root` is a symlink.

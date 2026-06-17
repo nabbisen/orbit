@@ -3,7 +3,7 @@
 **Project:** orbok  
 **RFC:** 002  
 **Title:** SQLite Catalog Schema and Migration Policy  
-**Status:** Proposed  
+**Status.** Implemented (v0.1.0)
 **Target Milestone:** M1  
 **Date:** 2026-06-06  
 
