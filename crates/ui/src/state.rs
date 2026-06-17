@@ -150,6 +150,8 @@ pub struct AppState {
     pub show_advanced: bool,
     /// Active user-facing notice (problem or confirmation), or `None`.
     pub notice: Option<UserNotice>,
+    /// Awaiting user confirmation before running reset catalog.
+    pub confirm_reset: bool,
 }
 
 impl Default for AppState {
@@ -173,6 +175,7 @@ impl Default for AppState {
             source_path_input: String::new(),
             show_advanced: false,
             notice: None,
+            confirm_reset: false,
         }
     }
 }
@@ -185,6 +188,15 @@ pub enum Message {
     ToggleAdvanced,
     ShowNotice(UserNotice),
     ClearNotice,
+    // Storage cleanup
+    CleanSnippets,
+    CleanSearchCache,
+    AskResetCatalog,
+    ConfirmResetCatalog,
+    CancelResetCatalog,
+    CleanupDone,        // backend notifies completion
+    // Wizard navigation
+    WizardBack,
     QueryChanged(String),
     SubmitSearch,
     SearchResultsReady(Vec<SearchResultDisplay>),
@@ -230,6 +242,28 @@ impl AppState {
             Message::Switch(view) => self.active_view = *view,
             Message::SwitchGroup(group) => self.active_view = ViewId::group_default(*group),
             Message::ToggleAdvanced => self.show_advanced = !self.show_advanced,
+            Message::AskResetCatalog => self.confirm_reset = true,
+            Message::CancelResetCatalog => self.confirm_reset = false,
+            Message::ConfirmResetCatalog => {
+                self.confirm_reset = false;
+                // Actual reset handled in orbok-app; UI pre-clears state.
+                self.sources.clear();
+                self.health = crate::state::IndexHealth::default();
+                self.search_results.clear();
+                self.storage_rows.clear();
+                self.storage_total_bytes = 0;
+            }
+            Message::CleanSnippets | Message::CleanSearchCache => {
+                // Actual work done in orbok-app; state update arrives via CleanupDone.
+            }
+            Message::CleanupDone => {
+                self.notice = Some(UserNotice::PreviewsCleared);
+            }
+            Message::WizardBack => {
+                // Return to the initial setup step.
+                self.wizard = Some(crate::state::WizardState::NotConfigured);
+                self.wizard_path_input = String::new();
+            }
             Message::ShowNotice(n) => self.notice = Some(n.clone()),
             Message::ClearNotice => self.notice = None,
             Message::QueryChanged(query) => self.query = query.clone(),

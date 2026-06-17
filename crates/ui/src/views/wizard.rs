@@ -246,8 +246,11 @@ fn page_checked<'a>(
     }
 
     col = col.push(
-        button(text(tr(locale, MessageKey::WizardActionSkip)).size(12))
-            .on_press(Message::WizardSkip),
+        row![
+            button(text("← Back").size(12)).on_press(Message::WizardBack),
+            button(text(tr(locale, MessageKey::WizardActionSkip)).size(12))
+                .on_press(Message::WizardSkip),
+        ].spacing(8),
     );
 
     container(col.spacing(10))

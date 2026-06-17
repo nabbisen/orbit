@@ -16,7 +16,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.9.11"
+version = "0.9.12"
 edition = "2024"
 rust-version = "1.85"
 license = "Apache-2.0"
@@ -27,17 +27,17 @@ repository = "https://github.com/nabbisen/orbok"
 
 [workspace.dependencies]
 # internal crates
-orbok-core = { version = "0.9.11", path = "crates/core" }
-orbok-db = { version = "0.9.11", path = "crates/data/db" }
-orbok-fs = { version = "0.9.11", path = "crates/data/fs" }
-orbok-cache = { version = "0.9.11", path = "crates/data/cache" }
-orbok-extract = { version = "0.9.11", path = "crates/pipeline/extract" }
-orbok-search = { version = "0.9.11", path = "crates/search/engine" }
-orbok-models = { version = "0.9.11", path = "crates/search/models" }
-orbok-workers = { version = "0.9.11", path = "crates/pipeline/workers" }
-orbok-bench = { version = "0.9.11", path = "crates/bench" }
-orbok-embed = { version = "0.9.11", path = "crates/search/embed" }
-orbok-ui = { version = "0.9.11", path = "crates/ui" }
+orbok-core = { version = "0.9.12", path = "crates/core" }
+orbok-db = { version = "0.9.12", path = "crates/data/db" }
+orbok-fs = { version = "0.9.12", path = "crates/data/fs" }
+orbok-cache = { version = "0.9.12", path = "crates/data/cache" }
+orbok-extract = { version = "0.9.12", path = "crates/pipeline/extract" }
+orbok-search = { version = "0.9.12", path = "crates/search/engine" }
+orbok-models = { version = "0.9.12", path = "crates/search/models" }
+orbok-workers = { version = "0.9.12", path = "crates/pipeline/workers" }
+orbok-bench = { version = "0.9.12", path = "crates/bench" }
+orbok-embed = { version = "0.9.12", path = "crates/search/embed" }
+orbok-ui = { version = "0.9.12", path = "crates/ui" }
 
 # database — pinned to 0.40 to match localcache 0.20.0
 # (single libsqlite3-sys rule; see RFC-002 amendment / Appendix A §21)
@@ -46,7 +46,7 @@ rusqlite = { version = "0.40", features = ["bundled"] }
 # cache engine — Appendix A pins 0.20.0 (mtime ns-precision fix, schema v5)
 localcache = { version = "0.20.0", features = ["compression", "tracing"] }
 
-# GUI — RFC-027 decision: iced 0.14 via snora 0.8
+# GUI — RFC-027 decision: iced 0.14 via snora 0.18
 iced = { version = "0.14", features = ["tokio"] }
 snora = "0.18"
 

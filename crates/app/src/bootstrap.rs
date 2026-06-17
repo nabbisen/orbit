@@ -355,3 +355,44 @@ pub fn get_sources(catalog: &Catalog) -> Vec<orbok_ui::state::SourceCard> {
         })
         .collect()
 }
+
+// ── Storage cleanup ────────────────────────────────────────────────────
+
+/// Clear the snippet cache (safe, rebuilds on demand).
+pub fn clean_snippets(
+    catalog: &Catalog,
+    cache: &orbok_cache::CacheService,
+    cache_db_path: &std::path::Path,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use orbok_core::{CleanupAction, CleanupPlan};
+    use orbok_workers::CleanupService;
+    let plan = CleanupPlan::for_action(CleanupAction::ClearSnippetCache, 0);
+    CleanupService::new(catalog, cache, cache_db_path).run_safe(&plan)?;
+    Ok(())
+}
+
+/// Clear expired search cache (safe, rebuilds on demand).
+pub fn clean_search_cache(
+    catalog: &Catalog,
+    cache: &orbok_cache::CacheService,
+    cache_db_path: &std::path::Path,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use orbok_core::{CleanupAction, CleanupPlan};
+    use orbok_workers::CleanupService;
+    let plan = CleanupPlan::for_action(CleanupAction::ClearExpiredSearchCache, 0);
+    CleanupService::new(catalog, cache, cache_db_path).run_safe(&plan)?;
+    Ok(())
+}
+
+/// Full catalog reset (destructive — caller must have confirmed).
+pub fn reset_catalog(
+    catalog: &Catalog,
+    cache: &orbok_cache::CacheService,
+    cache_db_path: &std::path::Path,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use orbok_core::{CleanupAction, CleanupPlan};
+    use orbok_workers::CleanupService;
+    let plan = CleanupPlan::for_action(CleanupAction::ResetCatalog, 0);
+    CleanupService::new(catalog, cache, cache_db_path).run_reset(&plan, true)?;
+    Ok(())
+}

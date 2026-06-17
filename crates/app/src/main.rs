@@ -116,6 +116,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                     return iced::Task::none();
                 }
+                Message::CleanSnippets => {
+                    if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
+                        let cache = orbok_cache::CacheService::new(&data_dir);
+                        let cache_db = data_dir.join("orbok-cache.sqlite3");
+                        match bootstrap::clean_snippets(&catalog, &cache, &cache_db) {
+                            Ok(_) => app.update(Message::CleanupDone),
+                            Err(e) => tracing::error!("clean snippets failed: {e}"),
+                        }
+                    }
+                    return iced::Task::none();
+                }
+                Message::CleanSearchCache => {
+                    if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
+                        let cache = orbok_cache::CacheService::new(&data_dir);
+                        let cache_db = data_dir.join("orbok-cache.sqlite3");
+                        match bootstrap::clean_search_cache(&catalog, &cache, &cache_db) {
+                            Ok(_) => app.update(Message::CleanupDone),
+                            Err(e) => tracing::error!("clean search cache failed: {e}"),
+                        }
+                    }
+                    return iced::Task::none();
+                }
+                Message::ConfirmResetCatalog => {
+                    if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
+                        let cache = orbok_cache::CacheService::new(&data_dir);
+                        let cache_db = data_dir.join("orbok-cache.sqlite3");
+                        let _ = bootstrap::reset_catalog(&catalog, &cache, &cache_db);
+                    }
+                    // UI state pre-cleared in AppState::update; fall through for update().
+                }
                 Message::SourceRemoved(source_id) => {
                     if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
                         let _ = bootstrap::remove_source(&catalog, source_id);

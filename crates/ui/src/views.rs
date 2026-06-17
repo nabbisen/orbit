@@ -53,11 +53,17 @@ fn friendly_notice<'a>(
 }
 
 fn page<'a>(content: iced::widget::Column<'a, Message>) -> Element<'a, Message> {
-    container(content.spacing(10))
-        .padding(Padding::from([28.0, 40.0]))
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into()
+    container(
+        iced::widget::scrollable(
+            container(content.spacing(10))
+                .padding(Padding::from([28.0, 40.0]))
+                .width(Length::Fill),
+        )
+        .height(Length::Fill),
+    )
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .into()
 }
 
 fn heading(label: &str) -> iced::widget::Text<'_> {
@@ -133,13 +139,19 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
                     text(search_result_count(locale, state.search_results.len())).size(12),
                 );
                 for (i, result) in state.search_results.iter().enumerate() {
-                    let title_str = result.title.as_deref().unwrap_or(&result.display_path);
+                    let is_selected = state.selected_result == Some(i);
+                    let title_raw = result.title.as_deref().unwrap_or(&result.display_path);
+                    let title_str = if is_selected {
+                        std::borrow::Cow::Owned(format!("▶  {title_raw}"))
+                    } else {
+                        std::borrow::Cow::Borrowed(title_raw)
+                    };
+                    let title_str: &str = &title_str;
                     let snippet_str = result
                         .snippet
                         .as_deref()
                         .unwrap_or("(source unavailable)");
                     let heading_str = result.heading_path.as_deref().unwrap_or("");
-                    let _is_selected = state.selected_result == Some(i); // TODO: visual highlight
                     let card = container(
                         column![
                             text(title_str.to_string()).size(15),
@@ -276,6 +288,25 @@ pub fn indexing_view(state: &AppState) -> Element<'_, Message> {
 /// Storage view (§10): safe cleanup vs danger zone, with real data.
 pub fn storage_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
+
+    // If confirmation is pending for a destructive reset, show the dialog only.
+    if state.confirm_reset {
+        let content = column![
+            text(tr(locale, MessageKey::StorageResetCatalog)).size(22),
+            text(tr(locale, MessageKey::StorageResetWarning)).size(15),
+            row![
+                button(text(tr(locale, MessageKey::Cancel)).size(15))
+                    .padding(Padding::from([12.0, 18.0]))
+                    .on_press(Message::CancelResetCatalog),
+                button(text(tr(locale, MessageKey::StorageResetCatalog)).size(15))
+                    .padding(Padding::from([12.0, 18.0]))
+                    .on_press(Message::ConfirmResetCatalog),
+            ]
+            .spacing(12),
+        ]
+        .spacing(16);
+        return page(content);
+    }
     let total_bytes: u64 = state.storage_rows.iter().map(|(_, b, _)| b).sum();
     let gib = total_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
 
@@ -329,12 +360,18 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
         breakdown,
         text(tr(locale, MessageKey::StorageSafeCleanupHeading)).size(15),
         row![
-            button(text(tr(locale, MessageKey::StorageClearSnippets)).size(15)),
-            button(text(tr(locale, MessageKey::StorageClearSearchCache)).size(15)),
+            button(text(tr(locale, MessageKey::StorageClearSnippets)).size(15))
+            .padding(Padding::from([12.0, 16.0]))
+            .on_press(Message::CleanSnippets),
+            button(text(tr(locale, MessageKey::StorageClearSearchCache)).size(15))
+            .padding(Padding::from([12.0, 16.0]))
+            .on_press(Message::CleanSearchCache),
         ]
         .spacing(8),
         text(tr(locale, MessageKey::StorageDangerHeading)).size(15),
-        button(text(tr(locale, MessageKey::StorageResetCatalog)).size(13)),
+        button(text(tr(locale, MessageKey::StorageResetCatalog)).size(13))
+            .padding(Padding::from([12.0, 16.0]))
+            .on_press(Message::AskResetCatalog),
         text(tr(locale, MessageKey::StorageResetWarning)).size(11),
     ];
     page(content)

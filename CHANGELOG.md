@@ -1022,3 +1022,47 @@ Applied to both English and Japanese catalogs.
 ### Tests
 **196 tests / 0 failures** (184 non-GUI + 12 orbok-ui, incl. 2 new notice
 tests). All 17 new i18n keys are covered by the catalog-completeness test.
+
+---
+
+## [0.9.12] — 2026-06-10 — Storage wired, wizard back, result highlight, scroll
+
+### Fixed
+
+**Storage cleanup buttons are now actually wired** (they had no `.on_press`
+and were entirely non-functional). Every action now calls the real backend:
+
+- "Clear temporary previews" → `CleanupService::run_safe(ClearSnippetCache)` →
+  shows "Temporary previews cleared" notice
+- "Clear old search results" → `CleanupService::run_safe(ClearExpiredSearchCache)` →
+  same notice
+- "Reset saved app data…" → `AskResetCatalog` → shows a confirmation panel
+  with Cancel (default focus) and a second click required on "Reset saved app
+  data" → `CleanupService::run_reset(ResetCatalog, keep_settings=true)`
+
+**Bootstrap functions added:** `clean_snippets`, `clean_search_cache`,
+`reset_catalog` in `crates/app/src/bootstrap.rs`.
+
+### Added
+
+**Wizard Back button** — Checked and Ready pages now carry a "← Back" button
+that returns to `WizardState::NotConfigured` (the initial setup screen).
+Previously the only escape from a wrong-directory validation was Skip.
+
+**Selected result highlight** — The active search result card shows
+"▶  Title" prefix, replacing the `// TODO: visual highlight` stub.
+Selection state was already tracked; it just was not rendered.
+
+**Scrollable page wrapper** — Every page body is now wrapped in
+`iced::widget::scrollable`. Narrow desktop windows can now scroll
+instead of clipping content.
+
+### Messages added
+`CleanSnippets`, `CleanSearchCache`, `AskResetCatalog`, `ConfirmResetCatalog`,
+`CancelResetCatalog`, `CleanupDone`, `WizardBack`
+
+### State added
+`AppState.confirm_reset: bool`
+
+### Tests
+**196 tests / 0 failures.**
