@@ -791,3 +791,35 @@ about search scope.
 
 ### Tests
 **184 tests / 0 failures.**
+
+---
+
+## [0.9.6] — 2026-06-08 — Crate directory restructure
+
+### Changed
+
+The twelve crates that were flat in `crates/` are now grouped into
+logical subdirectories. Package names and all Rust `use` paths are
+unchanged — only filesystem paths and the workspace `Cargo.toml` member
+entries differ.
+
+```
+crates/
+├── app/                 # orbok-app   — binary, bootstrap, settings
+├── bench/               # orbok-bench — benchmark harness
+├── core/                # orbok-core  — IDs, errors, lifecycle types
+├── data/
+│   ├── cache/           # orbok-cache — localcache wrapper
+│   ├── catalog/         # orbok-db    — SQLite schema, repos, migrations
+│   └── fs/              # orbok-fs    — scanner, path guard, hashing
+├── pipeline/
+│   ├── extract/         # orbok-extract — extractors, chunker
+│   └── workers/         # orbok-workers — indexing pipeline, recovery
+├── search/
+│   ├── embed/           # orbok-embed  — inference backends
+│   ├── engine/          # orbok-search — FTS5, vector, hybrid RRF
+│   └── models/          # orbok-models — model traits, mocks
+└── ui/                  # orbok-ui   — snora/iced shell, views, i18n
+```
+
+184 tests / 0 failures.

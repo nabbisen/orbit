@@ -21,7 +21,7 @@ orbok-extract = { workspace = true }
 tracing = { workspace = true }
 
 [dev-dependencies]
-orbok-bench = { path = "../orbok-bench" }
+orbok-bench = { path = "../../bench" }
 dirs = { workspace = true }
 tempfile = { workspace = true }
 zip = { workspace = true }
