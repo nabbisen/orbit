@@ -910,3 +910,33 @@ task-focused interface; mature users opt into detail.
 
 ### Tests
 **184 tests / 0 failures.**
+
+---
+
+## [0.9.9] — 2026-06-08 — Minimal view smoke tests (iced_test)
+
+### Added
+
+A small set of view smoke tests using `iced_test 0.14` (matches our iced
+version). Deliberately minimal, per project philosophy — iced_test is young,
+and orbok's real logic lives in `AppState::update`, which is already tested as
+a pure function. These four tests only confirm the view builders produce a
+usable interface and that key content survives refactors:
+
+- `search_empty_state_offers_add_source` — empty search view shows its CTA
+- `search_empty_cta_switches_to_sources` — clicking the CTA emits `Switch(Sources)`
+- `settings_view_has_advanced_toggle` — settings exposes the advanced toggle
+- `sources_view_renders_both_states` — empty and populated sources render
+
+The tests target individual view functions (plain iced widget trees), not the
+full snora shell, which keeps them stable and fast.
+
+`iced_test` is a dev-dependency of `orbok-ui` only; it does not affect the
+shipped binary.
+
+### Changed
+
+- Directory rename: `crates/data/catalog` → `crates/data/db`
+
+### Tests
+**194 tests / 0 failures** (184 non-GUI + 10 orbok-ui, incl. 4 new smoke tests).

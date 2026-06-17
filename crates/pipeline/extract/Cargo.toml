@@ -18,7 +18,7 @@ tracing = { workspace = true }
 zip = { workspace = true }
 
 [dev-dependencies]
-orbok-db = { path = "../../data/catalog" }
+orbok-db = { path = "../../data/db" }
 orbok-embed = { path = "../../search/embed" }
 orbok-models = { path = "../../search/models" }
 sha2 = { workspace = true }

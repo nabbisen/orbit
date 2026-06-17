@@ -2323,6 +2323,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "iced_selector"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1442ccc30959cc48b3a624233521ef7f3bc3e06528b6fe306c3a775fbddc4fe"
+dependencies = [
+ "iced_core",
+]
+
+[[package]]
+name = "iced_test"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b56c26cc6e63958ce6be06a68fa3136fd5f646da6302ee12abf1a0f311dd0166"
+dependencies = [
+ "iced_futures",
+ "iced_program",
+ "iced_renderer",
+ "iced_runtime",
+ "iced_selector",
+ "nom 8.0.0",
+ "png 0.18.1",
+ "sha2 0.10.9",
+ "thiserror 2.0.18",
+]
+
+[[package]]
 name = "iced_tiny_skia"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3737,7 +3763,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-app"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "app-json-settings",
  "dirs",
@@ -3763,7 +3789,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-bench"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "orbok-cache",
  "orbok-core",
@@ -3781,7 +3807,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-cache"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "localcache",
  "orbok-core",
@@ -3796,7 +3822,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-core"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
@@ -3806,7 +3832,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-db"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "orbok-core",
  "orbok-models",
@@ -3820,7 +3846,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-embed"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "candle-core",
  "candle-nn",
@@ -3835,7 +3861,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-extract"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "lopdf",
  "orbok-core",
@@ -3852,7 +3878,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-fs"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "orbok-core",
  "orbok-db",
@@ -3863,7 +3889,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-models"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "orbok-core",
  "serde",
@@ -3872,7 +3898,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-search"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "orbok-core",
  "orbok-db",
@@ -3884,9 +3910,10 @@ dependencies = [
 
 [[package]]
 name = "orbok-ui"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "iced",
+ "iced_test",
  "lucide-icons",
  "orbok-core",
  "orbok-models",
@@ -3897,7 +3924,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-workers"
-version = "0.9.8"
+version = "0.9.9"
 dependencies = [
  "dirs",
  "orbok-bench",
@@ -4058,6 +4085,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "82151a2fc869e011c153adc57cf2789ccb8d9906ce52c0b39a6b5697749d7526"
 dependencies = [
  "bitflags 1.3.2",
+ "crc32fast",
+ "fdeflate",
+ "flate2",
+ "miniz_oxide",
+]
+
+[[package]]
+name = "png"
+version = "0.18.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "60769b8b31b2a9f263dae2776c37b1b28ae246943cf719eb6946a1db05128a61"
+dependencies = [
+ "bitflags 2.13.0",
  "crc32fast",
  "fdeflate",
  "flate2",
@@ -5506,7 +5546,7 @@ dependencies = [
  "bytemuck",
  "cfg-if",
  "log",
- "png",
+ "png 0.17.16",
  "tiny-skia-path",
 ]
 

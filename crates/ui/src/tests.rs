@@ -129,3 +129,5 @@ fn navigation_order_is_search_first() {
     assert_eq!(ViewId::ALL[0], ViewId::Search);
     assert_eq!(ViewId::ALL[5], ViewId::Settings);
 }
+
+mod smoke_views;
