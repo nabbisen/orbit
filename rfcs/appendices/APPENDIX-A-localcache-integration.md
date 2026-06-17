@@ -1,0 +1,641 @@
+# Appendix A: localcache Integration Policy
+
+**Project:** orbit  
+**Appendix:** A  
+**Title:** Use of `localcache` v0.19.1 as the Local Cache Engine  
+**Status:** Draft  
+**Date:** 2026-06-06  
+
+---
+
+## 1. Purpose
+
+This appendix defines how `orbit` should use the `localcache` crate as a development-efficiency layer for local file-derived caches.
+
+`localcache` is suitable for caching expensive computation results tied to local files, such as extraction outputs, chunk bundles, document analysis artifacts, and per-file embedding bundles.
+
+This appendix modifies the interpretation of the foundational RFCs as follows:
+
+- `localcache` may be used for **rebuildable index data** and **ephemeral cache data**.
+- `localcache` must not replace the authoritative `orbit` catalog.
+- `localcache` must not be used as the primary source registry, file catalog, or search index authority.
+- `localcache` should be wrapped behind an `orbit` cache service so that `orbit` lifecycle policy remains stable even if the cache implementation changes later.
+
+---
+
+## 2. Observed Capabilities of localcache v0.19.1
+
+The attached `localcache` v0.19.1 project provides the following relevant capabilities:
+
+- SQLite-backed single-file local cache.
+- No daemon, no network, no background service required by default.
+- Generic serializable payload support.
+- File freshness checks through change-detection modes.
+- Namespaces for separating cache domains.
+- Payload schema versioning through `payload_version`.
+- LRU eviction through `max_entries`.
+- TTL support.
+- Atomic writes via SQLite transaction.
+- Cache statistics.
+- Batch get and batch set.
+- Optional async engine.
+- Optional zstd compression.
+- Optional JSON codec.
+- Optional AES-256-GCM payload encryption.
+- Optional tracing and metrics instrumentation.
+- Optional file watching.
+- Read-only/read-pool support.
+- Export/import support.
+- Cleanup methods for expired, missing, and stale-version entries.
+
+These capabilities map well to `orbit`'s file-derived cache needs.
+
+---
+
+## 3. Architectural Decision
+
+`orbit` should use `localcache` as a **cache engine**, not as the authoritative catalog.
+
+The authoritative catalog remains `orbit`'s own SQLite database.
+
+Recommended local files:
+
+```text
+orbit-catalog.sqlite3     # authoritative orbit catalog
+orbit-cache.sqlite3       # localcache-managed file-derived payload cache
+```
+
+Do not store `localcache` tables in the same SQLite database as the `orbit` catalog.
+
+Reason:
+
+- `localcache` owns its own schema and `PRAGMA user_version`.
+- `orbit` owns its own schema migrations.
+- Sharing one SQLite file would create migration coupling and table-name collision risk.
+- Separate files make cleanup and troubleshooting clearer.
+
+---
+
+## 4. Responsibility Boundary
+
+## 4.1. orbit Catalog Responsibilities
+
+The `orbit` catalog remains authoritative for:
+
+- registered sources;
+- source policies;
+- file catalog;
+- file status;
+- content hash policy;
+- extraction records;
+- chunk metadata;
+- chunk locations;
+- keyword index metadata;
+- vector index metadata;
+- model registry;
+- index job state;
+- storage accounting;
+- cleanup plans;
+- user settings.
+
+## 4.2. localcache Responsibilities
+
+`localcache` may manage:
+
+- per-file extracted segment cache;
+- per-file normalized text cache when explicitly allowed;
+- per-file chunk bundle cache;
+- per-file embedding bundle cache;
+- temporary document analysis results;
+- optional file-derived preview/snippet helper payloads;
+- expensive parser outputs that can be recreated from source files.
+
+## 4.3. Explicit Non-Responsibilities
+
+`localcache` must not be the authority for:
+
+- source registration;
+- source security policy;
+- exact file catalog state;
+- keyword search index;
+- vector nearest-neighbor index;
+- search result cache keyed only by query;
+- user settings;
+- model registry;
+- destructive cleanup policy.
+
+---
+
+## 5. Recommended Cache Namespaces
+
+`localcache` supports namespaces. `orbit` should use separate namespaces for distinct payload types and pipeline versions.
+
+Recommended namespace scheme:
+
+```text
+extract-segments:v1
+normalized-text:v1
+chunk-bundle:v1
+embedding-bundle:<embedding_model_id>:<vector_format>:v1
+preview-cache:v1
+document-analysis:v1
+```
+
+Examples:
+
+```text
+extract-segments:v1
+chunk-bundle:v1
+embedding-bundle:model_bge_small_en_v1:fp32:v1
+embedding-bundle:model_multilingual_e5_small:int8:v1
+```
+
+Namespace rules:
+
+1. Namespace must include payload purpose.
+2. Namespace must include pipeline generation when format changes.
+3. Embedding namespace must include model identity.
+4. Vector format must be included when payload stores vectors.
+5. Do not rely on one global `default` namespace.
+
+---
+
+## 6. Payload Version Policy
+
+`localcache` provides `payload_version`.
+
+`orbit` should use `payload_version` to represent the schema/version of the payload generated by `orbit`, not the version of `localcache`.
+
+Examples:
+
+| Payload | Version Bump Trigger |
+|---|---|
+| ExtractedSegmentBundle | extractor output structure changes |
+| ChunkBundle | chunking logic or location model changes |
+| EmbeddingBundle | vector layout or embedding metadata structure changes |
+| PreviewPayload | snippet/highlight representation changes |
+
+Policy:
+
+```text
+localcache crate upgrade alone does not require payload_version bump.
+orbit payload schema or pipeline semantic change does require payload_version bump.
+```
+
+---
+
+## 7. Change Detection Policy
+
+`localcache` provides multiple change-detection modes:
+
+```text
+MetadataOnly
+MetadataThenPartialHash
+MetadataThenFullHash
+StrictFullHash
+```
+
+Recommended `orbit` defaults:
+
+| Cache Purpose | Recommended Mode | Reason |
+|---|---|---|
+| Extracted segments | MetadataThenFullHash | correctness important |
+| Chunk bundle | MetadataThenFullHash | stale chunks break snippets/indexes |
+| Embedding bundle | MetadataThenFullHash | stale embeddings corrupt semantic search |
+| Preview/snippet helper cache | MetadataThenPartialHash or TTL | lower correctness impact |
+| Temporary analysis cache | MetadataThenFullHash | depends on use |
+
+Important distinction:
+
+- `localcache` freshness is an optimization for cache reuse.
+- The `orbit` catalog's own file identity and stale-state rules remain authoritative.
+
+`orbit` may use SHA-256 or another catalog-level hash for file identity, while `localcache` may use its own internal change detection. These must not be confused.
+
+---
+
+## 8. Recommended Cargo Dependency
+
+Recommended initial dependency:
+
+```toml
+[dependencies]
+localcache = { version = "0.19", features = ["compression", "tracing"] }
+serde = { version = "1", features = ["derive"] }
+```
+
+Optional future features:
+
+```toml
+localcache = { version = "0.19", features = [
+  "compression",
+  "tracing",
+  "json",
+  "watching",
+  "metrics"
+] }
+```
+
+Do not enable encryption by default until key management is designed.
+
+---
+
+## 9. Cache Service Wrapper
+
+`orbit` should not call `localcache` directly from arbitrary modules.
+
+Recommended wrapper:
+
+```text
+orbit-cache/
+├── CacheService
+├── CacheNamespace
+├── CachePayloadVersion
+├── ExtractionCache
+├── ChunkCache
+├── EmbeddingCache
+└── CacheStorageAccounting
+```
+
+Conceptual Rust shape:
+
+```rust
+pub struct OrbitCacheConfig {
+    pub database_path: PathBuf,
+    pub max_entries: Option<usize>,
+    pub ttl: Option<Duration>,
+    pub enable_compression: bool,
+}
+
+pub enum OrbitCacheNamespace {
+    ExtractSegments,
+    ChunkBundle,
+    EmbeddingBundle {
+        model_id: String,
+        vector_format: String,
+    },
+    Preview,
+}
+
+pub trait FileDerivedCache<T> {
+    fn get_fresh(&self, path: &Path) -> Result<Option<T>, OrbitCacheError>;
+    fn set(&self, path: &Path, payload: &T) -> Result<(), OrbitCacheError>;
+    fn remove(&self, path: &Path) -> Result<bool, OrbitCacheError>;
+}
+```
+
+The wrapper should:
+
+- centralize namespace naming;
+- centralize payload versions;
+- centralize change-detection choices;
+- map `localcache` errors into `orbit` errors;
+- prevent accidental use for persistent catalog data.
+
+---
+
+## 10. Payload Candidates
+
+## 10.1. Extracted Segment Bundle
+
+```rust
+#[derive(Serialize, Deserialize)]
+pub struct ExtractedSegmentBundle {
+    pub file_id_hint: String,
+    pub source_content_hash_hint: Option<String>,
+    pub extractor_name: String,
+    pub extractor_version: String,
+    pub normalization_version: String,
+    pub segments: Vec<ExtractedSegment>,
+}
+```
+
+Use:
+
+- avoid re-running expensive extraction when source file is fresh;
+- feed chunking stage;
+- delete as rebuildable/ephemeral cache.
+
+Caution:
+
+- this may contain extracted text;
+- if stored, it must be classified as rebuildable or ephemeral;
+- storage UI must expose its size;
+- privacy settings may disable this cache.
+
+## 10.2. Chunk Bundle
+
+```rust
+#[derive(Serialize, Deserialize)]
+pub struct ChunkBundle {
+    pub chunker_version: String,
+    pub chunks: Vec<CachedChunk>,
+}
+```
+
+Use:
+
+- avoid rechunking unchanged files;
+- preserve location metadata before committing authoritative chunk records.
+
+Caution:
+
+- authoritative chunk records still live in the `orbit` catalog.
+
+## 10.3. Embedding Bundle
+
+```rust
+#[derive(Serialize, Deserialize)]
+pub struct EmbeddingBundle {
+    pub model_id: String,
+    pub vector_format: String,
+    pub dimension: usize,
+    pub chunks: Vec<CachedChunkEmbedding>,
+}
+```
+
+Use:
+
+- avoid re-embedding unchanged files;
+- accelerate rebuild of external vector index segments.
+
+Caution:
+
+- nearest-neighbor search still requires a queryable vector index or explicit scan strategy;
+- `localcache` is not itself the vector search engine.
+
+---
+
+## 11. Storage Accounting Integration
+
+`localcache` can report cache statistics. `orbit` should aggregate those statistics into its Storage view.
+
+Recommended mapping:
+
+| localcache Namespace | orbit Storage Category |
+|---|---|
+| extract-segments:* | temporary_extraction or rebuildable_index |
+| normalized-text:* | temporary_extraction |
+| chunk-bundle:* | rebuildable_index |
+| embedding-bundle:* | vector_index |
+| preview-cache:* | snippet_cache |
+
+The `orbit` Storage Manager should periodically call cache stats and update `storage_accounting`.
+
+---
+
+## 12. Cleanup Integration
+
+`orbit` cleanup must call `localcache` through the wrapper.
+
+Recommended cleanup mapping:
+
+| orbit Cleanup Action | localcache Operation |
+|---|---|
+| Clear expired cache | `cleanup_expired()` |
+| Remove entries for missing source files | `cleanup_missing_files()` |
+| Remove old payload versions | `purge_stale_versions()` |
+| Shrink cache database | `shrink_database()` |
+| Remove one file's cached payload | `remove(path)` |
+| Enforce namespace size | `max_entries` / LRU |
+
+Rules:
+
+1. Do not expose raw `localcache` cleanup directly to UI.
+2. Always build an `orbit` `CleanupPlan` first.
+3. Report estimated impact in orbit terms.
+4. Preserve persistent catalog data.
+
+---
+
+## 13. Interaction with File Scanner
+
+The file scanner remains authoritative.
+
+`localcache` may be used by indexing workers to skip expensive work when cached payloads are fresh.
+
+Recommended flow:
+
+```text
+scanner marks file discovered/stale
+  ↓
+index worker asks ExtractionCache.get_fresh(path)
+  ↓
+if fresh:
+    use cached extraction/chunk/embedding payload if compatible
+else:
+    recompute and CacheService.set(path, payload)
+  ↓
+commit authoritative state to orbit catalog
+```
+
+Do not replace source scanning with `localcache::scan_dir_filtered` in v1.
+
+Reason:
+
+- orbit scanner enforces source policies;
+- orbit scanner records unsupported/permission/stale states;
+- orbit scanner integrates with UI and job queue;
+- orbit scanner handles source-level lifecycle.
+
+`localcache::scan_dir_filtered` may be useful later for tools, diagnostics, or internal maintenance, but it is not the v1 scanner authority.
+
+---
+
+## 14. Interaction with Document Extraction
+
+When extraction is expensive, `localcache` can store extracted segment bundles.
+
+However, this introduces privacy and storage concerns because extracted segment bundles contain document text.
+
+Default policy options:
+
+| Mode | Extracted Segment Cache |
+|---|---|
+| Balanced | Enabled with compression and reasonable size/TTL, or disabled until evaluated |
+| High Accuracy | Enabled if user accepts storage impact |
+| Space Saving | Disabled or very small |
+| Privacy Strict | Disabled |
+
+If enabled, the UI must account for this storage under temporary extraction or rebuildable index data.
+
+---
+
+## 15. Interaction with Embeddings and Vector Search
+
+`localcache` can cache per-file embedding bundles, but it is not enough for efficient global vector retrieval by itself.
+
+Recommended design:
+
+```text
+localcache:
+    caches expensive per-file embedding computation results
+
+orbit vector index:
+    supports global similarity search over chunks
+```
+
+Use case:
+
+1. file unchanged;
+2. embedding bundle fresh in `localcache`;
+3. vector index segment needs rebuild due to segment compaction or storage format change;
+4. rebuild can reuse cached embeddings instead of rerunning model inference.
+
+This improves development efficiency and rebuild speed.
+
+---
+
+## 16. Security and Privacy Considerations
+
+## 16.1. Extracted Text in Cache
+
+Some payloads may contain extracted document text.
+
+Therefore:
+
+- do not label all localcache data as harmless cache;
+- expose its storage category;
+- allow user cleanup;
+- consider disabling text-bearing caches in privacy-strict mode;
+- never include payload content in logs.
+
+## 16.2. Encryption Feature
+
+`localcache` supports optional AES-256-GCM payload encryption.
+
+Do not enable it by default until `orbit` has a key management design.
+
+Open questions:
+
+- where is the key stored?
+- how is the key protected?
+- what happens on key loss?
+- does encryption meaningfully improve the local threat model?
+- does encrypted cache break diagnostics?
+
+## 16.3. Local API
+
+If using a local WebView or local HTTP API, frontend code must not be able to call arbitrary cache operations. Cache operations remain backend-only.
+
+---
+
+## 17. Impact on Existing RFCs
+
+## 17.1. RFC-001
+
+`localcache` data must be classified under either:
+
+- rebuildable index data; or
+- ephemeral cache data.
+
+It must never be classified as persistent source configuration.
+
+## 17.2. RFC-002
+
+The `orbit` SQLite catalog remains authoritative.
+
+Add a catalog table or settings entry to record cache-engine configuration if needed:
+
+```sql
+CREATE TABLE cache_engines (
+    cache_engine_id TEXT PRIMARY KEY,
+    engine_kind TEXT NOT NULL,
+    database_path TEXT NOT NULL,
+    namespace TEXT NOT NULL,
+    data_class TEXT NOT NULL,
+    payload_type TEXT NOT NULL,
+    payload_version INTEGER NOT NULL,
+    ttl_seconds INTEGER,
+    max_entries INTEGER,
+    status TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+```
+
+This table tracks `localcache` usage but does not duplicate `localcache`'s internal schema.
+
+## 17.3. RFC-003
+
+Source access boundary still applies.
+
+The cache service must only read/cache files already approved by the source system.
+
+## 17.4. RFC-004
+
+The scanner remains authoritative.
+
+`localcache` freshness checks may be used by workers after the scanner queues work.
+
+## 17.5. RFC-005
+
+Extraction pipeline may use `localcache` to reuse extracted segment bundles, subject to privacy and storage mode.
+
+---
+
+## 18. Acceptance Criteria
+
+- `orbit` uses a separate `orbit-cache.sqlite3` for `localcache`.
+- `localcache` is wrapped by an orbit-owned cache service.
+- No direct UI operation calls raw `localcache`.
+- The authoritative source catalog remains in `orbit-catalog.sqlite3`.
+- Cache namespaces are explicit and versioned.
+- Cache payload versions are defined by orbit payload schema.
+- Storage view can account for localcache namespaces.
+- Cleanup operations use orbit `CleanupPlan`.
+- Text-bearing caches can be disabled or cleaned.
+- Vector search does not depend on `localcache` as the only vector index.
+
+---
+
+## 19. Testing Requirements
+
+Required tests:
+
+1. Fresh cached extraction is reused for unchanged file.
+2. Modified file invalidates cached extraction.
+3. Payload version mismatch causes cache miss.
+4. LRU eviction does not delete orbit catalog records.
+5. Safe cleanup calls localcache cleanup without deleting sources.
+6. Text-bearing cache disabled in privacy-strict mode.
+7. Embedding bundle cache uses model-specific namespace.
+8. localcache database missing/corrupt case is recoverable by rebuilding cache.
+9. Cache service rejects paths outside approved sources.
+10. Storage accounting includes localcache namespace sizes.
+
+---
+
+## 20. Decision
+
+Adopt `localcache` v0.19.x as the default cache engine for file-derived rebuildable and ephemeral payloads.
+
+Do not use it as the authoritative orbit catalog, keyword search engine, or vector search engine.
+
+---
+
+## 21. Amendment (2026-06-06): Version and Toolchain Alignment
+
+- The pinned cache engine is **`localcache` v0.20.0**, published on
+  crates.io (source reviewed; all operations referenced in §12 — `cleanup_expired`,
+  `cleanup_missing_files`, `purge_stale_versions`, `shrink_database`,
+  `remove`, `max_entries` LRU — verified present in 0.19.1).
+- `localcache` 0.19.1 depends on **`rusqlite` 0.40 with the `bundled`
+  feature**. Because only one version of `libsqlite3-sys` may exist in a
+  Cargo dependency graph, the `orbit` catalog (`orbit-db`) **must use
+  `rusqlite` 0.40** as well. This is a hard build constraint, recorded
+  also as an amendment to RFC-002.
+- `localcache` 0.19.1 requires Rust ≥ 1.85 / edition 2024, consistent
+  with the project toolchain policy.
+
+### Amendment (2026-06-07): localcache 0.20.0
+
+`localcache` v0.20.0 fixes an mtime-precision defect: modification
+times are now stored and compared at nanosecond precision (engine
+schema v5, migrated automatically on open). Previously a file
+overwritten within the same clock second with unchanged size was
+invisible to `MetadataOnly`/`MetadataThenHash` detection. orbit's
+default detection mode (`MetadataThenFullHash`, §10) is hardened by
+the same fix on filesystems with sub-second timestamp resolution.
+`localcache` 0.20.0 keeps rusqlite 0.40, so the workspace pin in
+RFC-002 §16 is unchanged.

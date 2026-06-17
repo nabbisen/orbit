@@ -1,0 +1,17 @@
+[package]
+name = "orbit-ui"
+description = "orbit GUI: snora/iced views, navigation shell, typed i18n catalog (RFC-027, RFC-031)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[dependencies]
+# GUI only — no filesystem or database access in this crate (RFC-027).
+orbit-core = { workspace = true }
+orbit-models = { workspace = true }
+iced = { workspace = true }
+snora = { workspace = true }
+serde = { workspace = true }

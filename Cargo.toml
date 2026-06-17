@@ -1,31 +1,66 @@
-[package]
-name = "orbit"
+[workspace]
+members = [
+    "crates/orbit-core",
+    "crates/orbit-db",
+    "crates/orbit-fs",
+    "crates/orbit-cache",
+    "crates/orbit-extract",
+    "crates/orbit-search",
+    "crates/orbit-models",
+    "crates/orbit-ui",
+    "crates/orbit-app",
+]
+resolver = "2"
+
+[workspace.package]
 version = "0.1.0"
-edition = "2021"
-
-description = "Content finder - Scan kinds of files with keyword"
-authors = ["nabbisen <nabbisen@scqr.net>"]
+edition = "2024"
+rust-version = "1.85"
 license = "Apache-2.0"
-
+authors = ["nabbisen"]
 categories = ["gui", "development-tools", "text-processing", "visualization"]
 keywords = ["gui", "search", "text", "pdf", "excel"]
 repository = "https://github.com/nabbisen/orbit"
-readme = "README.md"
-rust-version = "1.78.0"
 
-[profile.release]     # shrink executable size
+[workspace.dependencies]
+# internal crates
+orbit-core = { version = "0.1.0", path = "crates/orbit-core" }
+orbit-db = { version = "0.1.0", path = "crates/orbit-db" }
+orbit-fs = { version = "0.1.0", path = "crates/orbit-fs" }
+orbit-cache = { version = "0.1.0", path = "crates/orbit-cache" }
+orbit-extract = { version = "0.1.0", path = "crates/orbit-extract" }
+orbit-search = { version = "0.1.0", path = "crates/orbit-search" }
+orbit-models = { version = "0.1.0", path = "crates/orbit-models" }
+orbit-ui = { version = "0.1.0", path = "crates/orbit-ui" }
+
+# database — pinned to 0.40 to match localcache 0.20.0
+# (single libsqlite3-sys rule; see RFC-002 amendment / Appendix A §21)
+rusqlite = { version = "0.40", features = ["bundled"] }
+
+# cache engine — Appendix A pins 0.20.0 (mtime ns-precision fix, schema v5)
+localcache = { version = "0.20.0", features = ["compression", "tracing"] }
+
+# GUI — RFC-027 decision: iced 0.14 via snora 0.8
+iced = { version = "0.14", features = ["tokio"] }
+snora = "0.8"
+
+# shared utilities
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+uuid = { version = "1", features = ["v7"] }
+sha2 = "0.10"
+time = { version = "0.3", features = ["formatting", "macros"] }
+dirs = "6"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tokio = { version = "1.23", features = ["rt-multi-thread", "macros"] }
+
+# dev
+tempfile = "3"
+
+[profile.release]
 opt-level = "z"
 lto = true
-# panic = "abort"
 strip = true
 codegen-units = 1
-
-[profile.dev]         # to reasonably improve productivity
-opt-level = 1         # slightly optimize
-lto = false           # disable link-time optimizations
-# strip = "debuginfo" # reduce size
-incremental = true
-
-[dependencies]
-iced = "^0.13"
-rfd = "^0.15"

@@ -1,0 +1,15 @@
+orbit
+Copyright 2026 nabbisen
+
+This product includes software developed by nabbisen.
+https://github.com/nabbisen/orbit
+
+Third-party dependencies are listed in Cargo.lock and their licenses
+are available in the respective crate source distributions.
+
+Key dependencies:
+- iced (MIT) — GUI framework
+- snora (Apache 2.0) — iced component library by nabbisen
+- localcache (Apache 2.0) — SQLite cache engine by nabbisen
+- rusqlite (MIT) — SQLite bindings
+- SQLite (Public Domain) — embedded database
