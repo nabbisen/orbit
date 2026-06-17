@@ -3763,7 +3763,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-app"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "app-json-settings",
  "dirs",
@@ -3789,7 +3789,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-bench"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "orbok-cache",
  "orbok-core",
@@ -3807,7 +3807,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-cache"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "localcache",
  "orbok-core",
@@ -3822,7 +3822,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-core"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
@@ -3832,7 +3832,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-db"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "orbok-core",
  "orbok-models",
@@ -3846,7 +3846,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-embed"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "candle-core",
  "candle-nn",
@@ -3861,7 +3861,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-extract"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "lopdf",
  "orbok-core",
@@ -3878,7 +3878,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-fs"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "orbok-core",
  "orbok-db",
@@ -3889,7 +3889,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-models"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "orbok-core",
  "serde",
@@ -3898,7 +3898,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-search"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "orbok-core",
  "orbok-db",
@@ -3910,7 +3910,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-ui"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "iced",
  "iced_test",
@@ -3924,7 +3924,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-workers"
-version = "0.9.9"
+version = "0.9.10"
 dependencies = [
  "dirs",
  "orbok-bench",
@@ -5178,9 +5178,9 @@ dependencies = [
 
 [[package]]
 name = "snora"
-version = "0.8.0"
+version = "0.18.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11df3c9f92ca859780774aa62e17b73dc9b8c11e8e514e947329da8aa8af13d9"
+checksum = "b2a3262a23a08a14054a5dda8e58eb7bb0e343626c86d747bc4f4dc48d2cc041"
 dependencies = [
  "iced",
  "lucide-icons",
@@ -5190,18 +5190,18 @@ dependencies = [
 
 [[package]]
 name = "snora-core"
-version = "0.8.0"
+version = "0.18.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91eb51e9ab26c12a71e112bdba64139098925e3bbf471f5a3d77f683a88f3350"
+checksum = "cf29f6a507fa588ea68407e288e45cd0204971f76e31b4be303fe1f8bb157ebf"
 dependencies = [
  "lucide-icons",
 ]
 
 [[package]]
 name = "snora-widgets"
-version = "0.8.0"
+version = "0.18.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50bf9e964957eeebb81fcce3412327559f8947a3f7559c1c09dca5e69a13a025"
+checksum = "c3b9ae83307d4fd6030ed4e5ab662279ff65cc5c5e1adcf1d05d071633b0a856"
 dependencies = [
  "iced",
  "lucide-icons",

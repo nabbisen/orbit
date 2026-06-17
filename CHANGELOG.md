@@ -934,9 +934,37 @@ full snora shell, which keeps them stable and fast.
 `iced_test` is a dev-dependency of `orbok-ui` only; it does not affect the
 shipped binary.
 
-### Changed
-
-- Directory rename: `crates/data/catalog` → `crates/data/db`
-
 ### Tests
 **194 tests / 0 failures** (184 non-GUI + 10 orbok-ui, incl. 4 new smoke tests).
+
+---
+
+## [0.9.10] — 2026-06-10 — snora 0.8 → 0.18
+
+### Changed
+
+**snora upgraded: 0.8.0 → 0.18.0**
+
+Ten minor versions. All changes between 0.8 and 0.18 were assessed against
+orbok's usage. No source changes were required.
+
+**Detailed change log (0.9 – 0.18):**
+
+| Version | Change | Orbok impact |
+|---|---|---|
+| 0.9 | Doctests, migration index | None |
+| 0.10 | Binary-size budget infra | None |
+| 0.11 | `AppLayout` marked `#[non_exhaustive]`; toast ordering fix | None — orbok uses the builder (`AppLayout::new(body).side_bar(...)`) and does not use toasts |
+| 0.12 | Render-semantics tests, workbench example, doc-test policy | None |
+| 0.13 | Anchored-popover design doc, API-freeze review | None |
+| 0.14 | `snora::keyboard::dismiss_on_escape` added (new public API) | None — additive only |
+| 0.15 | Starter example, versioning policy, migration template | None |
+| 0.16 | Alternate-engine boundary doc, performance envelope | None |
+| 0.17 | `Icon` gains `PartialEq`; two RTL integration tests | None — additive only |
+| 0.18 | Contributing overview, version-snippet updates, ROADMAP | None |
+
+iced remains `"0.14"` and lucide-icons remains `"1"` in snora's workspace
+dependencies — no transitive dep conflicts.
+
+### Tests
+**194 tests / 0 failures.**
