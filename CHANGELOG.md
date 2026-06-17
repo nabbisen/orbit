@@ -710,3 +710,47 @@ the non-GUI test run, cutting `cargo test` peak disk use by ~9 GB.
 
 ### Tests
 **184 tests / 0 failures** (unchanged count; test logic improved).
+
+---
+
+## [0.9.4] — 2026-06-08 — Candle upgrade + lucide-icons integration
+
+### Changed
+
+**`candle-core` / `candle-nn` upgraded: 0.9.2 → 0.10.2** (`orbok-embed`,
+`--features candle`)
+Drop-in upgrade per migration report: no API symbols removed, one addition
+each (`TokenizerFromGguf` in candle-core, `remove_mean` in candle-nn),
+neither relevant to orbok's CPU inference path. Source unchanged.
+
+**lucide-icons added: 1.17.0** (`orbok-ui`)
+snora 0.8.0 ships a native `lucide-icons` feature (`Icon::Lucide` variant).
+Enabling it via `snora = { features = ["lucide-icons"] }` activates full
+Lucide icon support in the sidebar navigation rail and anywhere else an
+iced widget tree is built.
+
+Icon font registration — `orbok-ui` re-exports `LUCIDE_FONT_BYTES`; the
+iced application builder in `orbok-app` registers it via `.font()` at
+startup so all icon glyphs render correctly.
+
+**Sidebar navigation** now uses proper Lucide icons instead of emoji:
+
+| View | Icon |
+|---|---|
+| Search | `Search` |
+| Sources | `FolderOpen` |
+| Indexing | `ListOrdered` |
+| Storage | `Database` |
+| Models | `Cpu` |
+| Settings | `Settings` |
+
+**In-page icon buttons** (views.rs, wizard.rs):
+- Search submit button — `icon_search` + label
+- Add Source button — `icon_folder_plus` + label
+- Remove source — `icon_trash_2` (icon-only, compact)
+- Wizard Validate — `icon_scan_eye` + label
+- Wizard Accept — `icon_circle_check` + label
+
+### Tests
+**184 tests / 0 failures.** No new tests (icon rendering is a visual
+concern; the logic under the buttons is unchanged and already covered).

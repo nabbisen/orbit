@@ -11,6 +11,9 @@
 //!   (RFC-031): adding a [`i18n::Locale`] without translating every
 //!   [`i18n::MessageKey`] is a compile error.
 
+/// Lucide icon font bytes — register with iced before launching the app.
+pub use lucide_icons::LUCIDE_FONT_BYTES;
+
 pub mod i18n;
 pub mod shell;
 pub mod state;

@@ -9,6 +9,7 @@
 
 use crate::i18n::{MessageKey, Locale, tr};
 use crate::state::{AppState, Message, WizardFileCheck, WizardState};
+use lucide_icons::iced as icons;
 use iced::widget::{button, column, container, row, text, text_input};
 use iced::{Element, Length, Padding};
 
@@ -90,7 +91,7 @@ fn page_input<'a>(
 
     col = col.push(
         row![
-            button(text(tr(locale, MessageKey::WizardActionValidate)).size(13))
+            button(iced::widget::row![icons::icon_scan_eye().size(14), iced::widget::text(tr(locale, MessageKey::WizardActionValidate)).size(13)].spacing(4))
                 .on_press(Message::WizardValidate),
         ]
         .spacing(8),
@@ -171,7 +172,7 @@ fn page_checked<'a>(
             .padding(8),
         );
         col = col.push(
-            button(text(tr(locale, MessageKey::WizardActionValidate)).size(13))
+            button(iced::widget::row![icons::icon_scan_eye().size(14), iced::widget::text(tr(locale, MessageKey::WizardActionValidate)).size(13)].spacing(4))
                 .on_press(Message::WizardValidate),
         );
     }

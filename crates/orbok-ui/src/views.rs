@@ -11,7 +11,17 @@ use crate::i18n::{Locale, MessageKey, files_indexed, search_result_count, source
 use crate::state::{AppState, Message};
 use iced::widget::{button, column, container, row, text, text_input};
 use iced::{Element, Length, Padding};
+use lucide_icons::iced as icons;
 use orbok_models::SearchCapability;
+
+/// Small icon+label button. `icon_fn` is a lucide `icon_*()` function.
+fn icon_btn<'a>(
+    icon_el: iced::widget::Text<'a>,
+    label: &'a str,
+    msg: Message,
+) -> iced::widget::Button<'a, Message> {
+    button(row![icon_el.size(14), text(label).size(13)].spacing(4)).on_press(msg)
+}
 
 fn page<'a>(content: iced::widget::Column<'a, Message>) -> Element<'a, Message> {
     container(content.spacing(10))
@@ -32,8 +42,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
         .on_input(Message::QueryChanged)
         .on_submit(Message::SubmitSearch)
         .padding(8);
-    let submit = button(text(tr(locale, MessageKey::SearchButton)).size(13))
-        .on_press(Message::SubmitSearch);
+    let submit = icon_btn(icons::icon_search(), tr(locale, MessageKey::SearchButton), Message::SubmitSearch);
 
     let _mode = state.search_mode; // TODO: highlight active mode button
     let mode_selector = row![
@@ -124,8 +133,7 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
     .on_input(Message::SourcePathChanged)
     .on_submit(Message::RequestAddSource)
     .padding(8);
-    let add_btn = button(text(tr(locale, MessageKey::SourcesAddFolder)).size(13))
-        .on_press(Message::RequestAddSource);
+    let add_btn = icon_btn(icons::icon_folder_plus(), tr(locale, MessageKey::SourcesAddFolder), Message::RequestAddSource);
     let mut content = column![
         heading(tr(locale, MessageKey::SourcesTitle)),
         row![container(add_input).width(Length::Fill), add_btn].spacing(8),
@@ -155,7 +163,7 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
                             .size(12),
                         row![
                             text(status).size(11),
-                            button(text("Remove").size(11))
+                            button(row![icons::icon_trash_2().size(12)].spacing(2))
                                 .on_press(Message::SourceRemoved(src_id)),
                         ].spacing(8),
                     ]

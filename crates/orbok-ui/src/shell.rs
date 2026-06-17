@@ -5,7 +5,9 @@ use crate::i18n::{MessageKey, tr};
 use crate::state::{AppState, Message, ViewId};
 use crate::views;
 use iced::Element;
-use snora::{AppLayout, LayoutDirection, SideBar, SideBarItem, render, widget::app_side_bar};
+use lucide_icons::Icon as LucideIcon;
+use snora::{AppLayout, Icon, LayoutDirection, SideBar, SideBarItem, render, widget::app_side_bar};
+
 
 /// The iced application wrapper around [`AppState`].
 #[derive(Default)]
@@ -28,14 +30,14 @@ impl OrbokApp {
     /// mapping: AppShell → AppLayout, SidebarNav → app_side_bar).
     pub fn view(&self) -> Element<'_, Message> {
         let locale = self.state.locale;
-        let icon_for = |view: ViewId| -> &'static str {
+        let icon_for = |view: ViewId| -> Icon {
             match view {
-                ViewId::Search => "🔍",
-                ViewId::Sources => "📁",
-                ViewId::Indexing => "⏳",
-                ViewId::Storage => "💾",
-                ViewId::Models => "🧠",
-                ViewId::Settings => "⚙",
+                ViewId::Search   => Icon::Lucide(LucideIcon::Search),
+                ViewId::Sources  => Icon::Lucide(LucideIcon::FolderOpen),
+                ViewId::Indexing => Icon::Lucide(LucideIcon::ListOrdered),
+                ViewId::Storage  => Icon::Lucide(LucideIcon::Database),
+                ViewId::Models   => Icon::Lucide(LucideIcon::Cpu),
+                ViewId::Settings => Icon::Lucide(LucideIcon::Settings),
             }
         };
         let tooltip_for = |view: ViewId| -> &'static str {
@@ -52,7 +54,7 @@ impl OrbokApp {
             .iter()
             .map(|view| SideBarItem {
                 view_id: *view,
-                icon: icon_for(*view).into(),
+                icon: icon_for(*view),
                 tooltip: tooltip_for(*view).into(),
                 on_press: Message::Switch(*view),
             })

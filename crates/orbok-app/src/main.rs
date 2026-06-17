@@ -124,6 +124,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         OrbokApp::view,
     )
     .title(|app: &OrbokApp| app.title())
+    .font(orbok_ui::LUCIDE_FONT_BYTES)
     .run()?;
     Ok(())
 }
