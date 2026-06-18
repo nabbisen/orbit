@@ -16,7 +16,6 @@ orbok-search = { workspace = true }
 iced = { workspace = true }
 snora = { workspace = true, features = ["lucide-icons"] }
 serde = { workspace = true }
-lucide-icons = { version = "1", features = ["iced"] }
 
 [dev-dependencies]
 iced_test = { workspace = true }

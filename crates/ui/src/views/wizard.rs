@@ -9,11 +9,17 @@
 //! 3. **Checked** — shows per-file ✓/✗ after the user locates files manually.
 //! 4. **Ready** — confirmation that the model is loaded; wizard dismisses.
 
-use lucide_icons::iced as icons;
 use crate::i18n::{Locale, MessageKey, tr};
 use crate::state::{AppState, Message, WizardFileCheck, WizardState};
+use snora::lucide;
 use iced::widget::{button, column, container, progress_bar, row, text, text_input};
 use iced::{Element, Length};
+
+fn icon_text<'a>(glyph: char, size: f32) -> iced::widget::Text<'a> {
+    iced::widget::text(glyph.to_string())
+        .font(iced::Font::with_name("lucide"))
+        .size(size)
+}
 
 /// Dispatch to the correct wizard page.
 pub fn wizard_view(state: &AppState) -> Element<'_, Message> {
@@ -57,7 +63,7 @@ fn page_setup<'a>(
     let download_card = container(
         column![
             row![
-                icons::icon_download().size(16),
+                icon_text(char::from(lucide::Download), 16.0),
                 text(tr(locale, MessageKey::WizardDownloadAction)).size(14),
             ]
             .spacing(6),
@@ -65,7 +71,7 @@ fn page_setup<'a>(
                 .size(11),
             button(
                 row![
-                    icons::icon_download().size(13),
+                    icon_text(char::from(lucide::Download), 13.0),
                     text(tr(locale, MessageKey::WizardDownloadAction)).size(13),
                 ]
                 .spacing(4),
@@ -107,7 +113,7 @@ fn page_setup<'a>(
             container(path_input).width(Length::Fill),
             button(
                 row![
-                    icons::icon_folder_open().size(13),
+                    icon_text(char::from(lucide::FolderOpen), 13.0),
                     text(tr(locale, MessageKey::WizardActionValidate)).size(13),
                 ]
                 .spacing(4),
@@ -166,7 +172,7 @@ fn page_downloading<'a>(
 
     let col = column![
         row![
-            icons::icon_download().size(16),
+            icon_text(char::from(lucide::Download), 16.0),
             text(tr(locale, MessageKey::WizardDownloadProgress)).size(20),
         ]
         .spacing(6),
@@ -213,7 +219,7 @@ fn page_checked<'a>(
         col = col.push(
             button(
                 row![
-                    icons::icon_check_circle().size(13),
+                    icon_text(char::from(lucide::CheckCircle), 13.0),
                     text(tr(locale, MessageKey::WizardActionUseModel)).size(13),
                 ]
                 .spacing(4),
@@ -234,7 +240,7 @@ fn page_checked<'a>(
                 container(path_input).width(Length::Fill),
                 button(
                     row![
-                        icons::icon_scan_eye().size(13),
+                        icon_text(char::from(lucide::ScanEye), 13.0),
                         text(tr(locale, MessageKey::WizardActionValidate)).size(13),
                     ]
                     .spacing(4),
@@ -265,7 +271,7 @@ fn page_checked<'a>(
 fn page_ready<'a>(locale: Locale, model_dir: &'a str) -> Element<'a, Message> {
     let col = column![
         row![
-            icons::icon_check_circle().size(18),
+            icon_text(char::from(lucide::CheckCircle), 18.0),
             text(tr(locale, MessageKey::WizardTitleReady)).size(20),
         ]
         .spacing(6),
@@ -273,7 +279,7 @@ fn page_ready<'a>(locale: Locale, model_dir: &'a str) -> Element<'a, Message> {
         text(tr(locale, MessageKey::WizardReadyBody)).size(13),
         button(
             row![
-                icons::icon_check_circle().size(13),
+                icon_text(char::from(lucide::CheckCircle), 13.0),
                 text(tr(locale, MessageKey::WizardActionUseModel)).size(13),
             ]
             .spacing(4),

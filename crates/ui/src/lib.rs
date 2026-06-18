@@ -12,11 +12,12 @@
 //!   [`i18n::MessageKey`] is a compile error.
 
 /// Lucide icon font bytes — register with iced before launching the app.
-pub use lucide_icons::LUCIDE_FONT_BYTES;
+/// Re-exported from `snora::lucide`; no direct `lucide-icons` dep needed.
+pub use snora::lucide::LUCIDE_FONT_BYTES;
 
 pub mod i18n;
-pub mod shell;
 pub mod notice;
+pub mod shell;
 pub mod state;
 pub mod views;
 
@@ -24,4 +25,6 @@ pub mod views;
 mod tests;
 
 pub use shell::OrbokApp;
-pub use state::{AppState, IndexHealth, Message, NavGroup, SourceCard, ViewId, WizardFileCheck, WizardState};
+pub use state::{
+    AppState, IndexHealth, Message, NavGroup, SourceCard, ViewId, WizardFileCheck, WizardState,
+};

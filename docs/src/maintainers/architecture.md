@@ -11,7 +11,7 @@ crates/
 ├── core/         orbok-core   — typed IDs, error types, data-lifecycle classes
 ├── data/
 │   ├── cache/    orbok-cache  — localcache wrapper for derived-data payloads
-│   ├── catalog/  orbok-db     — SQLite catalog: migrations, repositories (RFC-002)
+│   ├── db/       orbok-db     — SQLite catalog: migrations, repositories (RFC-002)
 │   └── fs/       orbok-fs     — safe file access boundary, source policies, scanner (RFC-003/004)
 ├── pipeline/
 │   ├── extract/  orbok-extract — extractor trait, text/PDF/DOCX extractors, chunker (RFC-005)

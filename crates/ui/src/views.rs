@@ -9,19 +9,28 @@ pub use wizard::wizard_view;
 
 use crate::i18n::{Locale, MessageKey, files_indexed, search_result_count, source_summary, tr};
 use crate::state::{AppState, Message};
+use snora::lucide;
 use iced::widget::{button, column, container, row, text, text_input};
 use iced::{Element, Length, Padding};
-use lucide_icons::iced as icons;
 use orbok_models::SearchCapability;
 
-/// Small icon+label button. `icon_fn` is a lucide `icon_*()` function.
-/// Padding gives a comfortable click target (UX review: ~44px tall).
+/// Render a lucide icon as a sized Text widget using char::from().
+/// This is the same technique snora uses in icon_element_sized() and
+/// avoids the iced type-parameter mismatch that lucide_icons::iced::icon_*()
+/// can cause when multiple iced_core versions are in the dep graph.
+fn icon_text<'a>(glyph: char, size: f32) -> iced::widget::Text<'a> {
+    iced::widget::text(glyph.to_string())
+        .font(iced::Font::with_name("lucide"))
+        .size(size)
+}
+
+/// Small icon+label button. Padding gives a comfortable click target (~44px).
 fn icon_btn<'a>(
     icon_el: iced::widget::Text<'a>,
     label: &'a str,
     msg: Message,
 ) -> iced::widget::Button<'a, Message> {
-    button(row![icon_el.size(16), text(label).size(15)].spacing(6))
+    button(row![icon_el, text(label).size(15)].spacing(6))
         .padding(Padding::from([12.0, 16.0]))
         .on_press(msg)
 }
@@ -77,7 +86,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
         .on_input(Message::QueryChanged)
         .on_submit(Message::SubmitSearch)
         .padding(8);
-    let submit = icon_btn(icons::icon_search(), tr(locale, MessageKey::SearchButton), Message::SubmitSearch);
+    let submit = icon_btn(icon_text(char::from(lucide::Search), 13.0), tr(locale, MessageKey::SearchButton), Message::SubmitSearch);
 
     let mut content = column![
         heading(tr(locale, MessageKey::NavSearch)),
@@ -194,7 +203,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
 pub fn sources_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
     // Add-source controls — folder picker button + optional manual path input.
-    let add_btn = icon_btn(icons::icon_folder_plus(), tr(locale, MessageKey::SourcesAddFolder), Message::RequestAddSource);
+    let add_btn = icon_btn(icon_text(char::from(lucide::FolderPlus), 13.0), tr(locale, MessageKey::SourcesAddFolder), Message::RequestAddSource);
     let add_input = text_input(
         "Or type a path manually…",
         &state.source_path_input,
@@ -237,7 +246,7 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
                             .size(12),
                         row![
                             text(status).size(11),
-                            button(row![icons::icon_trash_2().size(12)].spacing(2))
+                            button(row![icon_text(char::from(lucide::Trash2), 12.0).size(12)].spacing(2))
                                 .on_press(Message::SourceRemoved(src_id)),
                         ].spacing(8),
                     ]

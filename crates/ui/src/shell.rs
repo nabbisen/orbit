@@ -6,7 +6,7 @@ use crate::i18n::{MessageKey, tr};
 use crate::state::{AppState, Message, NavGroup, ViewId};
 use crate::views;
 use iced::Element;
-use lucide_icons::Icon as LucideIcon;
+use snora::lucide;
 use snora::{AppLayout, Icon, LayoutDirection, SideBar, SideBarItem, Tab, TabBar, render,
             widget::{app_side_bar, app_tab_bar}};
 
@@ -50,19 +50,19 @@ impl OrbokApp {
         let sidebar_items: Vec<SideBarItem<Message, NavGroup>> = vec![
             SideBarItem {
                 view_id: NavGroup::Search,
-                icon: Icon::Lucide(LucideIcon::Search),
+                icon: Icon::Lucide(lucide::Search),
                 tooltip: tr(locale, MessageKey::NavSearch).to_string(),
                 on_press: Message::SwitchGroup(NavGroup::Search),
             },
             SideBarItem {
                 view_id: NavGroup::Ai,
-                icon: Icon::Lucide(LucideIcon::BrainCircuit),
+                icon: Icon::Lucide(lucide::BrainCircuit),
                 tooltip: tr(locale, MessageKey::NavAi).to_string(),
                 on_press: Message::SwitchGroup(NavGroup::Ai),
             },
             SideBarItem {
                 view_id: NavGroup::Settings,
-                icon: Icon::Lucide(LucideIcon::Settings),
+                icon: Icon::Lucide(lucide::Settings),
                 tooltip: tr(locale, MessageKey::NavSettings).to_string(),
                 on_press: Message::SwitchGroup(NavGroup::Settings),
             },

@@ -3747,7 +3747,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-app"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "app-json-settings",
  "dirs",
@@ -3774,7 +3774,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-bench"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "orbok-cache",
  "orbok-core",
@@ -3792,7 +3792,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-cache"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "localcache",
  "orbok-core",
@@ -3807,7 +3807,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-core"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
@@ -3817,7 +3817,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-db"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "orbok-core",
  "orbok-models",
@@ -3831,7 +3831,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-embed"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "candle-core",
  "candle-nn",
@@ -3846,7 +3846,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-extract"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "lopdf",
  "orbok-core",
@@ -3863,7 +3863,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-fs"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "orbok-core",
  "orbok-db",
@@ -3874,7 +3874,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-models"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "orbok-core",
  "serde",
@@ -3883,7 +3883,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-search"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "orbok-core",
  "orbok-db",
@@ -3895,11 +3895,10 @@ dependencies = [
 
 [[package]]
 name = "orbok-ui"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "iced",
  "iced_test",
- "lucide-icons",
  "orbok-core",
  "orbok-models",
  "orbok-search",
@@ -3909,7 +3908,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-workers"
-version = "0.9.13"
+version = "0.9.14"
 dependencies = [
  "dirs",
  "orbok-bench",
