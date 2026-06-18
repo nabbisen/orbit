@@ -92,7 +92,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
                             let cache = orbok_cache::CacheService::new(&data_dir);
                             match bootstrap::add_source(&catalog, &path) {
-                                Ok(card) => {
+                                Ok((card, sensitive)) => {
+                                    if let Some(warning) = sensitive {
+                                        tracing::warn!("sensitive source: {warning}");
+                                        app.update(Message::ShowNotice(
+                                            orbok_ui::notice::UserNotice::SensitiveSourceAdded,
+                                        ));
+                                    }
                                     let source_id = card.source_id.clone();
                                     app.update(Message::SourceAdded(card));
                                     match bootstrap::scan_and_index_source(&catalog, &cache, &source_id) {

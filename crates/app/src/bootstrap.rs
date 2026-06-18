@@ -62,7 +62,9 @@ pub fn load_initial_state() -> Result<AppState, Box<dyn std::error::Error>> {
     // Load persisted OrbokSettings (app-json-settings).
     let settings = load_settings();
 
-    // Locale: prefer OrbokSettings, fall back to catalog setting.
+    // Locale priority: user settings file → catalog → OS LANG env → default (En).
+    // The OS detection satisfies RFC-031 §3 "auto locale resolves Japanese
+    // OS environments to ja".
     let locale = Locale::parse(&settings.locale)
         .or_else(|| {
             SettingsRepository::new(&catalog)
@@ -71,6 +73,7 @@ pub fn load_initial_state() -> Result<AppState, Box<dyn std::error::Error>> {
                 .flatten()
                 .and_then(|s| Locale::parse(&s))
         })
+        .or_else(Locale::from_env)
         .unwrap_or_default();
 
     // Verify embedding model files (design §startup-verify).
@@ -212,7 +215,7 @@ pub fn persist_model_dir(model_dir: &str) -> Result<(), Box<dyn std::error::Erro
 pub fn add_source(
     catalog: &Catalog,
     raw_path: &str,
-) -> Result<orbok_ui::state::SourceCard, Box<dyn std::error::Error>> {
+) -> Result<(orbok_ui::state::SourceCard, Option<&'static str>), Box<dyn std::error::Error>> {
     use orbok_core::{HiddenFilePolicy, IndexMode, PersistenceMode, SourceType, SymlinkPolicy};
     use orbok_db::repo::{NewSource, SourceRepository};
     use std::path::Path;
@@ -258,7 +261,13 @@ pub fn add_source(
         max_file_size_bytes: None,
     })?;
 
-    Ok(orbok_ui::state::SourceCard {
+    // RFC-003 acceptance: warn before indexing sensitive directories.
+    let sensitive = orbok_fs::sensitive_warning(std::path::Path::new(&canonical));
+    if let Some(w) = sensitive {
+        tracing::warn!(path = %canonical, warning = w, "sensitive source added");
+    }
+
+    Ok((orbok_ui::state::SourceCard {
         display_name,
         display_path: canonical,
         indexed: 0,
@@ -266,7 +275,7 @@ pub fn add_source(
         failed: 0,
         active: true,
         source_id: src.source_id.as_str().to_string(),
-    })
+    }, sensitive))
 }
 
 /// Scan a source synchronously and return the updated index health.

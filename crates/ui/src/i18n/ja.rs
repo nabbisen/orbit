@@ -123,6 +123,8 @@ pub fn message(key: MessageKey) -> &'static str {
         NoticePreviewsClearedBody => "空き容量を増やしました。ファイルはそのままです。",
         NoticeActionTryAgain => "もう一度試す",
         NoticeActionChooseFolder => "別のフォルダを選ぶ",
+        NoticeSensitiveSourceTitle => "このフォルダには機密ファイルが含まれている可能性があります",
+        NoticeSensitiveSourceBody => "SSH鍵、ブラウザのプロフィール、またはその他の機密データが含まれている可能性があります。フォルダは追加されました。意図しない場合は削除してください。",
         NoticeDismiss => "閉じる",
         Cancel => "キャンセル",
         Confirm => "確認",

@@ -1,4 +1,4 @@
-# Dependency Audit — 2026-06-07
+# Dependency Audit — 2026-06-10
 
 Performed manually against crates.io / docs.rs.
 (`cargo-outdated` could not be installed in the build environment due to
@@ -22,6 +22,16 @@ Performed manually against crates.io / docs.rs.
 | tempfile | 3.27.0 | 3.27 | ✓ current |
 | **lopdf** | **0.41.0** | **0.41.0** | ✅ upgraded from 0.34 |
 | **sha2** | **0.11.0** | **0.11.0** | ✅ upgraded from 0.10 |
+
+## Added after initial audit
+
+| Crate | Locked | Notes |
+|---|---|---|
+| rfd | 0.15 | Native OS folder picker dialog |
+| reqwest | 0.12 (rustls-tls) | HuggingFace model download |
+| futures | 0.3 | Async stream for download progress |
+| tokio | 1.52.3 (orbok-app) | Async runtime for download |
+| iced_test | 0.14 (dev) | Headless view smoke tests |
 
 ## Deferred upgrades (intentional)
 

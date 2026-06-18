@@ -1066,3 +1066,70 @@ instead of clipping content.
 
 ### Tests
 **196 tests / 0 failures.**
+
+---
+
+## [0.9.13] — 2026-06-10 — Comprehensive audit: RFC compliance, tests, docs
+
+Full five-point audit against RFCs, dead code, test coverage, code/test
+consistency, and documentation. Three RFC compliance gaps found and closed;
+documentation updated throughout.
+
+### RFC compliance gaps closed
+
+**RFC-003 — Sensitive directory warning wired (was untested path)**
+`sensitive_warning()` existed in `orbok-fs` and was tested in isolation, but
+`bootstrap::add_source` never called it. Fixed: `add_source` now checks and
+returns an `Option<&'static str>` alongside the `SourceCard`. When a sensitive
+path is detected, `main.rs` emits a `ShowNotice(SensitiveSourceAdded)` so
+the user sees a friendly warning card in the Sources view. New `UserNotice`
+variant and i18n keys in both EN and JA.
+
+**RFC-029 — SHA-256 integrity check implemented**
+The acceptance criterion "Checksum or stronger integrity check defined" was
+not met: the model verifier only checked `size > 0`. Fixed with two additions:
+- `ModelManifest` struct — written to `orbok-manifest.json` alongside the
+  model files after every successful download. Stores SHA-256 of each file.
+- `verify_embedding_model_deep()` — reads the manifest and verifies hashes.
+  Returns `Valid`, `NoManifest` (manual placement), `ChecksumMismatch`, or
+  `FileMissing`. Called only from the explicit Validate button, not at startup.
+4 new tests cover manifest round-trip, `NoManifest`, valid checksums, and
+corruption detection.
+
+**RFC-031 — `auto` locale detects Japanese OS environment**
+The acceptance criterion "`auto` locale resolves Japanese OS environments
+to `ja`" was not implemented. The fallback was always `Locale::En`. Fixed:
+`Locale::from_env()` checks `LANG` and `LANGUAGE` environment variables. If
+either starts with `ja`, returns `Locale::Ja`. Wired into the bootstrap
+locale priority chain: settings file → catalog → OS env → `En` default.
+2 new tests (use `unsafe` env var mutation per Rust 2024 edition rules).
+
+### Tests added (audit items 3 & 4)
+
+- `safe_cleanup_preserves_sources` — RFC-001 testing requirement #1:
+  all four safe `CleanupAction` variants are run in sequence; source
+  registration must survive every one.
+- `locale_from_env_detects_japanese` — RFC-031 §3 verified.
+- `locale_from_env_english_fallback` — RFC-031 §3 negative case.
+- 4 deep-verify tests in `model_verifier.rs` — RFC-029.
+
+### Documentation fixed (audit item 5)
+
+- `docs/src/maintainers/architecture.md` — was "nine crates"; now shows all
+  twelve in the grouped `crates/` layout with correct paths.
+- `docs/src/maintainers/development.md` — stale `-p orbok-app` commands
+  replaced with current `cargo run` (default-members) pattern; packaging
+  command added.
+- `docs/src/maintainers/dep_audit.md` — date updated to 2026-06-10; snora
+  corrected to 0.18.1; new deps (rfd, reqwest, futures, iced_test) added.
+- `docs/src/users/quick_start.md` — install path `crates/orbok-app` →
+  `crates/app`; wizard description updated to reflect HF download step.
+- `README.md` — same install path fix; removed stale `(v0.1)` version tag.
+
+### Dead code (audit item 2)
+Zero dead code found across all twelve crates. No `#[allow(dead_code)]`
+suppression in production code. All `TODO`/`FIXME` comments resolved in
+previous releases.
+
+### Tests
+**203 tests / 0 failures** (189 non-GUI + 14 orbok-ui).

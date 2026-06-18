@@ -93,6 +93,16 @@ pub async fn run(dest_dir: PathBuf, mut tx: Sender<Message>) {
         }
     }
 
+    // RFC-029: write a SHA-256 manifest so the explicit Validate action
+    // can detect corruption or tampering (deep integrity check).
+    // Use a separate block so the non-Send Box<dyn Error> is dropped before
+    // the .await below.
+    {
+        if let Err(e) = write_manifest(&dest_dir) {
+            tracing::warn!("could not write model manifest: {e}");
+        }
+    }
+
     let _ = tx
         .send(Message::DownloadAllComplete {
             dest_dir: dest_dir.to_string_lossy().to_string(),
@@ -154,5 +164,25 @@ async fn download_file(
     file.flush()
         .await
         .map_err(|e| format!("Flush error for {display_name}: {e}"))?;
+    Ok(())
+}
+
+// ── Manifest ─────────────────────────────────────────────────────────
+
+/// Compute SHA-256 of every downloaded file and write an
+/// `orbok-manifest.json` alongside the model files. This satisfies
+/// RFC-029 "checksum integrity check defined": the manifest enables the
+/// explicit Validate button to detect corruption without re-downloading.
+fn write_manifest(dest_dir: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
+    use orbok_workers::model_verifier::{ModelManifest, REQUIRED_MODEL_FILES};
+    let mut sha256 = std::collections::HashMap::new();
+    for rel in REQUIRED_MODEL_FILES {
+        let full = dest_dir.join(rel);
+        if full.exists() {
+            let hash = ModelManifest::sha256_of_file(&full)?;
+            sha256.insert(rel.to_string(), hash);
+        }
+    }
+    ModelManifest { sha256 }.save(dest_dir)?;
     Ok(())
 }

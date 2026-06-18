@@ -16,8 +16,6 @@ path = "src/main.rs"
 
 [dependencies]
 orbok-embed = { workspace = true }
-app-json-settings = { workspace = true }
-serde = { workspace = true }
 orbok-core = { workspace = true }
 orbok-db = { workspace = true }
 orbok-fs = { workspace = true }
@@ -27,11 +25,17 @@ orbok-search = { workspace = true }
 orbok-extract = { workspace = true }
 orbok-workers = { workspace = true }
 orbok-ui = { workspace = true }
+
 iced = { workspace = true }
-dirs = { workspace = true }
+rfd = { workspace = true }
+app-json-settings = { workspace = true }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-rfd = { workspace = true }
-reqwest = { workspace = true }
+
+dirs = { workspace = true }
 futures = { workspace = true }
-tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
+reqwest = { workspace = true }

@@ -16,7 +16,7 @@ and dense vector (semantic) search, fused with Reciprocal Rank Fusion,
 with optional local reranking. Everything runs on your computer.
 Document contents are never sent to an external server.
 
-Supported document types (v0.1): plain text, Markdown, HTML, PDF, DOCX, CSV,
+Supported document types (current): plain text, Markdown, HTML, PDF, DOCX, CSV,
 and common source-code files.
 
 ---
@@ -37,7 +37,7 @@ and common source-code files.
 
 ```sh
 # Install (requires Rust 1.85+)
-cargo install --path crates/orbok-app
+cargo install --path crates/app
 
 # Launch the GUI
 orbok

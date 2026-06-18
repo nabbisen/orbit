@@ -128,6 +128,8 @@ pub fn message(key: MessageKey) -> &'static str {
         NoticePreviewsClearedBody => "Freed up space. Your files are untouched.",
         NoticeActionTryAgain => "Try again",
         NoticeActionChooseFolder => "Choose another folder",
+        NoticeSensitiveSourceTitle => "This folder may contain private files",
+        NoticeSensitiveSourceBody => "It may include SSH keys, browser profiles, or other sensitive data. The folder was added. Remove it if you did not intend to search it.",
         NoticeDismiss => "Dismiss",
         Cancel => "Cancel",
         Confirm => "Confirm",

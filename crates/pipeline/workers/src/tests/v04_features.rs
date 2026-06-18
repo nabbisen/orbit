@@ -265,3 +265,36 @@ fn cjk_detection_correct() {
     assert!(!contains_cjk("refresh_token"));
     assert!(!contains_cjk("ABC 123"));
 }
+
+// RFC-001 testing requirement #1: safe cleanup preserves persistent source settings.
+#[test]
+fn safe_cleanup_preserves_sources() {
+    use crate::CleanupService;
+    use orbok_core::{CleanupAction, CleanupPlan};
+
+    let dir = tempfile::tempdir().unwrap();
+    let (catalog, cache) = setup(dir.path());
+    seed(&catalog, &cache, dir.path(), "note.md", "# Test\n\nContent.\n");
+
+    // Baseline: source exists.
+    assert!(!SourceRepository::new(&catalog).list().unwrap().is_empty());
+
+    // Run all safe cleanup actions one by one.
+    let cache_db = dir.path().join("orbok-cache.sqlite3");
+    for action in [
+        CleanupAction::ClearSnippetCache,
+        CleanupAction::ClearExpiredSearchCache,
+        CleanupAction::ClearTemporaryExtraction,
+        CleanupAction::RemoveReplacedStaleIndexes,
+    ] {
+        let plan = CleanupPlan::for_action(action, 0);
+        CleanupService::new(&catalog, &cache, &cache_db)
+            .run_safe(&plan)
+            .expect("safe cleanup must not error");
+        // Source registration must survive every safe cleanup.
+        assert!(
+            !SourceRepository::new(&catalog).list().unwrap().is_empty(),
+            "source must survive safe cleanup action {action:?}"
+        );
+    }
+}

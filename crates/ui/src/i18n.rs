@@ -42,6 +42,27 @@ impl Locale {
         }
     }
 
+
+    /// Detect the preferred locale from the operating system environment.
+    /// Checks `LANG` and `LANGUAGE` in that order. Returns `None` if
+    /// neither variable is set or contains a recognised language code.
+    /// Japanese is recognised when the value starts with `ja` (e.g. `ja`,
+    /// `ja_JP`, `ja_JP.UTF-8`).
+    pub fn from_env() -> Option<Locale> {
+        for var in &["LANG", "LANGUAGE"] {
+            if let Ok(val) = std::env::var(var) {
+                let lower = val.to_lowercase();
+                if lower.starts_with("ja") {
+                    return Some(Locale::Ja);
+                }
+                if lower.starts_with("en") {
+                    return Some(Locale::En);
+                }
+            }
+        }
+        None
+    }
+
     /// Self-described language name, shown in the language picker.
     pub fn display_name(&self) -> &'static str {
         match self {
@@ -166,6 +187,8 @@ pub enum MessageKey {
     NoticePreviewsClearedBody,
     NoticeActionTryAgain,
     NoticeActionChooseFolder,
+    NoticeSensitiveSourceTitle,
+    NoticeSensitiveSourceBody,
     NoticeDismiss,
     Cancel,
     Confirm,

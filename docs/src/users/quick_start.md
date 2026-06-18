@@ -7,7 +7,7 @@
 ## Install
 
 ```sh
-cargo install --path crates/orbok-app
+cargo install --path crates/app
 ```
 
 ## First use
@@ -38,6 +38,6 @@ Override with `ORBOK_DATA_DIR=/path/to/dir`.
 ## First launch walkthrough
 
 1. **Add a source folder** — orbok only scans explicitly added folders.
-2. **Choose index mode** — Balanced is the default; Space Saving uses less disk.
-3. **Wait for indexing** — the Indexing view shows progress.
+2. **Set up search by meaning (optional)** — the wizard offers to download a local AI model (~93 MB) or lets you skip and use keyword search only.
+3. **Wait for indexing** — the Preparing view shows progress.
 4. **Search** — type an exact term or a natural-language question.

@@ -209,3 +209,144 @@ mod tests {
             "summary must not include the model dir path");
     }
 }
+
+// ── Deep verification (RFC-029: checksum integrity check) ────────────
+
+/// A manifest file written alongside downloaded model files.
+/// Contains the SHA-256 hash of each file at download time so the
+/// explicit "Validate" action can detect corruption or tampering.
+///
+/// File: `{model_dir}/orbok-manifest.json`
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct ModelManifest {
+    /// Map of relative file path → lowercase hex SHA-256 digest.
+    pub sha256: std::collections::HashMap<String, String>,
+}
+
+impl ModelManifest {
+    /// Load a manifest from the model directory. Returns `None` if the
+    /// manifest file does not exist (e.g. model was placed manually).
+    pub fn load(model_dir: &Path) -> Option<Self> {
+        let path = model_dir.join("orbok-manifest.json");
+        let bytes = std::fs::read(&path).ok()?;
+        serde_json::from_slice(&bytes).ok()
+    }
+
+    /// Persist the manifest to the model directory.
+    pub fn save(&self, model_dir: &Path) -> std::io::Result<()> {
+        let path = model_dir.join("orbok-manifest.json");
+        let json = serde_json::to_vec_pretty(self)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        std::fs::write(&path, &json)
+    }
+
+    /// Compute the SHA-256 hex digest of a file.
+    pub fn sha256_of_file(path: &Path) -> std::io::Result<String> {
+        use sha2::{Digest, Sha256};
+        let bytes = std::fs::read(path)?;
+        let digest: String = Sha256::digest(&bytes)
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        Ok(digest)
+    }
+}
+
+/// Result of a deep (checksum) verification.
+#[derive(Debug, Clone, PartialEq)]
+pub enum DeepVerifyOutcome {
+    /// All files present and checksums match the stored manifest.
+    Valid,
+    /// No manifest found — model was placed manually; cannot verify checksums.
+    NoManifest,
+    /// One or more checksums did not match.
+    ChecksumMismatch(Vec<String>),
+    /// A required file is missing (manifest exists but file is gone).
+    FileMissing(Vec<String>),
+}
+
+/// Run a deep integrity check using the stored manifest (RFC-029).
+/// Called only from the explicit "Validate" button in the Models view —
+/// never at startup (would add 50–500 ms for large models).
+pub fn verify_embedding_model_deep(model_dir: &Path) -> DeepVerifyOutcome {
+    let manifest = match ModelManifest::load(model_dir) {
+        Some(m) => m,
+        None => return DeepVerifyOutcome::NoManifest,
+    };
+
+    let mut missing = Vec::new();
+    let mut mismatched = Vec::new();
+
+    for (rel, expected) in &manifest.sha256 {
+        let full = model_dir.join(rel);
+        match ModelManifest::sha256_of_file(&full) {
+            Ok(actual) if actual == *expected => {} // OK
+            Ok(_) => mismatched.push(rel.clone()),
+            Err(_) => missing.push(rel.clone()),
+        }
+    }
+
+    if !missing.is_empty() {
+        DeepVerifyOutcome::FileMissing(missing)
+    } else if !mismatched.is_empty() {
+        DeepVerifyOutcome::ChecksumMismatch(mismatched)
+    } else {
+        DeepVerifyOutcome::Valid
+    }
+}
+
+#[cfg(test)]
+mod deep_verify_tests {
+    use super::*;
+
+    #[test]
+    fn manifest_round_trips() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut sha256 = std::collections::HashMap::new();
+        sha256.insert("onnx/model.onnx".into(), "abc123".into());
+        let m = ModelManifest { sha256 };
+        m.save(dir.path()).unwrap();
+        let loaded = ModelManifest::load(dir.path()).unwrap();
+        assert_eq!(loaded.sha256["onnx/model.onnx"], "abc123");
+    }
+
+    #[test]
+    fn no_manifest_returns_no_manifest() {
+        let dir = tempfile::tempdir().unwrap();
+        assert_eq!(
+            verify_embedding_model_deep(dir.path()),
+            DeepVerifyOutcome::NoManifest
+        );
+    }
+
+    #[test]
+    fn valid_checksums_return_valid() {
+        let dir = tempfile::tempdir().unwrap();
+        let content = b"model weights";
+        std::fs::write(dir.path().join("model.bin"), content).unwrap();
+        let hash = ModelManifest::sha256_of_file(&dir.path().join("model.bin")).unwrap();
+        let mut sha256 = std::collections::HashMap::new();
+        sha256.insert("model.bin".into(), hash);
+        ModelManifest { sha256 }.save(dir.path()).unwrap();
+        assert_eq!(
+            verify_embedding_model_deep(dir.path()),
+            DeepVerifyOutcome::Valid
+        );
+    }
+
+    #[test]
+    fn corrupted_file_returns_mismatch() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("model.bin"), b"original").unwrap();
+        let hash = ModelManifest::sha256_of_file(&dir.path().join("model.bin")).unwrap();
+        let mut sha256 = std::collections::HashMap::new();
+        sha256.insert("model.bin".into(), hash);
+        ModelManifest { sha256 }.save(dir.path()).unwrap();
+        // Corrupt the file
+        std::fs::write(dir.path().join("model.bin"), b"corrupted!").unwrap();
+        assert_eq!(
+            verify_embedding_model_deep(dir.path()),
+            DeepVerifyOutcome::ChecksumMismatch(vec!["model.bin".into()])
+        );
+    }
+}

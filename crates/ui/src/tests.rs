@@ -68,6 +68,8 @@ const ALL_KEYS: &[MessageKey] = &[
     MessageKey::NoticePreviewsClearedBody,
     MessageKey::NoticeActionTryAgain,
     MessageKey::NoticeActionChooseFolder,
+    MessageKey::NoticeSensitiveSourceTitle,
+    MessageKey::NoticeSensitiveSourceBody,
     MessageKey::NoticeDismiss,
     MessageKey::Cancel,
     MessageKey::Confirm,
@@ -182,4 +184,35 @@ fn problem_notices_offer_action_confirmations_do_not() {
     assert!(UserNotice::SearchReady.action(loc).is_none());
     assert!(UserNotice::DownloadDidNotFinish.is_problem());
     assert!(!UserNotice::FolderAdded.is_problem());
+}
+
+// RFC-031 §3: auto locale resolves Japanese OS environments to ja.
+#[test]
+fn locale_from_env_detects_japanese() {
+    let prev = std::env::var("LANG").ok();
+    // SAFETY: single-threaded test; no other threads are reading LANG.
+    unsafe { std::env::set_var("LANG", "ja_JP.UTF-8"); }
+    let detected = Locale::from_env();
+    unsafe {
+        match prev {
+            Some(v) => std::env::set_var("LANG", v),
+            None => std::env::remove_var("LANG"),
+        }
+    }
+    assert_eq!(detected, Some(Locale::Ja));
+}
+
+// RFC-031 §3: non-Japanese LANG falls through to English.
+#[test]
+fn locale_from_env_english_fallback() {
+    let prev = std::env::var("LANG").ok();
+    unsafe { std::env::set_var("LANG", "en_US.UTF-8"); }
+    let detected = Locale::from_env();
+    unsafe {
+        match prev {
+            Some(v) => std::env::set_var("LANG", v),
+            None => std::env::remove_var("LANG"),
+        }
+    }
+    assert_eq!(detected, Some(Locale::En));
 }

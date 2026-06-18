@@ -16,6 +16,8 @@ pub enum UserNotice {
     FolderCouldNotBeAdded,
     SearchDidNotFinish,
     FilesMovedOrMissing,
+    /// The added folder may contain sensitive files (SSH keys, browser profiles, etc.).
+    SensitiveSourceAdded,
     // ── Confirmations ─────────────────────────────────────────────────
     FolderAdded,
     SearchReady,
@@ -28,7 +30,7 @@ impl UserNotice {
     pub fn is_problem(&self) -> bool {
         matches!(
             self,
-            Self::DownloadDidNotFinish
+            Self::SensitiveSourceAdded | Self::DownloadDidNotFinish
                 | Self::FolderCouldNotBeAdded
                 | Self::SearchDidNotFinish
                 | Self::FilesMovedOrMissing
@@ -41,6 +43,7 @@ impl UserNotice {
             Self::FolderCouldNotBeAdded => MessageKey::NoticeFolderFailTitle,
             Self::SearchDidNotFinish => MessageKey::NoticeSearchFailTitle,
             Self::FilesMovedOrMissing => MessageKey::NoticeFilesMissingTitle,
+            Self::SensitiveSourceAdded => MessageKey::NoticeSensitiveSourceTitle,
             Self::FolderAdded => MessageKey::NoticeFolderAddedTitle,
             Self::SearchReady => MessageKey::NoticeSearchReadyTitle,
             Self::PreviewsCleared => MessageKey::NoticePreviewsClearedTitle,
@@ -54,6 +57,7 @@ impl UserNotice {
             Self::FolderCouldNotBeAdded => MessageKey::NoticeFolderFailBody,
             Self::SearchDidNotFinish => MessageKey::NoticeSearchFailBody,
             Self::FilesMovedOrMissing => MessageKey::NoticeFilesMissingBody,
+            Self::SensitiveSourceAdded => MessageKey::NoticeSensitiveSourceBody,
             Self::FolderAdded => MessageKey::NoticeFolderAddedBody,
             Self::SearchReady => MessageKey::NoticeSearchReadyBody,
             Self::PreviewsCleared => MessageKey::NoticePreviewsClearedBody,
@@ -68,6 +72,7 @@ impl UserNotice {
             Self::DownloadDidNotFinish | Self::SearchDidNotFinish => MessageKey::NoticeActionTryAgain,
             Self::FolderCouldNotBeAdded => MessageKey::NoticeActionChooseFolder,
             Self::FilesMovedOrMissing => MessageKey::NoticeActionChooseFolder,
+            Self::SensitiveSourceAdded => return None, // informational only
             Self::FolderAdded | Self::SearchReady | Self::PreviewsCleared => return None,
         };
         Some(tr(locale, key))
