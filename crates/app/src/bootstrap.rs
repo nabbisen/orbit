@@ -18,6 +18,7 @@ use orbok_models::SearchCapability;
 use orbok_search::HybridSearchService;
 use orbok_ui::AppState;
 use orbok_ui::i18n::Locale;
+use orbok_ui::theme::Theme;
 use orbok_ui::state::{WizardFileCheck, WizardState};
 use orbok_workers::{VerifyOutcome, verify_embedding_model};
 use std::path::PathBuf;
@@ -89,10 +90,21 @@ pub fn load_initial_state() -> Result<AppState, Box<dyn std::error::Error>> {
 
     let (capability, wizard) = build_capability_and_wizard(outcome, &settings);
 
+    // Theme priority (RFC-032): stored intent is kept as-is; `System` is
+    // resolved once here to a concrete preset for token construction. The OS
+    // probe is best-effort (Theme::from_env), falling back to Light.
+    let stored_theme = Theme::parse(&settings.theme).unwrap_or_default();
+    let resolved_theme = match stored_theme {
+        Theme::System => Theme::from_env().unwrap_or(Theme::Light),
+        concrete => concrete,
+    };
+
     let health = get_health(&catalog);
     let sources = get_sources(&catalog);
     let mut state = AppState::default();
     state.locale = locale;
+    state.theme = stored_theme;
+    state.tokens = resolved_theme.tokens();
     state.capability = capability;
     state.wizard = wizard;
     state.health = health;
@@ -210,6 +222,17 @@ pub fn run_check() -> Result<(), Box<dyn std::error::Error>> {
 /// Persist locale to the catalog (called when the user changes language).
 pub fn persist_locale(catalog: &Catalog, locale: &Locale) -> OrbokResult<()> {
     SettingsRepository::new(catalog).set("ui.locale", &locale.as_str().to_string())
+}
+
+/// Persist the selected UI theme to `OrbokSettings` (RFC-032). Called when the
+/// user picks a theme in Settings. The stored value is the user's intent
+/// (including `system`); `System` is re-resolved at the next startup.
+pub fn persist_theme(theme: Theme) -> Result<(), Box<dyn std::error::Error>> {
+    let mut settings = load_settings();
+    settings.theme = theme.as_str().to_string();
+    crate::settings::save_settings(&settings)
+        .map_err(|e| format!("settings save failed: {e:?}"))?;
+    Ok(())
 }
 
 /// Persist the validated model directory to `OrbokSettings` (called when

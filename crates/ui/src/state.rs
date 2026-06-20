@@ -157,11 +157,12 @@ pub struct AppState {
     pub notice: Option<UserNotice>,
     /// Awaiting user confirmation before running reset catalog.
     pub confirm_reset: bool,
-    /// Snora Design tokens, selected by `high_contrast`. Drives notice colors
-    /// and (incrementally) other design-system surfaces.
+    /// Snora Design tokens, derived from `theme`. The single styling source of
+    /// truth for the whole view tree (RFC-032).
     pub tokens: snora::design::Tokens,
-    /// When true, use the high-contrast token preset (accessibility).
-    pub high_contrast: bool,
+    /// The user's selected theme. `System` is resolved to a concrete preset at
+    /// startup in `orbok-app`; `tokens` always holds the resolved bundle.
+    pub theme: crate::theme::Theme,
 }
 
 impl Default for AppState {
@@ -187,7 +188,7 @@ impl Default for AppState {
             notice: None,
             confirm_reset: false,
             tokens: snora::design::Tokens::light(),
-            high_contrast: false,
+            theme: crate::theme::Theme::default(),
         }
     }
 }
@@ -198,7 +199,7 @@ pub enum Message {
     Switch(ViewId),
     SwitchGroup(NavGroup),
     ToggleAdvanced,
-    ToggleHighContrast,
+    SetTheme(crate::theme::Theme),
     ShowNotice(UserNotice),
     ClearNotice,
     // Storage cleanup
@@ -263,13 +264,9 @@ impl AppState {
             Message::Switch(view) => self.active_view = *view,
             Message::SwitchGroup(group) => self.active_view = ViewId::group_default(*group),
             Message::ToggleAdvanced => self.show_advanced = !self.show_advanced,
-            Message::ToggleHighContrast => {
-                self.high_contrast = !self.high_contrast;
-                self.tokens = if self.high_contrast {
-                    snora::design::Tokens::high_contrast_light()
-                } else {
-                    snora::design::Tokens::light()
-                };
+            Message::SetTheme(theme) => {
+                self.theme = *theme;
+                self.tokens = theme.tokens();
             }
             Message::AskResetCatalog => self.confirm_reset = true,
             Message::CancelResetCatalog => self.confirm_reset = false,

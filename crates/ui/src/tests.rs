@@ -68,10 +68,12 @@ const ALL_KEYS: &[MessageKey] = &[
     MessageKey::NoticePreviewsClearedBody,
     MessageKey::NoticeActionTryAgain,
     MessageKey::NoticeActionChooseFolder,
-    MessageKey::SettingsAccessibilityHeading,
-    MessageKey::SettingsHighContrastOn,
-    MessageKey::SettingsHighContrastOff,
-    MessageKey::SettingsHighContrastHint,
+    MessageKey::SettingsThemeHeading,
+    MessageKey::ThemeSystem,
+    MessageKey::ThemeLight,
+    MessageKey::ThemeDark,
+    MessageKey::ThemeHighContrastLight,
+    MessageKey::ThemeHighContrastDark,
     MessageKey::NoticeSensitiveSourceTitle,
     MessageKey::NoticeSensitiveSourceBody,
     MessageKey::NoticeDismiss,
@@ -258,15 +260,80 @@ fn notice_tone_mapping_is_consistent() {
     }
 }
 
-// snora 0.25 design migration: toggling high contrast swaps the token preset.
+// RFC-032: theme selection drives the active token preset.
 #[test]
-fn high_contrast_toggle_swaps_token_preset() {
+fn set_theme_swaps_token_preset() {
+    use crate::theme::Theme;
+
     let mut state = AppState::default();
-    assert!(!state.high_contrast, "default is standard contrast");
+    assert_eq!(state.theme, Theme::System, "default theme is System");
 
-    state.update(&Message::ToggleHighContrast);
-    assert!(state.high_contrast, "toggle enables high contrast");
+    state.update(&Message::SetTheme(Theme::Dark));
+    assert_eq!(state.theme, Theme::Dark);
+    assert_eq!(state.tokens, snora::design::Tokens::dark());
 
-    state.update(&Message::ToggleHighContrast);
-    assert!(!state.high_contrast, "toggle again returns to standard");
+    state.update(&Message::SetTheme(Theme::HighContrastLight));
+    assert_eq!(state.theme, Theme::HighContrastLight);
+    assert_eq!(state.tokens, snora::design::Tokens::high_contrast_light());
+
+    state.update(&Message::SetTheme(Theme::Light));
+    assert_eq!(state.tokens, snora::design::Tokens::light());
+}
+
+// RFC-032: every concrete theme maps to its snora preset, and the setting
+// string round-trips.
+#[test]
+fn theme_tokens_and_string_roundtrip() {
+    use crate::theme::Theme;
+
+    let cases = [
+        (Theme::Light, snora::design::Tokens::light()),
+        (Theme::Dark, snora::design::Tokens::dark()),
+        (
+            Theme::HighContrastLight,
+            snora::design::Tokens::high_contrast_light(),
+        ),
+        (
+            Theme::HighContrastDark,
+            snora::design::Tokens::high_contrast_dark(),
+        ),
+    ];
+    for (theme, expected) in cases {
+        assert_eq!(theme.tokens(), expected, "{theme:?} preset");
+    }
+    for theme in Theme::ALL {
+        assert_eq!(
+            Theme::parse(theme.as_str()),
+            Some(*theme),
+            "round-trip {theme:?}"
+        );
+    }
+}
+
+// RFC-032: the System theme resolves from the OS override env var. A concrete
+// `ORBOK_THEME` wins; `system`/unset yield None (caller falls back to Light).
+#[test]
+fn theme_from_env_resolves_override() {
+    use crate::theme::Theme;
+
+    let prev = std::env::var("ORBOK_THEME").ok();
+    // SAFETY: single-threaded test; ORBOK_THEME is read by no other test.
+    unsafe {
+        std::env::set_var("ORBOK_THEME", "dark");
+    }
+    assert_eq!(Theme::from_env(), Some(Theme::Dark));
+    unsafe {
+        std::env::set_var("ORBOK_THEME", "system");
+    }
+    assert_eq!(Theme::from_env(), None, "system override is not concrete");
+    unsafe {
+        std::env::remove_var("ORBOK_THEME");
+    }
+    assert_eq!(Theme::from_env(), None, "unset yields None");
+    unsafe {
+        match prev {
+            Some(v) => std::env::set_var("ORBOK_THEME", v),
+            None => std::env::remove_var("ORBOK_THEME"),
+        }
+    }
 }

@@ -11,6 +11,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.11.0] — 2026-06-20 — RFC-032: Design Token Foundation and Theming; snora 0.25.1
+
+### Changed
+
+**RFC-032: Design Token Foundation and Theming — snora updated to 0.25.1.**
+
+snora 0.25.1 re-exports `snora::design::contrast` on the facade (previously
+only in `snora_design`). orbok bumps its snora dependency to 0.25.1.
+
+The Snora Design token system is now the single source of truth for all visual
+values in `orbok-ui`. Previously, the token bundle (`AppState::tokens`) only
+drove the notice primitive; all other view code used hardcoded `.size()`,
+`.padding()`, and `.spacing()` literals.
+
+- **New `crates/ui/src/theme.rs`:** the `Theme` enum
+  (`System`/`Light`/`Dark`/`HighContrastLight`/`HighContrastDark`) with preset
+  mapping, setting-string round-trip, and `ORBOK_THEME` env-var resolver.
+  Typography helpers (`theme::body`, `theme::meta`, `theme::label`,
+  `theme::title`, `theme::heading`) wrap the snora style bridge.
+- **`views.rs` and `views/wizard.rs` fully rewritten** token-driven: every
+  literal font size, padding, and spacing replaced by `theme::*` and
+  `tokens.spacing.*`.
+- **Settings view gains a theme picker** (replaces the high-contrast toggle):
+  users can choose Follow System / Light / Dark / High Contrast Light / High
+  Contrast Dark; the selection persists across restarts in `OrbokSettings`.
+- **`AppState`:** `high_contrast: bool` replaced by `theme: Theme`; message
+  `ToggleHighContrast` replaced by `SetTheme(Theme)`.
+- **`OrbokSettings`:** new `theme` field (default `"system"`).
+- **`orbok-app`** resolves `System` to a concrete theme at startup via
+  `Theme::from_env()` (best-effort `ORBOK_THEME` override; full platform probe
+  is a tracked follow-up). Persists on `SetTheme`.
+- **i18n:** `SettingsAccessibilityHeading`/`SettingsHighContrast{On,Off,Hint}`
+  keys replaced by `SettingsThemeHeading`/`Theme{System,Light,Dark,...}` in
+  both `en` and `ja` locales; `tests::ALL_KEYS` updated accordingly.
+- **`scripts/check-design-tokens.sh`:** CI grep gate that fails if view modules
+  contain literal sizes, paddings, spacings, or `iced::Color` references.
+
+`views.rs` is 521 lines (over the 500 ELOC strong-split threshold). RFC-033's
+`components.rs` will move cards/badges/buttons there, bringing it back under
+the threshold.
+
+---
+
 ## [0.10.0] — 2026-06-20 — Remove lucide-icons iced feature from orbok-ui; snora 0.25 + Snora Design system
 
 ### Changed

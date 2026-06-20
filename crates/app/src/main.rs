@@ -162,6 +162,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let _ = bootstrap::persist_locale(&catalog, locale);
                     }
                 }
+                Message::SetTheme(theme) => {
+                    // Persist the choice; fall through to app.update for the
+                    // in-session restyle (RFC-032).
+                    let _ = bootstrap::persist_theme(*theme);
+                }
                 Message::SubmitSearch => {
                     let query = app.state.query.trim().to_string();
                     if !query.is_empty() {

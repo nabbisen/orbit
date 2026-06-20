@@ -126,10 +126,12 @@ pub fn message(key: MessageKey) -> &'static str {
         NoticePreviewsClearedBody => "Freed up space. Your files are untouched.",
         NoticeActionTryAgain => "Try again",
         NoticeActionChooseFolder => "Choose another folder",
-        SettingsAccessibilityHeading => "Accessibility",
-        SettingsHighContrastOn => "High contrast: On",
-        SettingsHighContrastOff => "High contrast: Off",
-        SettingsHighContrastHint => "Use stronger colors for better readability.",
+        SettingsThemeHeading => "Theme",
+        ThemeSystem => "Follow system",
+        ThemeLight => "Light",
+        ThemeDark => "Dark",
+        ThemeHighContrastLight => "High contrast (light)",
+        ThemeHighContrastDark => "High contrast (dark)",
         NoticeSensitiveSourceTitle => "This folder may contain private files",
         NoticeSensitiveSourceBody => {
             "It may include SSH keys, browser profiles, or other sensitive data. The folder was added. Remove it if you did not intend to search it."

@@ -37,6 +37,11 @@ pub struct OrbokSettings {
     /// UI locale code — `"en"` or `"ja"` (RFC-031).
     pub locale: String,
 
+    /// UI theme (RFC-032). One of: `"system"` | `"light"` | `"dark"` |
+    /// `"high_contrast_light"` | `"high_contrast_dark"`. `"system"` is
+    /// resolved to a concrete preset at startup.
+    pub theme: String,
+
     /// Whether reranking is enabled (RFC-010). Requires reranker model.
     pub rerank_enabled: bool,
 
@@ -54,6 +59,7 @@ impl Default for OrbokSettings {
             reranker_model_dir: None,
             index_mode: "balanced".into(),
             locale: "en".into(),
+            theme: "system".into(),
             rerank_enabled: false,
             background_indexing: true,
             pause_on_battery: true,

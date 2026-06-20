@@ -1,6 +1,6 @@
 //! # orbok-ui
 //!
-//! The orbok GUI layer: snora 0.8 (iced 0.14) views, the navigation
+//! The orbok GUI layer: snora 0.25 (iced 0.14) views, the navigation
 //! shell, and the typed i18n message catalog.
 //!
 //! Boundary rules (RFC-027):
@@ -19,6 +19,7 @@ pub mod i18n;
 pub mod notice;
 pub mod shell;
 pub mod state;
+pub mod theme;
 pub mod views;
 
 #[cfg(test)]
@@ -28,3 +29,4 @@ pub use shell::OrbokApp;
 pub use state::{
     AppState, IndexHealth, Message, NavGroup, SourceCard, ViewId, WizardFileCheck, WizardState,
 };
+pub use theme::Theme;

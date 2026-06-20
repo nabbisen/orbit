@@ -32,8 +32,14 @@ Managed by RFC-000. Last updated: 2026-06-07.
 
 ## Proposed / Deferred
 
-| ID | Title |
-|---|---|
+| ID | Title | Notes |
+|---|---|---|
+| 032 | [Design Token Foundation and Theming](proposed/032-design-token-foundation-and-theming.md) | Snora Design tokens as single styling source; themes (incl. dark, high-contrast). Foundation for 033–035. |
+| 033 | [Component Primitive Migration](proposed/033-component-primitive-migration.md) | snora as sole gateway for UI primitives (button/card/chip/progress). Depends on 032. |
+| 034 | [Accessibility Conformance](proposed/034-accessibility-conformance.md) | WCAG 2.1 AA: contrast guard, keyboard map, focus, labels, target size. Depends on 032–033. |
+| 035 | [Inclusive Design](proposed/035-inclusive-design.md) | Text scale, reduced motion, CVD-safe status, locale-aware formatting, RTL readiness. Depends on 032. |
+
+Developer handoffs for 032–035 live in [`handoffs/`](handoffs/).
 
 ## Archive
 *(empty)*
