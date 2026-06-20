@@ -15,6 +15,7 @@
 /// Re-exported from `snora::lucide`; no direct `lucide-icons` dep needed.
 pub use snora::lucide::LUCIDE_FONT_BYTES;
 
+pub mod components;
 pub mod i18n;
 pub mod notice;
 pub mod shell;

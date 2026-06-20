@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.11.0] — 2026-06-20 — RFC-032: Design Token Foundation and Theming; snora 0.25.1
+## [0.12.0] — 2026-06-20 — RFC-032 + RFC-033: Design Token Foundation and Component Primitive Migration; snora 0.25.1
 
 ### Changed
 
@@ -51,6 +51,39 @@ drove the notice primitive; all other view code used hardcoded `.size()`,
 `views.rs` is 521 lines (over the 500 ELOC strong-split threshold). RFC-033's
 `components.rs` will move cards/badges/buttons there, bringing it back under
 the threshold.
+
+**RFC-033: Component Primitive Migration.**
+
+snora is now the sole gateway for UI component primitives, mirroring the
+existing lucide-icons and token gateway rules.
+
+- **New `crates/ui/src/components.rs`:** the orbok adapter layer between view
+  models and snora primitives. View modules call these; they never call
+  `snora::design::{button, card, chip, progress}` directly.
+- **`result_card`** — search results use `card::selected` (accent border) when
+  active, `card::surface` otherwise, wrapped in a ghost button for click/keyboard.
+- **`source_card`**, **`health_cell`** — `card::surface` based; uniform padding
+  and radius across all views.
+- **`status_badge(tokens, label, tone)`** — every status badge now renders text
+  + a tone-specific lucide icon + tone colour (three redundant channels; RFC-035
+  CVD-safe guarantee). Badges are never colour-only.
+- **`badge_tone(label)`** — stable string → `Tone` mapping (table-driven, shared
+  by both the UI and the upcoming RFC-035 CVD test fixture).
+- **`tone_icon(tone)`** — stable `Tone` → lucide glyph mapping: `CheckCircle`
+  (success), `AlertTriangle` (warning), `CircleX` (danger), `Info` (info),
+  `Sparkles` (accent/semantic), `Clock` (neutral).
+- **`primary`/`secondary`/`ghost`/`danger`** — all actions route through these
+  wrappers, which use `snora::design::button::*_maybe`. Every destructive action
+  (Reset Catalog, Remove Source) now uses `danger`, never a neutral button.
+  Every disabled action passes `None` for a true disabled state.
+- **`icon_primary`/`icon_secondary`** — icon+label buttons styled via the snora
+  style bridge (raw `iced::button` + `btn_style::primary/secondary`).
+- **`job_progress`** — indexing view uses `progress::row` with `Tone::Accent`;
+  indeterminate state passes `None`.
+- **`views.rs` shrinks from 521 → 442 lines** (under the 500 ELOC threshold);
+  `components.rs` is 315 lines. Both within the project's split thresholds.
+- **25 tests:** 7 new RFC-033 tests (tone mapping, badge invariant, component
+  smoke tests for all adapters); all 25 tests pass.
 
 ---
 

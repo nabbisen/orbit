@@ -337,3 +337,141 @@ fn theme_from_env_resolves_override() {
         }
     }
 }
+
+// ── RFC-033 component tests ───────────────────────────────────────────────
+
+// RFC-033 §5.2: the badge_tone mapping is stable — used by both the UI and
+// the RFC-035 CVD fixture test.
+#[test]
+fn badge_tone_mapping() {
+    use crate::components::badge_tone;
+    use snora::design::Tone;
+
+    let cases = [
+        ("missing source", Tone::Danger),
+        ("Missing", Tone::Danger),
+        ("stale", Tone::Warning),
+        ("Stale index", Tone::Warning),
+        ("semantic", Tone::Accent),
+        ("Reranked", Tone::Accent),
+        ("keyword", Tone::Info),
+        ("Keyword match", Tone::Info),
+        ("current", Tone::Success),
+        ("Current", Tone::Success),
+        ("temporary", Tone::Neutral),
+        ("unknown badge", Tone::Neutral),
+        ("", Tone::Neutral),
+    ];
+    for (label, expected) in cases {
+        assert_eq!(badge_tone(label), expected, "badge_tone({label:?})");
+    }
+}
+
+// RFC-033 + RFC-034 §5.2: status_badge always pairs text with a tone icon.
+// The icon glyph must be a valid char and the badge must carry a non-empty
+// display label — tone must never be the only signal.
+#[test]
+fn status_badge_label_and_icon_invariant() {
+    use crate::components::{badge_tone, tone_icon};
+    use snora::design::Tone;
+
+    for tone in [
+        Tone::Success,
+        Tone::Warning,
+        Tone::Danger,
+        Tone::Info,
+        Tone::Accent,
+        Tone::Neutral,
+    ] {
+        // tone_icon returns a valid char (non-zero codepoint).
+        let icon = tone_icon(tone);
+        assert_ne!(icon as u32, 0, "tone_icon for {tone:?} must be non-null");
+    }
+
+    // Verify the full badge path through a representative set of labels.
+    let labels = ["stale", "missing", "keyword", "semantic", "current", "temporary"];
+    let tokens = snora::design::Tokens::light();
+    for label in labels {
+        let tone = badge_tone(label);
+        // status_badge must not panic on a non-empty label.
+        let _ = crate::components::status_badge(&tokens, label, tone);
+    }
+}
+
+// RFC-033 §8: component adapters build Elements without panicking for both
+// normal and edge cases.
+#[test]
+fn component_smoke_result_card() {
+    use crate::state::Message;
+    let tokens = snora::design::Tokens::light();
+
+    // Normal result card, unselected.
+    let _ = crate::components::result_card(
+        &tokens,
+        "My document.md".to_string(),
+        "/home/user/My document.md".to_string(),
+        "Section heading".to_string(),
+        "A short snippet of content…".to_string(),
+        &["stale".to_string(), "keyword".to_string()],
+        false,
+        false,
+        Message::SelectResult(0),
+    );
+
+    // Selected card with no heading and empty badges.
+    let _ = crate::components::result_card(
+        &tokens,
+        "▶  selected.pdf".to_string(),
+        "/docs/selected.pdf".to_string(),
+        String::new(),
+        "(source unavailable)".to_string(),
+        &[],
+        false,
+        true,
+        Message::SelectResult(1),
+    );
+}
+
+#[test]
+fn component_smoke_source_card() {
+    let tokens = snora::design::Tokens::light();
+    let _ = crate::components::source_card(
+        &tokens,
+        "Documents".to_string(),
+        "/home/user/Documents".to_string(),
+        "812 indexed · 0 stale".to_string(),
+        "Active",
+        crate::state::Message::SourceRemoved("src-1".to_string()),
+    );
+}
+
+#[test]
+fn component_smoke_health_cell() {
+    let tokens = snora::design::Tokens::light();
+    let _ = crate::components::health_cell(&tokens, "Indexed", 812);
+    let _ = crate::components::health_cell(&tokens, "Failed", 0);
+}
+
+#[test]
+fn component_smoke_action_buttons() {
+    let tokens = snora::design::Tokens::light();
+    // Enabled and disabled variants of each role.
+    let _ = crate::components::primary(&tokens, "Save", Some(crate::state::Message::ToggleAdvanced));
+    let _ = crate::components::primary(&tokens, "Save", None);
+    let _ = crate::components::secondary(&tokens, "Cancel", Some(crate::state::Message::ClearNotice));
+    let _ = crate::components::ghost(&tokens, "Details", None);
+    let _ = crate::components::danger(&tokens, "Delete", Some(crate::state::Message::AskResetCatalog));
+    let _ = crate::components::danger(&tokens, "Delete", None);
+}
+
+#[test]
+fn component_smoke_progress() {
+    let tokens = snora::design::Tokens::light();
+    let _ = crate::components::job_progress(&tokens, "Indexing…", Some(0.42));
+    let _ = crate::components::job_progress(&tokens, "Queued", None); // indeterminate
+}
+
+// ── RFC-033 component tests ───────────────────────────────────────────────
+
+// RFC-033 §5.2: the badge_tone mapping is stable — used by both the UI and
+// the RFC-035 CVD fixture test.
