@@ -220,6 +220,15 @@ pub enum Message {
     SetSearchMode(SearchMode),
     PersistLocale(Locale),
     SetLocale(Locale),
+    // RFC-034: keyboard navigation messages
+    /// Focus the global search text input (Ctrl/Cmd+K).
+    FocusSearch,
+    /// Close any active overlay/dialog and restore focus to trigger (Escape).
+    DismissOverlay,
+    /// Move result selection down (Arrow Down, when not typing).
+    SelectNextResult,
+    /// Move result selection up (Arrow Up, when not typing).
+    SelectPrevResult,
     StorageDataReady(Vec<(String, u64, u64)>),
     // Startup wizard
     WizardPathChanged(String),
@@ -316,6 +325,33 @@ impl AppState {
             Message::OpenSourceFile(_) => {} // handled by orbok-app
             Message::SetSearchMode(mode) => self.search_mode = *mode,
             Message::PersistLocale(locale) | Message::SetLocale(locale) => self.locale = *locale,
+            // RFC-034 keyboard navigation: FocusSearch is handled in orbok-app
+            // (it issues an iced focus task); DismissOverlay closes any overlay.
+            Message::FocusSearch => {} // focus task issued by orbok-app
+            Message::DismissOverlay => {
+                // Close whichever overlay is open, in priority order.
+                if self.confirm_reset {
+                    self.confirm_reset = false;
+                } else if self.notice.is_some() {
+                    self.notice = None;
+                }
+            }
+            Message::SelectNextResult => {
+                if !self.search_results.is_empty() {
+                    self.selected_result = Some(match self.selected_result {
+                        None => 0,
+                        Some(i) => (i + 1).min(self.search_results.len() - 1),
+                    });
+                }
+            }
+            Message::SelectPrevResult => {
+                if !self.search_results.is_empty() {
+                    self.selected_result = Some(match self.selected_result {
+                        None | Some(0) => 0,
+                        Some(i) => i - 1,
+                    });
+                }
+            }
             Message::StorageDataReady(rows) => self.storage_rows = rows.clone(),
             Message::WizardPathChanged(p) => self.wizard_path_input = p.clone(),
             Message::WizardValidate => {} // handled in orbok-app update

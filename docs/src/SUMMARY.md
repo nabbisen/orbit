@@ -20,6 +20,7 @@
 ## For Maintainers and Contributors
 
 - [Architecture Overview](maintainers/architecture.md)
+- [Accessibility](maintainers/accessibility.md)
 - [Local Development](maintainers/development.md)
 - [Testing Guide](maintainers/testing.md)
 - [RFC Index](maintainers/rfcs.md)

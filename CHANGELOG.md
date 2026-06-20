@@ -11,6 +11,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.13.0] — 2026-06-21 — RFC-034: Accessibility Conformance (WCAG 2.1 AA)
+
+### Changed
+
+**RFC-034: Accessibility Conformance.**
+
+orbok now targets WCAG 2.1 Level AA. The following are implemented and tested:
+
+- **`crates/ui/src/a11y.rs`** (new): contrast usage-guard module. Defines
+  `RENDERED_PAIRS` — every foreground/background role pair orbok renders — and
+  an `audit(tokens)` function that checks each pair against AA thresholds
+  (4.5:1 normal text, 3.0:1 large/UI components) using
+  `snora::design::contrast::contrast_ratio` (available since snora 0.25.1).
+- **`crates/ui/src/shell.rs`**: `key_to_message(key, modifiers, text_input_focused)`
+  — pure, testable keyboard-map function implementing the GUI §17.1 shortcut
+  table (`Ctrl+K` → FocusSearch, `Ctrl+,` → Settings, `Escape` → DismissOverlay,
+  `Enter` when focused → SubmitSearch, arrow keys → result navigation). Text
+  input is never hijacked: printable keys and bare `Enter` pass through while
+  typing.
+- **`crates/app/src/main.rs`**: keyboard subscription via
+  `iced::keyboard::listen()` wired to `key_to_message`; `FocusSearch` switches
+  to the Search view (programmatic `text_input::focus` Task not available in
+  iced 0.14 — documented as tracked limitation).
+- **`crates/ui/src/state.rs`**: four new messages — `FocusSearch`,
+  `DismissOverlay`, `SelectNextResult`, `SelectPrevResult` — with `DismissOverlay`
+  closing `confirm_reset`/notices in priority order; arrow keys clamping at
+  bounds.
+- **`docs/src/maintainers/accessibility.md`** (new): WCAG 2.1 AA conformance
+  record — full success-criteria checklist with orbok's status per criterion,
+  the iced-0.14 focus-ring limitation documented as an owned tracked decision,
+  and the manual a11y QA steps (keyboard walkthrough, screen reader spot check,
+  high-contrast visual pass, grayscale badge distinguishability).
+- **`docs/src/SUMMARY.md`**: accessibility.md added to the maintainers section.
+- **`docs/src/maintainers/release_readiness.md`**: accessibility QA added as an
+  M13 gate, linked to the new accessibility doc.
+- **31 tests, 0 failures.** New RFC-034 tests:
+  `contrast_usage_guard_all_presets`, `key_map_shortcuts`,
+  `key_map_no_text_swallow`, `dismiss_overlay_closes_reset`,
+  `result_navigation_bounds`, `primary_action_target_size`.
+
+---
+
 ## [0.12.0] — 2026-06-20 — RFC-032 + RFC-033: Design Token Foundation and Component Primitive Migration; snora 0.25.1
 
 ### Changed

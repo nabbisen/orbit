@@ -15,6 +15,7 @@
 /// Re-exported from `snora::lucide`; no direct `lucide-icons` dep needed.
 pub use snora::lucide::LUCIDE_FONT_BYTES;
 
+pub mod a11y;
 pub mod components;
 pub mod i18n;
 pub mod notice;
@@ -26,7 +27,7 @@ pub mod views;
 #[cfg(test)]
 mod tests;
 
-pub use shell::OrbokApp;
+pub use shell::{OrbokApp, key_to_message};
 pub use state::{
     AppState, IndexHealth, Message, NavGroup, SourceCard, ViewId, WizardFileCheck, WizardState,
 };

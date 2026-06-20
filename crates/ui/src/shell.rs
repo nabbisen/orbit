@@ -1,6 +1,10 @@
 //! Application shell (RFC-027): snora `AppLayout` with a two-level navigation:
 //! a vertical sidebar for the three top-level groups (Search, AI, Settings) and
 //! a horizontal tab bar for the sub-views within each group.
+//!
+//! RFC-034: [`key_to_message`] is the pure keyboard-map function. It is called
+//! from `orbok-app` via an `iced::keyboard::on_key_press` subscription. Keeping
+//! it here (in `orbok-ui`) means it is unit-testable without the iced runtime.
 
 use crate::i18n::{MessageKey, tr};
 use crate::state::{AppState, Message, NavGroup, ViewId};
@@ -11,6 +15,44 @@ use snora::{
     AppLayout, Icon, LayoutDirection, SideBar, SideBarItem, Tab, TabBar, render,
     widget::{app_side_bar, app_tab_bar},
 };
+
+/// Map a key event to a [`Message`], or `None` to let iced handle it normally.
+///
+/// **Text-input safety:** when `text_input_focused` is `true`, only global
+/// shortcuts that do *not* intercept printable characters are fired (Ctrl/Cmd
+/// combos and Escape). Arrow keys and Enter are suppressed while text input
+/// has focus so typing is never hijacked.
+///
+/// This function is pure and contains no iced runtime state, so it can be
+/// called from tests without a display server.
+pub fn key_to_message(
+    key: &iced::keyboard::Key,
+    modifiers: iced::keyboard::Modifiers,
+    text_input_focused: bool,
+) -> Option<Message> {
+    use iced::keyboard::Key;
+    use iced::keyboard::key::Named;
+
+    match key {
+        // Ctrl/Cmd + K  →  focus global search input (works from any view).
+        Key::Character(c) if c.as_str() == "k" && modifiers.command() => {
+            Some(Message::FocusSearch)
+        }
+        // Ctrl/Cmd + ,  →  open Settings.
+        Key::Character(c) if c.as_str() == "," && modifiers.command() => {
+            Some(Message::Switch(ViewId::Settings))
+        }
+        // Escape  →  close any open overlay / dialog; restore focus to trigger.
+        Key::Named(Named::Escape) => Some(Message::DismissOverlay),
+        // Enter  →  submit search, but only when search input is focused.
+        Key::Named(Named::Enter) if text_input_focused => Some(Message::SubmitSearch),
+        // Arrow keys  →  move result selection, only when NOT typing.
+        Key::Named(Named::ArrowDown) if !text_input_focused => Some(Message::SelectNextResult),
+        Key::Named(Named::ArrowUp) if !text_input_focused => Some(Message::SelectPrevResult),
+        // Everything else: let iced handle it (printable keys, Tab, etc.).
+        _ => None,
+    }
+}
 
 fn tab_action_to_msg(action: snora::TabAction<ViewId>) -> Message {
     let snora::TabAction::Pressed(id) = action;
@@ -29,14 +71,24 @@ fn build_tab_bar(tabs: Vec<Tab<ViewId>>, active: ViewId) -> Element<'static, Mes
 #[derive(Default)]
 pub struct OrbokApp {
     pub state: AppState,
+    /// Whether the global search text input currently holds keyboard focus.
+    /// Tracked so [`key_to_message`] can distinguish text entry from navigation.
+    pub search_focused: bool,
 }
 
 impl OrbokApp {
     pub fn with_state(state: AppState) -> Self {
-        Self { state }
+        Self { state, search_focused: false }
     }
 
     pub fn update(&mut self, message: Message) {
+        if matches!(message, Message::FocusSearch) {
+            self.search_focused = true;
+        }
+        // Typing in search clears the focus flag (next keypress will be text).
+        if matches!(message, Message::QueryChanged(_)) {
+            self.search_focused = false;
+        }
         self.state.update(&message);
     }
 

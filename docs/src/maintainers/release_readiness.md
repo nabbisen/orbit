@@ -44,6 +44,16 @@ All fast gate requirements, plus:
 
 ## Manual QA Checklist (required: RC → Release)
 
+### Accessibility (RFC-034)
+
+Run the full QA steps from [`docs/src/maintainers/accessibility.md`](accessibility.md)
+before signing off, including:
+
+- [ ] Keyboard-only walkthrough (all shortcuts, result navigation, Escape for overlays)
+- [ ] High-contrast visual pass (all four theme presets)
+- [ ] Grayscale status-distinguishability pass (badges distinguishable by icon + label)
+- [ ] Screen reader spot check (VoiceOver / Orca)
+
 ### First launch
 
 - [ ] Welcome screen appears

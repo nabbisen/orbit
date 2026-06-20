@@ -13,7 +13,7 @@ mod download;
 mod settings;
 
 use orbok_ui::state::WizardFileCheck;
-use orbok_ui::{Message, OrbokApp};
+use orbok_ui::{Message, OrbokApp, key_to_message};
 use orbok_workers::model_verifier::REQUIRED_MODEL_FILES;
 use orbok_workers::{VerifyOutcome, verify_embedding_model};
 
@@ -157,6 +157,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         let _ = bootstrap::remove_source(&catalog, source_id);
                     }
                 }
+                Message::FocusSearch => {
+                    app.update(message);
+                    // iced 0.14 has no standalone text_input::focus() Task.
+                    // Best approximation: switch to the Search view so the
+                    // user's next keypress reaches the search input. A proper
+                    // programmatic focus Task is tracked as a follow-up once
+                    // iced exposes it (see docs/src/maintainers/accessibility.md).
+                    app.update(Message::Switch(orbok_ui::state::ViewId::Search));
+                    return iced::Task::none();
+                }
                 Message::PersistLocale(locale) => {
                     if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
                         let _ = bootstrap::persist_locale(&catalog, locale);
@@ -195,6 +205,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     )
     .title(|app: &OrbokApp| app.title())
     .font(orbok_ui::LUCIDE_FONT_BYTES)
+    .subscription(|app: &OrbokApp| {
+        let focused = app.search_focused;
+        iced::keyboard::listen()
+            .with(focused)
+            .filter_map(|(focused, event)| {
+                use iced::keyboard::Event;
+                match event {
+                    Event::KeyPressed { key, modifiers, .. } => {
+                        key_to_message(&key, modifiers, focused)
+                    }
+                    _ => None,
+                }
+            })
+    })
     .run()?;
     Ok(())
 }
