@@ -31,4 +31,4 @@ pub use shell::{OrbokApp, key_to_message};
 pub use state::{
     AppState, IndexHealth, Message, NavGroup, SourceCard, ViewId, WizardFileCheck, WizardState,
 };
-pub use theme::Theme;
+pub use theme::{Theme, TextScale};

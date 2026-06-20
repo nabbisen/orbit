@@ -11,6 +11,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.14.0] — 2026-06-21 — RFC-035: Inclusive Design
+
+### Changed
+
+**RFC-035: Inclusive Design.**
+
+- **`TextScale` enum** (`Default` / `Large` / `Larger`) in `theme.rs`: uniform
+  1× / 1.15× / 1.3× multiplier applied to all typography roles via `*_s`
+  helper variants (`body_s`, `title_s`, `heading_s`, `meta_s`, `label_s`).
+  Every view reads `state.text_scale` so the multiplier propagates with no
+  per-view structural change. `theme.rs` cleaned up: duplicate `Theme` definition
+  and unscaled-only helpers removed; one canonical enum and one set of helpers.
+- **`reduced_motion: bool`** in `AppState`: defaults from `ORBOK_REDUCE_MOTION`
+  env var (best-effort OS probe; full platform watcher is a tracked follow-up).
+  Wired as a forward-compatible gate — no animations exist yet, so the flag is a
+  no-op guard today that takes effect the moment motion is introduced.
+- **Settings view** (RFC-035 plain-language surface):
+  - Text size picker: `Default` / `Large` / `Larger` buttons.
+  - Reduce motion toggle: checkbox-style button with hint text.
+  - CVD note (always-on, not a toggle): "Status colors are always shown with a
+    label and an icon…" in both `en` and `ja`.
+- **CVD-safe status guarantee** (`components.rs`): `tone_icon(tone)` maps each
+  `Tone` to a distinct lucide glyph (`CheckCircle` / `AlertTriangle` / `CircleX`
+  / `Info` / `Sparkles` / `Clock`), giving every status badge three independent
+  channels: text label + icon/shape + tone colour.
+- **Locale-aware formatting** (`i18n.rs`): `fmt_gib`, `fmt_mib_bucket`,
+  `fmt_storage_row`, `fmt_query` route all user-facing number/size/query
+  display through locale-specific format strings. Views use these instead of
+  ad-hoc `format!`.
+- **RTL readiness audit**: no hard-coded `Alignment::Left/Right` found in view
+  or component modules; `LayoutDirection` is plumbed to both navigation widgets
+  in `shell.rs`. A future RTL locale requires catalog work only.
+- **`OrbokSettings`**: `text_scale` and `reduced_motion` fields added; loaded
+  at startup, persisted on change via `bootstrap::persist_text_scale` /
+  `persist_reduced_motion`.
+- **Test suite split** — `tests.rs` (681 lines) refactored into a thin router
+  (118 lines) + five submodules under `tests/`:
+  - `tests/i18n.rs` (87 lines): catalog, locale detection, parameterized messages.
+  - `tests/state.rs` (165 lines): transitions, theme, scale, motion, notices.
+  - `tests/components.rs` (109 lines): RFC-033 tone mapping, badge invariant, smokes.
+  - `tests/a11y.rs` (268 lines): RFC-034 contrast guard, keyboard map, RFC-035 CVD,
+    scale helpers, formatting, RTL layout proof.
+  - `tests/smoke_views.rs` (74 lines): headless view renders.
+- **39 tests, 0 failures, 0 warnings.** New RFC-035 tests: `cvd_icon_pairs_are_distinct`,
+  `cvd_greyscale_status_distinguishable`, `text_scale_helpers_produce_correct_sizes`,
+  `locale_aware_size_formatting`, `layout_direction_is_plumbed_to_navigation`,
+  `set_text_scale_updates_state`, `set_reduced_motion_updates_state`,
+  `text_scale_roundtrip`.
+
+### Fixed
+
+**Theme change now takes effect at runtime (bugfix).**
+
+The theme picker (RFC-032) was persisting the selection and updating
+`AppState::tokens` correctly, but the iced renderer always displayed the
+built-in Light theme because no `.theme()` hook was wired into the iced
+application builder. Without it iced ignores the snora token palette and
+falls back to its own default.
+
+Fix: `OrbokApp::iced_theme()` maps the active snora token palette to an
+`iced::Theme::Custom`, bridging the six snora semantic roles (`background`,
+`text_primary`, `accent`, `success`, `warning`, `danger`) to iced's
+six-field `Palette`. The application builder now calls `.theme(|app|
+app.iced_theme())` so every theme selection (Light / Dark / High Contrast
+Light / High Contrast Dark / System) restyles the whole app immediately.
+
+Font size change was already working via `state.text_scale` and the `*_s`
+typography helpers; theme change now works correctly too.
+
+---
+
 ## [0.13.0] — 2026-06-21 — RFC-034: Accessibility Conformance (WCAG 2.1 AA)
 
 ### Changed

@@ -40,6 +40,7 @@ fn wizard_page<'a>(tokens: &Tokens, col: iced::widget::Column<'a, Message>) -> E
 pub fn wizard_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
     let tokens = &state.tokens;
+    let sc = state.text_scale;
     match state
         .wizard
         .as_ref()
@@ -63,6 +64,7 @@ pub fn wizard_view(state: &AppState) -> Element<'_, Message> {
             ..
         } => page_downloading(
             tokens,
+            sc,
             locale,
             current_file,
             *bytes,
@@ -75,7 +77,7 @@ pub fn wizard_view(state: &AppState) -> Element<'_, Message> {
             checks,
             all_ok,
         } => page_checked(locale, state, model_dir, checks, *all_ok),
-        WizardState::Ready { model_dir } => page_ready(tokens, locale, model_dir),
+        WizardState::Ready { model_dir } => page_ready(tokens, sc, locale, model_dir),
     }
 }
 
@@ -87,9 +89,10 @@ fn page_setup<'a>(
     missing: Option<(&'a str, &'a [WizardFileCheck])>,
 ) -> Element<'a, Message> {
     let tokens = &state.tokens;
+    let sc = state.text_scale;
     let mut col = column![
-        text(tr(locale, MessageKey::WizardTitleNotConfigured)).size(theme::title(tokens)),
-        text(tr(locale, MessageKey::WizardBodyNotConfigured)).size(theme::body(tokens)),
+        text(tr(locale, MessageKey::WizardTitleNotConfigured)).size(theme::title_s(tokens, sc)),
+        text(tr(locale, MessageKey::WizardBodyNotConfigured)).size(theme::body_s(tokens, sc)),
     ]
     .spacing(tokens.spacing.sm);
 
@@ -98,15 +101,15 @@ fn page_setup<'a>(
         column![
             row![
                 icon_text(char::from(lucide::Download), 16.0),
-                text(tr(locale, MessageKey::WizardDownloadAction)).size(theme::body(tokens)),
+                text(tr(locale, MessageKey::WizardDownloadAction)).size(theme::body_s(tokens, sc)),
             ]
             .spacing(tokens.spacing.sm),
             text("multilingual-e5-small · Apache 2.0 · ~93 MB · 100+ languages")
-                .size(theme::meta(tokens)),
+                .size(theme::meta_s(tokens, sc)),
             button(
                 row![
                     icon_text(char::from(lucide::Download), 13.0),
-                    text(tr(locale, MessageKey::WizardDownloadAction)).size(theme::body(tokens)),
+                    text(tr(locale, MessageKey::WizardDownloadAction)).size(theme::body_s(tokens, sc)),
                 ]
                 .spacing(tokens.spacing.xs),
             )
@@ -118,14 +121,14 @@ fn page_setup<'a>(
     col = col.push(download_card);
 
     // ── Separator ────────────────────────────────────────────────────
-    col = col.push(text("— or —").size(theme::meta(tokens)));
+    col = col.push(text("— or —").size(theme::meta_s(tokens, sc)));
 
     // ── Secondary action: locate existing files ───────────────────────
-    col = col.push(text(tr(locale, MessageKey::WizardBodyFileMissing)).size(theme::meta(tokens)));
+    col = col.push(text(tr(locale, MessageKey::WizardBodyFileMissing)).size(theme::meta_s(tokens, sc)));
 
     // Show previous path hint when files were missing.
     if let Some((prev_dir, checks)) = missing {
-        col = col.push(text(prev_dir).size(theme::meta(tokens)));
+        col = col.push(text(prev_dir).size(theme::meta_s(tokens, sc)));
         for fc in checks {
             let (icon, note) = if fc.found {
                 ("✓", "")
@@ -133,7 +136,7 @@ fn page_setup<'a>(
                 ("✗", "  ← missing")
             };
             col = col
-                .push(text(format!("{icon}  {}{note}", fc.relative_path)).size(theme::meta(tokens)));
+                .push(text(format!("{icon}  {}{note}", fc.relative_path)).size(theme::meta_s(tokens, sc)));
         }
     }
 
@@ -151,7 +154,7 @@ fn page_setup<'a>(
             button(
                 row![
                     icon_text(char::from(lucide::FolderOpen), 13.0),
-                    text(tr(locale, MessageKey::WizardActionValidate)).size(theme::body(tokens)),
+                    text(tr(locale, MessageKey::WizardActionValidate)).size(theme::body_s(tokens, sc)),
                 ]
                 .spacing(tokens.spacing.xs),
             )
@@ -162,7 +165,7 @@ fn page_setup<'a>(
 
     // ── Tertiary action: skip ─────────────────────────────────────────
     col = col.push(
-        button(text(tr(locale, MessageKey::WizardActionSkip)).size(theme::meta(tokens)))
+        button(text(tr(locale, MessageKey::WizardActionSkip)).size(theme::meta_s(tokens, sc)))
             .on_press(Message::WizardSkip),
     );
 
@@ -173,6 +176,7 @@ fn page_setup<'a>(
 
 fn page_downloading<'a>(
     tokens: &Tokens,
+    sc: crate::theme::TextScale,
     locale: Locale,
     current_file: &'a str,
     bytes: u64,
@@ -203,14 +207,14 @@ fn page_downloading<'a>(
     let col = column![
         row![
             icon_text(char::from(lucide::Download), 16.0),
-            text(tr(locale, MessageKey::WizardDownloadProgress)).size(theme::title(tokens)),
+            text(tr(locale, MessageKey::WizardDownloadProgress)).size(theme::title_s(tokens, sc)),
         ]
         .spacing(tokens.spacing.sm),
-        text("multilingual-e5-small · Apache 2.0").size(theme::meta(tokens)),
-        text(overall_label).size(theme::meta(tokens)),
-        text(format!("↓  {current_file}")).size(theme::body(tokens)),
+        text("multilingual-e5-small · Apache 2.0").size(theme::meta_s(tokens, sc)),
+        text(overall_label).size(theme::meta_s(tokens, sc)),
+        text(format!("↓  {current_file}")).size(theme::body_s(tokens, sc)),
         progress_bar(0.0..=1.0, frac),
-        text(format!("{bytes_label}{pct_label}")).size(theme::meta(tokens)),
+        text(format!("{bytes_label}{pct_label}")).size(theme::meta_s(tokens, sc)),
     ]
     .spacing(tokens.spacing.md);
 
@@ -227,9 +231,10 @@ fn page_checked<'a>(
     all_ok: bool,
 ) -> Element<'a, Message> {
     let tokens = &state.tokens;
+    let sc = state.text_scale;
     let mut col = column![
-        text(tr(locale, MessageKey::WizardTitleValidating)).size(theme::title(tokens)),
-        text(model_dir).size(theme::meta(tokens)),
+        text(tr(locale, MessageKey::WizardTitleValidating)).size(theme::title_s(tokens, sc)),
+        text(model_dir).size(theme::meta_s(tokens, sc)),
     ]
     .spacing(tokens.spacing.sm);
 
@@ -244,7 +249,7 @@ fn page_checked<'a>(
             .map(|m| format!("  ({m} MB)"))
             .unwrap_or_default();
         col = col.push(
-            text(format!("{icon}  {}{size_info}{style}", fc.relative_path)).size(theme::meta(tokens)),
+            text(format!("{icon}  {}{size_info}{style}", fc.relative_path)).size(theme::meta_s(tokens, sc)),
         );
     }
 
@@ -253,14 +258,14 @@ fn page_checked<'a>(
             button(
                 row![
                     icon_text(char::from(lucide::CheckCircle), 13.0),
-                    text(tr(locale, MessageKey::WizardActionUseModel)).size(theme::body(tokens)),
+                    text(tr(locale, MessageKey::WizardActionUseModel)).size(theme::body_s(tokens, sc)),
                 ]
                 .spacing(tokens.spacing.xs),
             )
             .on_press(Message::WizardAccept),
         );
     } else {
-        col = col.push(text(tr(locale, MessageKey::WizardBodyFileMissing)).size(theme::meta(tokens)));
+        col = col.push(text(tr(locale, MessageKey::WizardBodyFileMissing)).size(theme::meta_s(tokens, sc)));
         let path_input = text_input(
             tr(locale, MessageKey::WizardPathPlaceholder),
             &state.wizard_path_input,
@@ -274,7 +279,7 @@ fn page_checked<'a>(
                 button(
                     row![
                         icon_text(char::from(lucide::ScanEye), 13.0),
-                        text(tr(locale, MessageKey::WizardActionValidate)).size(theme::body(tokens)),
+                        text(tr(locale, MessageKey::WizardActionValidate)).size(theme::body_s(tokens, sc)),
                     ]
                     .spacing(tokens.spacing.xs),
                 )
@@ -286,8 +291,8 @@ fn page_checked<'a>(
 
     col = col.push(
         row![
-            button(text("← Back").size(theme::meta(tokens))).on_press(Message::WizardBack),
-            button(text(tr(locale, MessageKey::WizardActionSkip)).size(theme::meta(tokens)))
+            button(text("← Back").size(theme::meta_s(tokens, sc))).on_press(Message::WizardBack),
+            button(text(tr(locale, MessageKey::WizardActionSkip)).size(theme::meta_s(tokens, sc)))
                 .on_press(Message::WizardSkip),
         ]
         .spacing(tokens.spacing.sm),
@@ -298,19 +303,19 @@ fn page_checked<'a>(
 
 // ── Page: ready ───────────────────────────────────────────────────────
 
-fn page_ready<'a>(tokens: &Tokens, locale: Locale, model_dir: &'a str) -> Element<'a, Message> {
+fn page_ready<'a>(tokens: &Tokens, sc: crate::theme::TextScale, locale: Locale, model_dir: &'a str) -> Element<'a, Message> {
     let col = column![
         row![
             icon_text(char::from(lucide::CheckCircle), 18.0),
-            text(tr(locale, MessageKey::WizardTitleReady)).size(theme::title(tokens)),
+            text(tr(locale, MessageKey::WizardTitleReady)).size(theme::title_s(tokens, sc)),
         ]
         .spacing(tokens.spacing.sm),
-        text(model_dir).size(theme::meta(tokens)),
-        text(tr(locale, MessageKey::WizardReadyBody)).size(theme::body(tokens)),
+        text(model_dir).size(theme::meta_s(tokens, sc)),
+        text(tr(locale, MessageKey::WizardReadyBody)).size(theme::body_s(tokens, sc)),
         button(
             row![
                 icon_text(char::from(lucide::CheckCircle), 13.0),
-                text(tr(locale, MessageKey::WizardActionUseModel)).size(theme::body(tokens)),
+                text(tr(locale, MessageKey::WizardActionUseModel)).size(theme::body_s(tokens, sc)),
             ]
             .spacing(tokens.spacing.xs),
         )

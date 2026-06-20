@@ -18,7 +18,7 @@ use orbok_models::SearchCapability;
 use orbok_search::HybridSearchService;
 use orbok_ui::AppState;
 use orbok_ui::i18n::Locale;
-use orbok_ui::theme::Theme;
+use orbok_ui::theme::{Theme, TextScale};
 use orbok_ui::state::{WizardFileCheck, WizardState};
 use orbok_workers::{VerifyOutcome, verify_embedding_model};
 use std::path::PathBuf;
@@ -105,6 +105,9 @@ pub fn load_initial_state() -> Result<AppState, Box<dyn std::error::Error>> {
     state.locale = locale;
     state.theme = stored_theme;
     state.tokens = resolved_theme.tokens();
+    state.text_scale = TextScale::parse(&settings.text_scale).unwrap_or_default();
+    state.reduced_motion = settings.reduced_motion
+        || resolve_os_reduced_motion();
     state.capability = capability;
     state.wizard = wizard;
     state.health = health;
@@ -224,15 +227,42 @@ pub fn persist_locale(catalog: &Catalog, locale: &Locale) -> OrbokResult<()> {
     SettingsRepository::new(catalog).set("ui.locale", &locale.as_str().to_string())
 }
 
-/// Persist the selected UI theme to `OrbokSettings` (RFC-032). Called when the
-/// user picks a theme in Settings. The stored value is the user's intent
-/// (including `system`); `System` is re-resolved at the next startup.
+/// Persist the selected UI theme to `OrbokSettings` (RFC-032).
 pub fn persist_theme(theme: Theme) -> Result<(), Box<dyn std::error::Error>> {
     let mut settings = load_settings();
     settings.theme = theme.as_str().to_string();
     crate::settings::save_settings(&settings)
         .map_err(|e| format!("settings save failed: {e:?}"))?;
     Ok(())
+}
+
+/// Persist the text scale to `OrbokSettings` (RFC-035).
+pub fn persist_text_scale(scale: TextScale) -> Result<(), Box<dyn std::error::Error>> {
+    let mut settings = load_settings();
+    settings.text_scale = scale.as_str().to_string();
+    crate::settings::save_settings(&settings)
+        .map_err(|e| format!("settings save failed: {e:?}"))?;
+    Ok(())
+}
+
+/// Persist the reduced-motion preference to `OrbokSettings` (RFC-035).
+pub fn persist_reduced_motion(val: bool) -> Result<(), Box<dyn std::error::Error>> {
+    let mut settings = load_settings();
+    settings.reduced_motion = val;
+    crate::settings::save_settings(&settings)
+        .map_err(|e| format!("settings save failed: {e:?}"))?;
+    Ok(())
+}
+
+/// Best-effort OS reduced-motion probe (RFC-035).
+///
+/// Checks `ORBOK_REDUCE_MOTION=1` env var (override / test hook). A
+/// richer per-platform probe (portal, SPI_GETCLIENTAREAANIMATION, NSWorkspace)
+/// is a tracked follow-up — returns `false` when unknown.
+pub fn resolve_os_reduced_motion() -> bool {
+    std::env::var("ORBOK_REDUCE_MOTION")
+        .map(|v| v.trim() == "1" || v.trim().eq_ignore_ascii_case("true"))
+        .unwrap_or(false)
 }
 
 /// Persist the validated model directory to `OrbokSettings` (called when

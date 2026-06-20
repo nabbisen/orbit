@@ -163,6 +163,13 @@ pub struct AppState {
     /// The user's selected theme. `System` is resolved to a concrete preset at
     /// startup in `orbok-app`; `tokens` always holds the resolved bundle.
     pub theme: crate::theme::Theme,
+    /// User-selected text scale multiplier (RFC-035). Applied via the `*_s`
+    /// helpers in `theme.rs`; views read `state.text_scale` alongside tokens.
+    pub text_scale: crate::theme::TextScale,
+    /// When true, suppress non-essential animation (RFC-035). Defaulted from
+    /// the OS preference at startup in `orbok-app`. Currently a no-op gate:
+    /// wired now so any future animation checks it rather than being retrofitted.
+    pub reduced_motion: bool,
 }
 
 impl Default for AppState {
@@ -189,6 +196,8 @@ impl Default for AppState {
             confirm_reset: false,
             tokens: snora::design::Tokens::light(),
             theme: crate::theme::Theme::default(),
+            text_scale: crate::theme::TextScale::default(),
+            reduced_motion: false,
         }
     }
 }
@@ -200,6 +209,10 @@ pub enum Message {
     SwitchGroup(NavGroup),
     ToggleAdvanced,
     SetTheme(crate::theme::Theme),
+    /// User selected a text scale step (RFC-035).
+    SetTextScale(crate::theme::TextScale),
+    /// User toggled reduced-motion preference (RFC-035).
+    SetReducedMotion(bool),
     ShowNotice(UserNotice),
     ClearNotice,
     // Storage cleanup
@@ -277,6 +290,8 @@ impl AppState {
                 self.theme = *theme;
                 self.tokens = theme.tokens();
             }
+            Message::SetTextScale(scale) => self.text_scale = *scale,
+            Message::SetReducedMotion(val) => self.reduced_motion = *val,
             Message::AskResetCatalog => self.confirm_reset = true,
             Message::CancelResetCatalog => self.confirm_reset = false,
             Message::ConfirmResetCatalog => {

@@ -136,6 +136,13 @@ pub fn message(key: MessageKey) -> &'static str {
         ThemeDark => "ダーク",
         ThemeHighContrastLight => "ハイコントラスト（ライト）",
         ThemeHighContrastDark => "ハイコントラスト（ダーク）",
+        SettingsTextScaleHeading => "文字サイズ",
+        TextScaleDefault => "標準",
+        TextScaleLarge => "大",
+        TextScaleLarger => "特大",
+        SettingsReduceMotion => "モーションを減らす",
+        SettingsReduceMotionHint => "アニメーションとトランジションを減らします。",
+        SettingsCvdNote => "ステータスカラーは常にラベルとアイコンとともに表示されるため、色覚に関わらず識別できます。",
         NoticeSensitiveSourceTitle => "このフォルダには機密ファイルが含まれている可能性があります",
         NoticeSensitiveSourceBody => {
             "SSH鍵、ブラウザのプロフィール、またはその他の機密データが含まれている可能性があります。フォルダは追加されました。意図しない場合は削除してください。"

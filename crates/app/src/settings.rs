@@ -42,6 +42,13 @@ pub struct OrbokSettings {
     /// resolved to a concrete preset at startup.
     pub theme: String,
 
+    /// UI text scale (RFC-035). One of: `"default"` | `"large"` | `"larger"`.
+    pub text_scale: String,
+
+    /// Whether to reduce motion (RFC-035). `true` suppresses non-essential
+    /// animations. Defaults from OS signal; user can override.
+    pub reduced_motion: bool,
+
     /// Whether reranking is enabled (RFC-010). Requires reranker model.
     pub rerank_enabled: bool,
 
@@ -60,6 +67,8 @@ impl Default for OrbokSettings {
             index_mode: "balanced".into(),
             locale: "en".into(),
             theme: "system".into(),
+            text_scale: "default".into(),
+            reduced_motion: false,
             rerank_enabled: false,
             background_indexing: true,
             pause_on_battery: true,

@@ -173,9 +173,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
                 Message::SetTheme(theme) => {
-                    // Persist the choice; fall through to app.update for the
-                    // in-session restyle (RFC-032).
                     let _ = bootstrap::persist_theme(*theme);
+                }
+                Message::SetTextScale(scale) => {
+                    let _ = bootstrap::persist_text_scale(*scale);
+                }
+                Message::SetReducedMotion(val) => {
+                    let _ = bootstrap::persist_reduced_motion(*val);
                 }
                 Message::SubmitSearch => {
                     let query = app.state.query.trim().to_string();
@@ -204,6 +208,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         OrbokApp::view,
     )
     .title(|app: &OrbokApp| app.title())
+    .theme(|app: &OrbokApp| app.iced_theme())
     .font(orbok_ui::LUCIDE_FONT_BYTES)
     .subscription(|app: &OrbokApp| {
         let focused = app.search_focused;

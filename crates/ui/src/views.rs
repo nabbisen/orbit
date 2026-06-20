@@ -1,29 +1,28 @@
 //! Page view functions (GUI external design §7, §8–§12 wireframes).
 //!
-//! Each page is a plain function taking the view model and returning an
-//! `Element`. Empty states follow the design's required empty-state set.
+//! Styling (RFC-032/035): sizes come from `state.tokens` via [`crate::theme`]
+//! scaled by `state.text_scale`. No literal sizes, paddings, or colours.
 //!
-//! Styling (RFC-032): no literal sizes, paddings, or colours — all values
-//! come from `state.tokens` via [`crate::theme`] and `tokens.spacing`.
+//! Primitives (RFC-033): cards/buttons/badges/progress via [`crate::components`].
 //!
-//! Primitives (RFC-033): every card, button, badge, and progress element
-//! routes through [`crate::components`]; snora is the sole primitive gateway.
+//! Formatting (RFC-035): user-facing numbers and sizes via [`crate::i18n`].
 
 pub mod wizard;
 pub use wizard::wizard_view;
 
 use crate::components::{self, health_cell, job_progress, result_card, source_card};
-use crate::i18n::{Locale, MessageKey, files_indexed, search_result_count, source_summary, tr};
+use crate::i18n::{
+    Locale, MessageKey, files_indexed, fmt_gib, fmt_mib_bucket, fmt_query,
+    fmt_storage_row, search_result_count, source_summary, tr,
+};
 use crate::state::{AppState, Message};
-use crate::theme::{self, Theme};
+use crate::theme::{self, TextScale, Theme};
 use iced::widget::{button, column, container, row, text, text_input};
 use iced::{Element, Length, Padding};
 use orbok_models::SearchCapability;
 use snora::design::Tokens;
 use snora::lucide;
 
-/// A friendly, actionable notice card. Delegates to the snora Notice primitive
-/// (already using design tokens via `crate::notice`).
 fn friendly_notice<'a>(
     tokens: &'a Tokens,
     locale: Locale,
@@ -54,8 +53,8 @@ fn page<'a>(tokens: &Tokens, content: iced::widget::Column<'a, Message>) -> Elem
     .into()
 }
 
-fn heading<'a>(tokens: &Tokens, label: &'a str) -> iced::widget::Text<'a> {
-    text(label.to_string()).size(theme::heading(tokens))
+fn heading<'a>(tokens: &Tokens, sc: TextScale, label: &'a str) -> iced::widget::Text<'a> {
+    text(label.to_string()).size(theme::heading_s(tokens, sc))
 }
 
 // ── Search view ──────────────────────────────────────────────────────────
@@ -63,13 +62,13 @@ fn heading<'a>(tokens: &Tokens, label: &'a str) -> iced::widget::Text<'a> {
 pub fn search_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
     let tokens = &state.tokens;
+    let sc = state.text_scale;
 
     let input = text_input(tr(locale, MessageKey::SearchPlaceholder), &state.query)
         .on_input(Message::QueryChanged)
         .on_submit(Message::SubmitSearch)
         .padding(tokens.spacing.sm);
 
-    // Submit icon button via components::icon_primary; disabled while running.
     let submit = components::icon_primary(
         tokens,
         char::from(lucide::Search),
@@ -79,7 +78,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
     );
 
     let mut content = column![
-        heading(tokens, tr(locale, MessageKey::NavSearch)),
+        heading(tokens, sc, tr(locale, MessageKey::NavSearch)),
         row![container(input).width(Length::Fill), submit].spacing(tokens.spacing.sm),
     ];
 
@@ -90,15 +89,13 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
     if state.show_advanced {
         content = content.push(
             row![
-                text(tr(locale, MessageKey::SearchModeLabel)).size(theme::meta(tokens)),
-                button(text(tr(locale, MessageKey::SearchModeAuto)).size(theme::meta(tokens)))
+                text(tr(locale, MessageKey::SearchModeLabel)).size(theme::meta_s(tokens, sc)),
+                button(text(tr(locale, MessageKey::SearchModeAuto)).size(theme::meta_s(tokens, sc)))
                     .on_press(Message::SetSearchMode(orbok_search::SearchMode::Auto)),
-                button(text(tr(locale, MessageKey::SearchModeExact)).size(theme::meta(tokens)))
+                button(text(tr(locale, MessageKey::SearchModeExact)).size(theme::meta_s(tokens, sc)))
                     .on_press(Message::SetSearchMode(orbok_search::SearchMode::Exact)),
-                button(
-                    text(tr(locale, MessageKey::SearchModeConceptual)).size(theme::meta(tokens))
-                )
-                .on_press(Message::SetSearchMode(orbok_search::SearchMode::Conceptual)),
+                button(text(tr(locale, MessageKey::SearchModeConceptual)).size(theme::meta_s(tokens, sc)))
+                    .on_press(Message::SetSearchMode(orbok_search::SearchMode::Conceptual)),
             ]
             .spacing(tokens.spacing.xs),
         );
@@ -107,8 +104,8 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
     if state.sources.is_empty() {
         content = content.push(
             column![
-                text(tr(locale, MessageKey::SearchNoSourcesTitle)).size(theme::title(tokens)),
-                text(tr(locale, MessageKey::SearchNoSourcesBody)).size(theme::body(tokens)),
+                text(tr(locale, MessageKey::SearchNoSourcesTitle)).size(theme::title_s(tokens, sc)),
+                text(tr(locale, MessageKey::SearchNoSourcesBody)).size(theme::body_s(tokens, sc)),
                 components::primary(
                     tokens,
                     tr(locale, MessageKey::SearchAddSource),
@@ -120,24 +117,24 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
     } else {
         if state.capability == SearchCapability::KeywordOnly {
             content = content.push(
-                text(tr(locale, MessageKey::SearchKeywordOnlyNotice)).size(theme::meta(tokens)),
+                text(tr(locale, MessageKey::SearchKeywordOnlyNotice)).size(theme::meta_s(tokens, sc)),
             );
         }
         if state.search_running {
-            content = content.push(text("Searching…").size(theme::body(tokens)));
+            content = content.push(text("Searching…").size(theme::body_s(tokens, sc)));
         } else if let Some(last) = &state.last_query {
             if state.search_results.is_empty() {
                 content = content.push(
                     column![
-                        text(tr(locale, MessageKey::SearchNoResults)).size(theme::body(tokens)),
-                        text(format!("Query: {last}")).size(theme::meta(tokens)),
+                        text(tr(locale, MessageKey::SearchNoResults)).size(theme::body_s(tokens, sc)),
+                        text(fmt_query(locale, last)).size(theme::meta_s(tokens, sc)),
                     ]
                     .spacing(tokens.spacing.xs),
                 );
             } else {
                 content = content.push(
                     text(search_result_count(locale, state.search_results.len()))
-                        .size(theme::meta(tokens)),
+                        .size(theme::meta_s(tokens, sc)),
                 );
                 for (i, result) in state.search_results.iter().enumerate() {
                     let is_selected = state.selected_result == Some(i);
@@ -172,6 +169,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
 pub fn sources_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
     let tokens = &state.tokens;
+    let sc = state.text_scale;
 
     let add_btn = components::icon_secondary(
         tokens,
@@ -186,9 +184,9 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
         .padding(tokens.spacing.sm);
 
     let mut content = column![
-        heading(tokens, tr(locale, MessageKey::SourcesTitle)),
+        heading(tokens, sc, tr(locale, MessageKey::SourcesTitle)),
         row![add_btn, container(add_input).width(Length::Fill)].spacing(tokens.spacing.sm),
-        text("All sub-folders are scanned recursively.").size(theme::meta(tokens)),
+        text("All sub-folders are scanned recursively.").size(theme::meta_s(tokens, sc)),
     ];
 
     if let Some(notice) = &state.notice {
@@ -197,8 +195,8 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
     if state.sources.is_empty() {
         content = content.push(
             column![
-                text(tr(locale, MessageKey::SourcesEmptyTitle)).size(theme::title(tokens)),
-                text(tr(locale, MessageKey::SourcesEmptyBody)).size(theme::body(tokens)),
+                text(tr(locale, MessageKey::SourcesEmptyTitle)).size(theme::title_s(tokens, sc)),
+                text(tr(locale, MessageKey::SourcesEmptyBody)).size(theme::body_s(tokens, sc)),
             ]
             .spacing(tokens.spacing.sm),
         );
@@ -228,9 +226,9 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
 pub fn indexing_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
     let tokens = &state.tokens;
+    let sc = state.text_scale;
     let h = state.health;
 
-    // Less is more: always show Indexed; show others only when non-zero or advanced.
     let mut cells = row![health_cell(
         tokens,
         tr(locale, MessageKey::IndexingHealthIndexed),
@@ -247,16 +245,15 @@ pub fn indexing_view(state: &AppState) -> Element<'_, Message> {
         cells = cells.push(health_cell(tokens, tr(locale, MessageKey::IndexingHealthFailed), h.failed));
     }
 
-    // Show a progress row when indexing is active.
     let mut content = column![
-        heading(tokens, tr(locale, MessageKey::IndexingTitle)),
+        heading(tokens, sc, tr(locale, MessageKey::IndexingTitle)),
         cells,
         text(if h.queued == 0 {
             tr(locale, MessageKey::IndexingIdle).to_string()
         } else {
             files_indexed(locale, h.indexed)
         })
-        .size(theme::body(tokens)),
+        .size(theme::body_s(tokens, sc)),
     ];
 
     if h.queued > 0 {
@@ -271,12 +268,12 @@ pub fn indexing_view(state: &AppState) -> Element<'_, Message> {
 pub fn storage_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
     let tokens = &state.tokens;
+    let sc = state.text_scale;
 
-    // Confirmation dialog (bespoke — no snora modal primitive yet).
     if state.confirm_reset {
         let content = column![
-            text(tr(locale, MessageKey::StorageResetCatalog)).size(theme::title(tokens)),
-            text(tr(locale, MessageKey::StorageResetWarning)).size(theme::body(tokens)),
+            text(tr(locale, MessageKey::StorageResetCatalog)).size(theme::title_s(tokens, sc)),
+            text(tr(locale, MessageKey::StorageResetWarning)).size(theme::body_s(tokens, sc)),
             row![
                 components::ghost(tokens, tr(locale, MessageKey::Cancel), Some(Message::CancelResetCatalog)),
                 components::danger(tokens, tr(locale, MessageKey::StorageResetCatalog), Some(Message::ConfirmResetCatalog)),
@@ -291,9 +288,9 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
     let gib = total_bytes as f64 / (1024.0 * 1024.0 * 1024.0);
 
     let mut breakdown = column![
-        text(tr(locale, MessageKey::StorageTitle)).size(theme::heading(tokens)),
-        text(tr(locale, MessageKey::StorageIntro)).size(theme::body(tokens)),
-        text(format!("{gib:.3} GiB total")).size(theme::title(tokens)),
+        text(tr(locale, MessageKey::StorageTitle)).size(theme::heading_s(tokens, sc)),
+        text(tr(locale, MessageKey::StorageIntro)).size(theme::body_s(tokens, sc)),
+        text(fmt_gib(locale, gib)).size(theme::title_s(tokens, sc)),
     ]
     .spacing(tokens.spacing.xs);
 
@@ -303,8 +300,8 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
                 if *bytes > 0 || *count > 0 {
                     let mib = *bytes as f64 / (1024.0 * 1024.0);
                     breakdown = breakdown.push(
-                        text(format!("  {category}: {mib:.1} MiB ({count} items)"))
-                            .size(theme::meta(tokens)),
+                        text(fmt_storage_row(locale, category, mib, *count))
+                            .size(theme::meta_s(tokens, sc)),
                     );
                 }
             }
@@ -328,37 +325,24 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
             ] {
                 if bytes > 0 {
                     breakdown = breakdown.push(
-                        text(format!("  {label}: {:.1} MiB", mib(bytes))).size(theme::body(tokens)),
+                        text(fmt_mib_bucket(locale, label, mib(bytes))).size(theme::body_s(tokens, sc)),
                     );
                 }
             }
         }
     }
 
-    // Safe cleanup uses secondary buttons; destructive uses danger.
     let content = column![
         breakdown,
-        text(tr(locale, MessageKey::StorageSafeCleanupHeading)).size(theme::body(tokens)),
+        text(tr(locale, MessageKey::StorageSafeCleanupHeading)).size(theme::body_s(tokens, sc)),
         row![
-            components::secondary(
-                tokens,
-                tr(locale, MessageKey::StorageClearSnippets),
-                Some(Message::CleanSnippets)
-            ),
-            components::secondary(
-                tokens,
-                tr(locale, MessageKey::StorageClearSearchCache),
-                Some(Message::CleanSearchCache)
-            ),
+            components::secondary(tokens, tr(locale, MessageKey::StorageClearSnippets), Some(Message::CleanSnippets)),
+            components::secondary(tokens, tr(locale, MessageKey::StorageClearSearchCache), Some(Message::CleanSearchCache)),
         ]
         .spacing(tokens.spacing.sm),
-        text(tr(locale, MessageKey::StorageDangerHeading)).size(theme::body(tokens)),
-        components::danger(
-            tokens,
-            tr(locale, MessageKey::StorageResetCatalog),
-            Some(Message::AskResetCatalog)
-        ),
-        text(tr(locale, MessageKey::StorageResetWarning)).size(theme::meta(tokens)),
+        text(tr(locale, MessageKey::StorageDangerHeading)).size(theme::body_s(tokens, sc)),
+        components::danger(tokens, tr(locale, MessageKey::StorageResetCatalog), Some(Message::AskResetCatalog)),
+        text(tr(locale, MessageKey::StorageResetWarning)).size(theme::meta_s(tokens, sc)),
     ];
     page(tokens, content)
 }
@@ -368,6 +352,7 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
 pub fn models_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
     let tokens = &state.tokens;
+    let sc = state.text_scale;
     let available = tr(locale, MessageKey::ModelsStatusAvailable);
     let missing = tr(locale, MessageKey::ModelsStatusMissing);
     let (embedding, reranker) = match state.capability {
@@ -376,15 +361,15 @@ pub fn models_view(state: &AppState) -> Element<'_, Message> {
         SearchCapability::HybridWithRerank => (available, available),
     };
     let mut content = column![
-        heading(tokens, tr(locale, MessageKey::ModelsTitle)),
+        heading(tokens, sc, tr(locale, MessageKey::ModelsTitle)),
         text(format!("{}: {embedding}", tr(locale, MessageKey::ModelsEmbeddingRole)))
-            .size(theme::body(tokens)),
+            .size(theme::body_s(tokens, sc)),
         text(format!("{}: {reranker}", tr(locale, MessageKey::ModelsRerankerRole)))
-            .size(theme::body(tokens)),
+            .size(theme::body_s(tokens, sc)),
     ];
     if state.capability == SearchCapability::KeywordOnly {
         content = content
-            .push(text(tr(locale, MessageKey::ModelsKeywordOnlyHint)).size(theme::meta(tokens)));
+            .push(text(tr(locale, MessageKey::ModelsKeywordOnlyHint)).size(theme::meta_s(tokens, sc)));
     }
     page(tokens, content)
 }
@@ -394,10 +379,12 @@ pub fn models_view(state: &AppState) -> Element<'_, Message> {
 pub fn settings_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
     let tokens = &state.tokens;
+    let sc = state.text_scale;
 
+    // Language picker
     let mut language_row = row![].spacing(tokens.spacing.sm);
     for candidate in Locale::ALL {
-        let label = text(candidate.display_name()).size(theme::body(tokens));
+        let label = text(candidate.display_name()).size(theme::body_s(tokens, sc));
         let mut b = button(label).padding(Padding::from([tokens.spacing.sm, tokens.spacing.md]));
         if *candidate != locale {
             b = b.on_press(Message::SetLocale(*candidate));
@@ -405,9 +392,10 @@ pub fn settings_view(state: &AppState) -> Element<'_, Message> {
         language_row = language_row.push(b);
     }
 
+    // Theme picker
     let mut theme_row = row![].spacing(tokens.spacing.sm);
     for candidate in Theme::ALL {
-        let label = text(tr(locale, candidate.label_key())).size(theme::body(tokens));
+        let label = text(tr(locale, candidate.label_key())).size(theme::body_s(tokens, sc));
         let mut b = button(label).padding(Padding::from([tokens.spacing.sm, tokens.spacing.md]));
         if *candidate != state.theme {
             b = b.on_press(Message::SetTheme(*candidate));
@@ -415,15 +403,53 @@ pub fn settings_view(state: &AppState) -> Element<'_, Message> {
         theme_row = theme_row.push(b);
     }
 
+    // Text size picker (RFC-035)
+    let mut scale_row = row![].spacing(tokens.spacing.sm);
+    for candidate in TextScale::ALL {
+        let label = text(tr(locale, candidate.label_key())).size(theme::body_s(tokens, sc));
+        let mut b = button(label).padding(Padding::from([tokens.spacing.sm, tokens.spacing.md]));
+        if *candidate != sc {
+            b = b.on_press(Message::SetTextScale(*candidate));
+        }
+        scale_row = scale_row.push(b);
+    }
+
+    // Reduce motion toggle (RFC-035) — checkbox-style button
+    let motion_label = tr(locale, MessageKey::SettingsReduceMotion);
+    let motion_btn = if state.reduced_motion {
+        button(text(format!("✓  {motion_label}")).size(theme::body_s(tokens, sc)))
+            .padding(Padding::from([tokens.spacing.sm, tokens.spacing.md]))
+            .on_press(Message::SetReducedMotion(false))
+    } else {
+        button(text(motion_label.to_string()).size(theme::body_s(tokens, sc)))
+            .padding(Padding::from([tokens.spacing.sm, tokens.spacing.md]))
+            .on_press(Message::SetReducedMotion(true))
+    };
+
     let content = column![
-        heading(tokens, tr(locale, MessageKey::SettingsTitle)),
-        text(tr(locale, MessageKey::SettingsLanguageHeading)).size(theme::body(tokens)),
+        heading(tokens, sc, tr(locale, MessageKey::SettingsTitle)),
+        // Language
+        text(tr(locale, MessageKey::SettingsLanguageHeading)).size(theme::body_s(tokens, sc)),
         language_row,
-        text(tr(locale, MessageKey::SettingsThemeHeading)).size(theme::body(tokens)),
+        // Theme
+        text(tr(locale, MessageKey::SettingsThemeHeading)).size(theme::body_s(tokens, sc)),
         theme_row,
-        text(tr(locale, MessageKey::SettingsPrivacyHeading)).size(theme::body(tokens)),
-        text(tr(locale, MessageKey::SettingsPrivacyLocalOnly)).size(theme::body(tokens)),
-        text(tr(locale, MessageKey::SettingsAdvancedHeading)).size(theme::body(tokens)),
+        // Text size
+        text(tr(locale, MessageKey::SettingsTextScaleHeading)).size(theme::body_s(tokens, sc)),
+        scale_row,
+        // Accessibility
+        row![
+            motion_btn,
+            text(tr(locale, MessageKey::SettingsReduceMotionHint)).size(theme::meta_s(tokens, sc)),
+        ]
+        .spacing(tokens.spacing.sm),
+        // CVD note (always-on — informational, not a toggle)
+        text(tr(locale, MessageKey::SettingsCvdNote)).size(theme::meta_s(tokens, sc)),
+        // Privacy
+        text(tr(locale, MessageKey::SettingsPrivacyHeading)).size(theme::body_s(tokens, sc)),
+        text(tr(locale, MessageKey::SettingsPrivacyLocalOnly)).size(theme::body_s(tokens, sc)),
+        // Advanced
+        text(tr(locale, MessageKey::SettingsAdvancedHeading)).size(theme::body_s(tokens, sc)),
         row![
             button(
                 text(if state.show_advanced {
@@ -431,10 +457,10 @@ pub fn settings_view(state: &AppState) -> Element<'_, Message> {
                 } else {
                     tr(locale, MessageKey::SettingsAdvancedOff)
                 })
-                .size(theme::body(tokens)),
+                .size(theme::body_s(tokens, sc)),
             )
             .on_press(Message::ToggleAdvanced),
-            text(tr(locale, MessageKey::SettingsAdvancedHint)).size(theme::meta(tokens)),
+            text(tr(locale, MessageKey::SettingsAdvancedHint)).size(theme::meta_s(tokens, sc)),
         ]
         .spacing(tokens.spacing.sm),
     ];

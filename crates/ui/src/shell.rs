@@ -192,4 +192,30 @@ impl OrbokApp {
     pub fn title(&self) -> String {
         tr(self.state.locale, MessageKey::AppTitle).to_string()
     }
+
+    /// Map the active snora token palette to an `iced::Theme` so iced uses
+    /// the correct background, text, and accent colors. Without this, iced
+    /// always renders with its built-in Light theme regardless of which snora
+    /// preset is active.
+    ///
+    /// `iced::Theme::Custom` accepts an `iced::theme::Palette` with six roles.
+    /// We map the snora palette's semantic roles to those six fields.
+    pub fn iced_theme(&self) -> iced::Theme {
+        use snora::design::style::color::to_iced_color;
+        let p = &self.state.tokens.palette;
+        let is_dark = matches!(
+            self.state.theme,
+            crate::theme::Theme::Dark | crate::theme::Theme::HighContrastDark
+        );
+        let palette = iced::theme::Palette {
+            background: to_iced_color(p.background),
+            text:       to_iced_color(p.text_primary),
+            primary:    to_iced_color(p.accent),
+            success:    to_iced_color(p.success),
+            warning:    to_iced_color(p.warning),
+            danger:     to_iced_color(p.danger),
+        };
+        let name = if is_dark { "orbok-dark" } else { "orbok-light" };
+        iced::Theme::custom(name, palette)
+    }
 }

@@ -192,6 +192,14 @@ pub enum MessageKey {
     ThemeDark,
     ThemeHighContrastLight,
     ThemeHighContrastDark,
+    // RFC-035 inclusive design
+    SettingsTextScaleHeading,
+    TextScaleDefault,
+    TextScaleLarge,
+    TextScaleLarger,
+    SettingsReduceMotion,
+    SettingsReduceMotionHint,
+    SettingsCvdNote,
     NoticeSensitiveSourceTitle,
     NoticeSensitiveSourceBody,
     NoticeDismiss,
@@ -229,5 +237,38 @@ pub fn search_result_count(locale: Locale, count: usize) -> String {
     match locale {
         Locale::En => format!("{count} result{}", if count == 1 { "" } else { "s" }),
         Locale::Ja => format!("{count} 件の結果"),
+    }
+}
+
+/// Locale-aware byte/storage size formatting (RFC-035 §5.5).
+/// Routes views away from ad-hoc `format!("{gib:.3} GiB total")` calls.
+pub fn fmt_gib(locale: Locale, gib: f64) -> String {
+    match locale {
+        Locale::En => format!("{gib:.3} GiB total"),
+        Locale::Ja => format!("合計 {gib:.3} GiB"),
+    }
+}
+
+/// Locale-aware MiB bucket formatting for the storage view friendly buckets.
+pub fn fmt_mib_bucket(locale: Locale, label: &str, mib: f64) -> String {
+    match locale {
+        Locale::En => format!("  {label}: {mib:.1} MiB"),
+        Locale::Ja => format!("  {label}: {mib:.1} MiB"),
+    }
+}
+
+/// Locale-aware advanced storage row formatting (category + count).
+pub fn fmt_storage_row(locale: Locale, category: &str, mib: f64, count: u64) -> String {
+    match locale {
+        Locale::En => format!("  {category}: {mib:.1} MiB ({count} items)"),
+        Locale::Ja => format!("  {category}: {mib:.1} MiB（{count} 件）"),
+    }
+}
+
+/// Locale-aware last-query display (search view "no results" state).
+pub fn fmt_query(locale: Locale, query: &str) -> String {
+    match locale {
+        Locale::En => format!("Query: {query}"),
+        Locale::Ja => format!("検索語: {query}"),
     }
 }
