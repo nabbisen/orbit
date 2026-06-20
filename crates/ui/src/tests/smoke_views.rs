@@ -6,7 +6,7 @@
 //! panics and vanished key content. Not an exhaustive UI suite; iced_test is
 //! young and we keep reliance on it light.
 
-use crate::i18n::{tr, MessageKey};
+use crate::i18n::{MessageKey, tr};
 use crate::state::{AppState, Message, SourceCard, ViewId};
 use crate::views;
 use iced_test::simulator;
@@ -17,7 +17,8 @@ fn search_empty_state_offers_add_source() {
     let state = AppState::default();
     let mut ui = simulator(views::search_view(&state));
     assert!(
-        ui.find(tr(state.locale, MessageKey::SearchAddSource)).is_ok(),
+        ui.find(tr(state.locale, MessageKey::SearchAddSource))
+            .is_ok(),
         "empty search view must offer an 'add source' action"
     );
 }
@@ -30,7 +31,9 @@ fn search_empty_cta_switches_to_sources() {
     let _ = ui.click(tr(state.locale, MessageKey::SearchAddSource));
     let messages: Vec<Message> = ui.into_messages().collect();
     assert!(
-        messages.iter().any(|m| matches!(m, Message::Switch(ViewId::Sources))),
+        messages
+            .iter()
+            .any(|m| matches!(m, Message::Switch(ViewId::Sources))),
         "clicking the CTA should switch to the Sources view"
     );
 }
@@ -41,7 +44,8 @@ fn settings_view_has_advanced_toggle() {
     let state = AppState::default();
     let mut ui = simulator(views::settings_view(&state));
     assert!(
-        ui.find(tr(state.locale, MessageKey::SettingsAdvancedOff)).is_ok(),
+        ui.find(tr(state.locale, MessageKey::SettingsAdvancedOff))
+            .is_ok(),
         "settings must show the advanced-view toggle"
     );
 }
@@ -63,5 +67,8 @@ fn sources_view_renders_both_states() {
         source_id: "src-1".into(),
     });
     let mut ui = simulator(views::sources_view(&populated));
-    assert!(ui.find("Docs").is_ok(), "populated sources view must list the source name");
+    assert!(
+        ui.find("Docs").is_ok(),
+        "populated sources view must list the source name"
+    );
 }

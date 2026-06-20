@@ -142,8 +142,13 @@ fn append_markdown_sections(output: &ExtractOutput, specs: &mut Vec<ChunkSpec>) 
         }
         // Long sections get split further via the fallback mechanism.
         if text.len() > MAX_CHARS {
-            append_text_windows(&text, first.line_start, last.line_end,
-                                Some(section.heading_path.clone()), specs);
+            append_text_windows(
+                &text,
+                first.line_start,
+                last.line_end,
+                Some(section.heading_path.clone()),
+                specs,
+            );
         } else {
             specs.push(ChunkSpec {
                 chunk_kind: "section",

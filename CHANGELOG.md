@@ -11,6 +11,152 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.10.0] — 2026-06-20 — Remove lucide-icons iced feature from orbok-ui; snora 0.25 + Snora Design system
+
+### Changed
+
+**`lucide-icons` in `orbok-ui` no longer uses the `iced` feature.**
+
+snora 0.18.1 fixed a latent bug: `lucide_icons::iced::icon_*()` functions
+call `Icon::widget()` which returns `iced::widget::Text` typed against
+lucide-icons' own `iced_core` version. When `iced_core` appears in the graph
+from multiple crates, this causes type-parameter mismatches. The fix is to
+call `char::from(icon)` and construct the Text widget from the glyph character
+directly — which is exactly what snora's `icon_element_sized` now does.
+
+**What changed in orbok-ui:**
+
+`lucide-icons = { version = "1", features = ["iced"] }` → `lucide-icons = "1"`
+
+The `iced` feature is dropped from orbok-ui's explicit request. Cargo still
+compiles it (snora's `lucide-icons` feature requests it), but orbok-ui no
+longer uses the `iced` module's `icon_*()` functions.
+
+A new private `icon_text(variant, size)` helper in `views.rs` and
+`views/wizard.rs` replicates snora's technique:
+
+```rust
+fn icon_text<'a>(variant: lucide_icons::Icon, size: f32) -> iced::widget::Text<'a> {
+    iced::widget::text(char::from(variant).to_string())
+        .font(iced::Font::with_name("lucide"))
+        .size(size)
+}
+```
+
+All twelve `icons::icon_*()` call sites have been replaced with
+`icon_text(lucide_icons::Icon::VariantName, size)`.
+
+`LUCIDE_FONT_BYTES` and `lucide_icons::Icon` (used in `shell.rs` for the
+sidebar) are still available from the base crate without the `iced` feature.
+
+The icon_text helper signature was also tightened. Instead of taking
+`lucide_icons::Icon` by value:
+
+```rust
+// Before
+fn icon_text<'a>(variant: lucide_icons::Icon, size: f32) -> iced::widget::Text<'a>
+// Called as: icon_text(lucide_icons::Icon::Search, 13.0)
+
+// After
+fn icon_text<'a>(glyph: char, size: f32) -> iced::widget::Text<'a>
+// Called as: icon_text(char::from(snora::lucide::Search), 13.0)
+```
+
+`snora::lucide::*` re-exports `lucide_icons::Icon::*` (all 1716 variants)
+so `snora::lucide::Search` names the variant without requiring the caller
+to mention `lucide_icons::Icon` at all. The `From<Icon> for char` impl is
+in the base crate (no iced feature needed).
+
+`shell.rs` similarly replaced `use lucide_icons::Icon as LucideIcon` with
+`use snora::lucide` and `Icon::Lucide(lucide::Search)` etc.
+
+After these changes, the **only** remaining direct use of `lucide_icons::` in
+orbok-ui is:
+
+```rust
+// crates/ui/src/lib.rs
+pub use lucide_icons::LUCIDE_FONT_BYTES;
+```
+
+This is the single reason orbok-ui still needs a direct `lucide-icons` dep.
+If snora re-exported `LUCIDE_FONT_BYTES`, the dep could be dropped entirely
+and snora would become the sole gateway to lucide-icons for all consumers.
+
+**`snora` upgraded: 0.18.1 → 0.18.3** (includes 0.18.2 doc fixes)
+
+snora 0.18.2 fixed doc examples (no API changes). snora 0.18.3 adds
+`LUCIDE_FONT_BYTES` to its `lucide` re-export module. The constant is
+now at `snora::lucide::LUCIDE_FONT_BYTES` alongside the icon variants.
+
+With this, **`lucide-icons` has been removed from `orbok-ui`'s
+`[dependencies]` entirely.** `snora` is now the sole gateway to the
+lucide icon set for all orbok-ui consumers:
+
+```toml
+# crates/ui/Cargo.toml — after
+snora = { workspace = true, features = ["lucide-icons"] }
+# lucide-icons: no direct dep needed
+```
+
+`orbok-ui/src/lib.rs` re-export updated:
+```rust
+// before: pub use lucide_icons::LUCIDE_FONT_BYTES;
+pub use snora::lucide::LUCIDE_FONT_BYTES;  // after
+```
+
+The full migration from the start of v0.9.16:
+
+| Symbol | Before | After |
+|---|---|---|
+| Font bytes | `lucide_icons::LUCIDE_FONT_BYTES` | `snora::lucide::LUCIDE_FONT_BYTES` |
+| Icon variants | `lucide_icons::Icon::Search` | `snora::lucide::Search` |
+| Icon rendering | `lucide_icons::iced::icon_search()` | `icon_text(char::from(lucide::Search), sz)` |
+| Type name | `lucide_icons::Icon` | not needed (char-based helper) |
+
+
+**`crates/data/catalog/` renamed to `crates/data/db/`** so the directory name
+matches the crate it contains (`orbok-db`). The other two crates in
+`crates/data/` are already consistent (`cache/` → `orbok-cache`,
+`fs/` → `orbok-fs`). Two references updated in root `Cargo.toml`; one line
+in `architecture.md`. No source files or crate names changed.
+
+### Added — snora 0.25 + Snora Design system
+
+**snora upgraded: 0.18.3 → 0.25.0** (seven minor versions). All breaking
+changes in 0.19–0.25 assessed against orbok's usage; the only one
+(v0.24 `Palette::roles()` → `#[cfg(test)] pub(crate)`) does not affect orbok.
+The version bump alone required zero source changes. iced remains `"0.14"`.
+
+**`design` feature enabled** on orbok-ui's snora dependency, adopting the
+Snora Design token system:
+
+- **High-contrast accessibility mode.** `AppState` carries a
+  `snora::design::Tokens` preset and `high_contrast: bool`. A new
+  Settings → Accessibility toggle (`ToggleHighContrast`) swaps between
+  `Tokens::light()` and `Tokens::high_contrast_light()`, whose contrast
+  ratios are WCAG-AA-verified by snora-design's automated tests. New EN/JA
+  i18n keys.
+- **Notices render via `snora::design::notice::Notice`.** `friendly_notice`
+  was rewritten to use the design primitive's tone-driven, contrast-verified
+  colors and keyboard-reachable action/dismiss controls. The `UserNotice`
+  domain enum is unchanged (still owns semantics + i18n) and gained a
+  `tone()` method: Danger for hard failures, Warning for cautions, Success
+  for positive confirmations, Info for neutral. This replaces orbok's
+  hand-rolled notice card, cleanly separating domain meaning from accessible
+  presentation.
+
+Future incremental adoption (deferred): `chip::filter` for result badges,
+`card::surface`/`selected` for result cards, `progress::row`/`card` for
+download/indexing UI, `button::*` helpers. This release establishes the token
+foundation and migrates the highest-value accessibility surface first.
+
+
+### Tests
+**205 tests / 0 failures** (189 non-GUI + 16 orbok-ui, incl. 2 new design
+migration tests: tone mapping and high-contrast preset swap).
+
+---
+
 ## [0.9.14] — 2026-06-10 — Remove lucide-icons iced feature from orbok-ui
 
 ### Changed

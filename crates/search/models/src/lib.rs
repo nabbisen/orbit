@@ -187,10 +187,7 @@ impl EmbeddingModel for MockEmbeddingModel {
             .iter()
             .map(|text| {
                 let digest = Sha256::digest(text.as_bytes());
-                let mut v: Vec<f32> = digest[..8]
-                    .iter()
-                    .map(|&b| b as f32 / 255.0)
-                    .collect();
+                let mut v: Vec<f32> = digest[..8].iter().map(|&b| b as f32 / 255.0).collect();
                 l2_normalize(&mut v);
                 Ok(v)
             })
@@ -223,7 +220,10 @@ mod embedding_tests {
         for (a, b) in v.iter().zip(&back) {
             assert!((a - b).abs() < 1e-6);
         }
-        assert!(blob_to_vec(&blob, 16).is_none(), "dim mismatch must return None");
+        assert!(
+            blob_to_vec(&blob, 16).is_none(),
+            "dim mismatch must return None"
+        );
     }
 
     // L2 normalization: unit-length vectors.
@@ -271,8 +271,11 @@ pub trait CrossEncoderReranker: Send + Sync {
     fn version(&self) -> &str;
     /// Maximum candidates to rerank (RFC-010 §9 top-N limit).
     fn max_candidates(&self) -> u32;
-    fn rerank(&self, query: &str, candidates: &[RerankCandidate])
-        -> orbok_core::OrbokResult<Vec<RerankScore>>;
+    fn rerank(
+        &self,
+        query: &str,
+        candidates: &[RerankCandidate],
+    ) -> orbok_core::OrbokResult<Vec<RerankScore>>;
 }
 
 /// Deterministic mock reranker: scores by passage length (longer = more
@@ -280,9 +283,15 @@ pub trait CrossEncoderReranker: Send + Sync {
 pub struct MockReranker;
 
 impl CrossEncoderReranker for MockReranker {
-    fn name(&self) -> &str { "mock-reranker" }
-    fn version(&self) -> &str { "v1" }
-    fn max_candidates(&self) -> u32 { 20 }
+    fn name(&self) -> &str {
+        "mock-reranker"
+    }
+    fn version(&self) -> &str {
+        "v1"
+    }
+    fn max_candidates(&self) -> u32 {
+        20
+    }
     fn rerank(
         &self,
         _query: &str,
@@ -295,7 +304,11 @@ impl CrossEncoderReranker for MockReranker {
                 score: c.passage_text.len() as f32,
             })
             .collect();
-        scores.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        scores.sort_by(|a, b| {
+            b.score
+                .partial_cmp(&a.score)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
         Ok(scores)
     }
 }
@@ -310,11 +323,21 @@ mod reranker_tests {
     fn mock_reranker_orders_by_length() {
         let r = MockReranker;
         let candidates = vec![
-            RerankCandidate { chunk_id: ChunkId::from_string("c1".to_string()), passage_text: "short".into() },
-            RerankCandidate { chunk_id: ChunkId::from_string("c2".to_string()), passage_text: "a much longer passage".into() },
+            RerankCandidate {
+                chunk_id: ChunkId::from_string("c1".to_string()),
+                passage_text: "short".into(),
+            },
+            RerankCandidate {
+                chunk_id: ChunkId::from_string("c2".to_string()),
+                passage_text: "a much longer passage".into(),
+            },
         ];
         let scores = r.rerank("query", &candidates).unwrap();
-        assert_eq!(scores[0].chunk_id.as_str(), "c2", "longer passage should rank first");
+        assert_eq!(
+            scores[0].chunk_id.as_str(),
+            "c2",
+            "longer passage should rank first"
+        );
     }
 
     // RFC-010 §20: missing reranker does not break search.
@@ -466,16 +489,17 @@ mod quantization_tests {
     // RFC-024 AC: Quality loss measured (cosine sim error < 0.02 for normalised vectors).
     #[test]
     fn quantization_quality_loss_is_small() {
-        let mut v: Vec<f32> = (0..384)
-            .map(|i| ((i as f32 * 0.017).sin()))
-            .collect();
+        let mut v: Vec<f32> = (0..384).map(|i| ((i as f32 * 0.017).sin())).collect();
         l2_normalize(&mut v);
         let q = quantize_to_i8(&v);
         let original_self_sim = cosine_similarity(&v, &v);
         let quantized_self_sim = cosine_similarity_i8(&q, &q);
         // After dequantize, self-sim should still be ~1.0.
-        assert!((quantized_self_sim - original_self_sim).abs() < 0.02,
-            "quantization quality loss too high: {:.4}", (quantized_self_sim - original_self_sim).abs());
+        assert!(
+            (quantized_self_sim - original_self_sim).abs() < 0.02,
+            "quantization quality loss too high: {:.4}",
+            (quantized_self_sim - original_self_sim).abs()
+        );
     }
 
     // RFC-024 AC: Vector format migration defined (FP32 ↔ INT8 round-trip).
@@ -486,8 +510,10 @@ mod quantization_tests {
         let quantized = quantize_to_i8(&v);
         let dequantized = dequantize_from_i8(&quantized);
         for (orig, deq) in v.iter().zip(&dequantized) {
-            assert!((orig - deq).abs() < 0.01,
-                "round-trip error too large: {orig:.4} → {deq:.4}");
+            assert!(
+                (orig - deq).abs() < 0.01,
+                "round-trip error too large: {orig:.4} → {deq:.4}"
+            );
         }
     }
 }

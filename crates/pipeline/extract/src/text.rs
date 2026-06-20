@@ -63,7 +63,12 @@ pub(crate) fn segment_paragraphs(normalized: &str) -> Vec<ExtractedSegment> {
     for (idx, line) in normalized.lines().enumerate() {
         let line_no = idx as u32 + 1;
         if line.trim().is_empty() {
-            flush(&mut segments, &mut current, start_line, line_no.saturating_sub(1));
+            flush(
+                &mut segments,
+                &mut current,
+                start_line,
+                line_no.saturating_sub(1),
+            );
         } else {
             if current.is_empty() {
                 start_line = line_no;
@@ -76,12 +81,7 @@ pub(crate) fn segment_paragraphs(normalized: &str) -> Vec<ExtractedSegment> {
     segments
 }
 
-fn flush(
-    segments: &mut Vec<ExtractedSegment>,
-    current: &mut Vec<&str>,
-    start: u32,
-    end: u32,
-) {
+fn flush(segments: &mut Vec<ExtractedSegment>, current: &mut Vec<&str>, start: u32, end: u32) {
     if current.is_empty() {
         return;
     }

@@ -49,10 +49,16 @@ fn new_file(src: &orbok_core::SourceId, path: &str) -> NewFile {
 #[test]
 fn migrations_apply_from_empty_and_are_idempotent() {
     let catalog = Catalog::open_in_memory().unwrap();
-    assert_eq!(catalog.schema_version().unwrap(), migrations::latest_version());
+    assert_eq!(
+        catalog.schema_version().unwrap(),
+        migrations::latest_version()
+    );
     // Re-running is a no-op.
     migrations::run_pending(&catalog).unwrap();
-    assert_eq!(catalog.schema_version().unwrap(), migrations::latest_version());
+    assert_eq!(
+        catalog.schema_version().unwrap(),
+        migrations::latest_version()
+    );
 }
 
 // RFC-007 §8.1 depends on FTS5 in the bundled SQLite build.
@@ -89,30 +95,48 @@ fn foreign_keys_are_enforced() {
 #[test]
 fn duplicate_file_path_within_source_rejected() {
     let catalog = Catalog::open_in_memory().unwrap();
-    let src = SourceRepository::new(&catalog).insert(new_source("/docs")).unwrap();
+    let src = SourceRepository::new(&catalog)
+        .insert(new_source("/docs"))
+        .unwrap();
     let files = FileRepository::new(&catalog);
-    files.insert(new_file(&src.source_id, "/docs/a.md")).unwrap();
-    assert!(files.insert(new_file(&src.source_id, "/docs/a.md")).is_err());
+    files
+        .insert(new_file(&src.source_id, "/docs/a.md"))
+        .unwrap();
+    assert!(
+        files
+            .insert(new_file(&src.source_id, "/docs/a.md"))
+            .is_err()
+    );
 }
 
 // RFC-002 §12: "File status updates" + RFC-004 §11 missing-marking.
 #[test]
 fn file_status_transitions_and_missing_marking() {
     let catalog = Catalog::open_in_memory().unwrap();
-    let src = SourceRepository::new(&catalog).insert(new_source("/docs")).unwrap();
+    let src = SourceRepository::new(&catalog)
+        .insert(new_source("/docs"))
+        .unwrap();
     let files = FileRepository::new(&catalog);
-    let f = files.insert(new_file(&src.source_id, "/docs/a.md")).unwrap();
+    let f = files
+        .insert(new_file(&src.source_id, "/docs/a.md"))
+        .unwrap();
     assert_eq!(f.file_status, FileStatus::Discovered);
 
     files.set_status(&f.file_id, FileStatus::Indexed).unwrap();
-    let got = files.get_by_path(&src.source_id, "/docs/a.md").unwrap().unwrap();
+    let got = files
+        .get_by_path(&src.source_id, "/docs/a.md")
+        .unwrap()
+        .unwrap();
     assert_eq!(got.file_status, FileStatus::Indexed);
 
     // Unseen since a future cutoff -> missing, never deleted.
     let cutoff = "9999-01-01T00:00:00Z";
     let n = files.mark_missing_unseen(&src.source_id, cutoff).unwrap();
     assert_eq!(n, 1);
-    let got = files.get_by_path(&src.source_id, "/docs/a.md").unwrap().unwrap();
+    let got = files
+        .get_by_path(&src.source_id, "/docs/a.md")
+        .unwrap()
+        .unwrap();
     assert_eq!(got.file_status, FileStatus::Missing);
 
     // Idempotent: already-missing files are not re-marked.
@@ -170,7 +194,9 @@ fn reset_catalog_clears_rows_optionally_keeping_settings() {
     settings.set("ui.locale", &"en").unwrap();
 
     let plan = CleanupPlan::for_action(CleanupAction::ResetCatalog, 0);
-    CleanupExecutor::new(&catalog).run_reset_catalog(&plan, true).unwrap();
+    CleanupExecutor::new(&catalog)
+        .run_reset_catalog(&plan, true)
+        .unwrap();
 
     assert!(sources.list().unwrap().is_empty());
     assert_eq!(settings.get::<String>("ui.locale").unwrap().unwrap(), "en");
@@ -183,10 +209,17 @@ fn source_delete_cascades_to_files() {
     let sources = SourceRepository::new(&catalog);
     let files = FileRepository::new(&catalog);
     let src = sources.insert(new_source("/docs")).unwrap();
-    files.insert(new_file(&src.source_id, "/docs/a.md")).unwrap();
+    files
+        .insert(new_file(&src.source_id, "/docs/a.md"))
+        .unwrap();
 
     sources.delete_with_all_data(&src.source_id).unwrap();
-    assert!(files.get_by_path(&src.source_id, "/docs/a.md").unwrap().is_none());
+    assert!(
+        files
+            .get_by_path(&src.source_id, "/docs/a.md")
+            .unwrap()
+            .is_none()
+    );
 }
 
 #[test]
@@ -194,22 +227,35 @@ fn source_status_and_scan_touch() {
     let catalog = Catalog::open_in_memory().unwrap();
     let sources = SourceRepository::new(&catalog);
     let src = sources.insert(new_source("/docs")).unwrap();
-    sources.set_status(&src.source_id, SourceStatus::Paused).unwrap();
+    sources
+        .set_status(&src.source_id, SourceStatus::Paused)
+        .unwrap();
     assert_eq!(
         sources.get(&src.source_id).unwrap().unwrap().status,
         SourceStatus::Paused
     );
     assert!(sources.list_active().unwrap().is_empty());
     sources.touch_scanned(&src.source_id).unwrap();
-    assert!(sources.get(&src.source_id).unwrap().unwrap().last_scanned_at.is_some());
+    assert!(
+        sources
+            .get(&src.source_id)
+            .unwrap()
+            .unwrap()
+            .last_scanned_at
+            .is_some()
+    );
 }
 
 #[test]
 fn job_queue_round_trip() {
     let catalog = Catalog::open_in_memory().unwrap();
-    let src = SourceRepository::new(&catalog).insert(new_source("/docs")).unwrap();
+    let src = SourceRepository::new(&catalog)
+        .insert(new_source("/docs"))
+        .unwrap();
     let jobs = IndexJobRepository::new(&catalog);
-    let id = jobs.enqueue(JobType::Extract, Some(&src.source_id), None).unwrap();
+    let id = jobs
+        .enqueue(JobType::Extract, Some(&src.source_id), None)
+        .unwrap();
     assert_eq!(jobs.list_queued(10).unwrap().len(), 1);
     jobs.set_status(&id, JobStatus::Running).unwrap();
     jobs.set_status(&id, JobStatus::Succeeded).unwrap();
@@ -223,8 +269,12 @@ fn job_queue_round_trip() {
 fn storage_accounting_round_trip() {
     let catalog = Catalog::open_in_memory().unwrap();
     let storage = StorageAccountingRepository::new(&catalog);
-    storage.upsert(StorageCategory::KeywordIndex, 2048, 12).unwrap();
-    storage.upsert(StorageCategory::KeywordIndex, 4096, 24).unwrap();
+    storage
+        .upsert(StorageCategory::KeywordIndex, 2048, 12)
+        .unwrap();
+    storage
+        .upsert(StorageCategory::KeywordIndex, 4096, 24)
+        .unwrap();
     let rows = storage.all().unwrap();
     assert_eq!(rows.len(), 1);
     assert_eq!(rows[0].size_bytes, 4096);
@@ -235,7 +285,9 @@ fn storage_accounting_round_trip() {
 fn events_append_and_read() {
     let catalog = Catalog::open_in_memory().unwrap();
     let events = EventRepository::new(&catalog);
-    events.append("scan_completed", Severity::Info, "scan ok", None).unwrap();
+    events
+        .append("scan_completed", Severity::Info, "scan ok", None)
+        .unwrap();
     let recent = events.recent(5).unwrap();
     assert_eq!(recent.len(), 1);
     assert_eq!(recent[0].0, "scan_completed");
@@ -246,10 +298,20 @@ fn events_append_and_read() {
 fn settings_typed_round_trip() {
     let catalog = Catalog::open_in_memory().unwrap();
     let settings = SettingsRepository::new(&catalog);
-    assert!(settings.get::<u64>("storage.cache_limit_bytes").unwrap().is_none());
-    settings.set("storage.cache_limit_bytes", &(8u64 * 1024 * 1024 * 1024)).unwrap();
+    assert!(
+        settings
+            .get::<u64>("storage.cache_limit_bytes")
+            .unwrap()
+            .is_none()
+    );
+    settings
+        .set("storage.cache_limit_bytes", &(8u64 * 1024 * 1024 * 1024))
+        .unwrap();
     assert_eq!(
-        settings.get::<u64>("storage.cache_limit_bytes").unwrap().unwrap(),
+        settings
+            .get::<u64>("storage.cache_limit_bytes")
+            .unwrap()
+            .unwrap(),
         8 * 1024 * 1024 * 1024
     );
 }
@@ -261,7 +323,9 @@ fn catalog_persists_to_file() {
     let path = dir.path().join("orbok-catalog.sqlite3");
     {
         let catalog = Catalog::open(&path).unwrap();
-        SourceRepository::new(&catalog).insert(new_source("/docs")).unwrap();
+        SourceRepository::new(&catalog)
+            .insert(new_source("/docs"))
+            .unwrap();
     }
     let catalog = Catalog::open(&path).unwrap();
     assert_eq!(SourceRepository::new(&catalog).list().unwrap().len(), 1);

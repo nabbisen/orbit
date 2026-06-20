@@ -4,9 +4,9 @@
 //! enriches each with file path, heading context, and a dynamically
 //! loaded snippet, and returns a `Vec<SearchResult>` ordered by rank.
 
+use crate::KeywordSearchEngine;
 use crate::fts5::Fts5KeywordEngine;
 use crate::snippet::{chunk_record_for, load_snippet};
-use crate::KeywordSearchEngine;
 use orbok_core::{ChunkId, FileId, OrbokResult};
 use orbok_db::Catalog;
 
@@ -14,8 +14,8 @@ use orbok_db::Catalog;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MatchBadge {
     Keyword,
-    Semantic,   // placeholder — M7
-    Reranked,   // placeholder — M11
+    Semantic, // placeholder — M7
+    Reranked, // placeholder — M11
     SourceStale,
 }
 
@@ -62,12 +62,8 @@ impl<'a> SearchService<'a> {
         Ok(results)
     }
 
-    fn enrich(
-        &self,
-        candidate: crate::KeywordCandidate,
-    ) -> OrbokResult<Option<SearchResult>> {
-        let Some((chunk, canonical_path)) =
-            chunk_record_for(self.catalog, &candidate.chunk_id)?
+    fn enrich(&self, candidate: crate::KeywordCandidate) -> OrbokResult<Option<SearchResult>> {
+        let Some((chunk, canonical_path)) = chunk_record_for(self.catalog, &candidate.chunk_id)?
         else {
             return Ok(None);
         };

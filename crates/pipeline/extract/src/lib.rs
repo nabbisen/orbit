@@ -13,16 +13,14 @@ pub mod types;
 pub mod docx;
 pub mod html;
 mod markdown;
-pub mod plugin;
 pub mod pdf;
+pub mod plugin;
 mod text;
 
 #[cfg(test)]
 mod tests;
 
-pub use registry::ExtractorRegistry;
 pub use chunker::chunk;
 pub use plugin::{PluginManifest, PluginRegistry};
-pub use types::{
-    DocumentExtractor, ExtractOutput, ExtractedSegment, LocationQuality, SegmentKind,
-};
+pub use registry::ExtractorRegistry;
+pub use types::{DocumentExtractor, ExtractOutput, ExtractedSegment, LocationQuality, SegmentKind};

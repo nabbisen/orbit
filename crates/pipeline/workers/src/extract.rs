@@ -3,9 +3,9 @@
 //! extraction_record. On success, queues a Chunk job.
 
 use orbok_cache::{CacheService, EngineOptions, OrbokCacheNamespace};
+use orbok_core::ExtractionId;
 use orbok_core::{ErrorCategory, FileId, JobType, OrbokError, OrbokResult, now_iso8601};
 use orbok_db::Catalog;
-use orbok_core::ExtractionId;
 use orbok_db::repo::{FileRepository, IndexJobRepository, SourceRepository};
 use orbok_extract::{ExtractOutput, ExtractorRegistry};
 use orbok_fs::{GuardedSource, PathGuard};
@@ -32,9 +32,7 @@ impl<'a> ExtractionWorker<'a> {
     /// a catalog record.
     pub fn run(&self, file_id: &FileId) -> OrbokResult<()> {
         let files = FileRepository::new(self.catalog);
-        let record = files
-            .get_by_id(file_id)?
-            .ok_or(OrbokError::FileNotFound)?;
+        let record = files.get_by_id(file_id)?.ok_or(OrbokError::FileNotFound)?;
         let sources = SourceRepository::new(self.catalog);
         let source = sources
             .get(&record.source_id)?

@@ -7,8 +7,10 @@ use crate::state::{AppState, Message, NavGroup, ViewId};
 use crate::views;
 use iced::Element;
 use snora::lucide;
-use snora::{AppLayout, Icon, LayoutDirection, SideBar, SideBarItem, Tab, TabBar, render,
-            widget::{app_side_bar, app_tab_bar}};
+use snora::{
+    AppLayout, Icon, LayoutDirection, SideBar, SideBarItem, Tab, TabBar, render,
+    widget::{app_side_bar, app_tab_bar},
+};
 
 fn tab_action_to_msg(action: snora::TabAction<ViewId>) -> Message {
     let snora::TabAction::Pressed(id) = action;
@@ -76,45 +78,58 @@ impl OrbokApp {
         );
 
         // ── Tab bar: sub-views within the active group ─────────────────
-        let tab_bar_el: Option<Element<'_, Message>> =
-            match self.state.active_view.group() {
-                NavGroup::Search => {
-                    Some(build_tab_bar(
-                        vec![
-                            Tab { id: ViewId::Search,  label: tr(locale, MessageKey::NavSearch).to_string(),  icon: None },
-                            Tab { id: ViewId::Sources, label: tr(locale, MessageKey::NavSources).to_string(), icon: None },
-                        ],
-                        self.state.active_view,
-                    ))
-                }
-                NavGroup::Ai => {
-                    Some(build_tab_bar(
-                        vec![
-                            Tab { id: ViewId::Indexing, label: tr(locale, MessageKey::NavIndexing).to_string(), icon: None },
-                            Tab { id: ViewId::Storage,  label: tr(locale, MessageKey::NavStorage).to_string(),  icon: None },
-                            Tab { id: ViewId::Models,   label: tr(locale, MessageKey::NavModels).to_string(),   icon: None },
-                        ],
-                        self.state.active_view,
-                    ))
-                }
-                NavGroup::Settings => None,
-            };
+        let tab_bar_el: Option<Element<'_, Message>> = match self.state.active_view.group() {
+            NavGroup::Search => Some(build_tab_bar(
+                vec![
+                    Tab {
+                        id: ViewId::Search,
+                        label: tr(locale, MessageKey::NavSearch).to_string(),
+                        icon: None,
+                    },
+                    Tab {
+                        id: ViewId::Sources,
+                        label: tr(locale, MessageKey::NavSources).to_string(),
+                        icon: None,
+                    },
+                ],
+                self.state.active_view,
+            )),
+            NavGroup::Ai => Some(build_tab_bar(
+                vec![
+                    Tab {
+                        id: ViewId::Indexing,
+                        label: tr(locale, MessageKey::NavIndexing).to_string(),
+                        icon: None,
+                    },
+                    Tab {
+                        id: ViewId::Storage,
+                        label: tr(locale, MessageKey::NavStorage).to_string(),
+                        icon: None,
+                    },
+                    Tab {
+                        id: ViewId::Models,
+                        label: tr(locale, MessageKey::NavModels).to_string(),
+                        icon: None,
+                    },
+                ],
+                self.state.active_view,
+            )),
+            NavGroup::Settings => None,
+        };
 
         // ── Active page body ───────────────────────────────────────────
         let page_body = match self.state.active_view {
-            ViewId::Search   => views::search_view(&self.state),
-            ViewId::Sources  => views::sources_view(&self.state),
+            ViewId::Search => views::search_view(&self.state),
+            ViewId::Sources => views::sources_view(&self.state),
             ViewId::Indexing => views::indexing_view(&self.state),
-            ViewId::Storage  => views::storage_view(&self.state),
-            ViewId::Models   => views::models_view(&self.state),
+            ViewId::Storage => views::storage_view(&self.state),
+            ViewId::Models => views::models_view(&self.state),
             ViewId::Settings => views::settings_view(&self.state),
         };
 
         // Compose: tab bar (if any) stacked above the page body.
         let body: Element<'_, Message> = if let Some(tabs) = tab_bar_el {
-            iced::widget::column![tabs, page_body]
-                .spacing(0)
-                .into()
+            iced::widget::column![tabs, page_body].spacing(0).into()
         } else {
             page_body
         };

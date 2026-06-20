@@ -37,10 +37,10 @@
 //! extractor does not attempt character-encoding conversion in v0.7.
 
 use crate::normalize::normalize_document as normalize_text;
-use orbok_core::versions::NORMALIZATION_VERSION;
 use crate::types::{
     DocumentExtractor, ExtractOutput, ExtractedSegment, LocationQuality, SegmentKind,
 };
+use orbok_core::versions::NORMALIZATION_VERSION;
 use orbok_core::{ErrorCategory, OrbokError, OrbokResult};
 use orbok_fs::ValidatedPath;
 
@@ -65,13 +65,12 @@ impl DocumentExtractor for PdfExtractor {
 
     fn extract(&self, path: &ValidatedPath) -> OrbokResult<ExtractOutput> {
         let doc = lopdf::Document::load(&path.canonical).map_err(|e| {
-            let category = if e.to_string().contains("password")
-                || e.to_string().contains("encrypt")
-            {
-                ErrorCategory::EncryptedDocument
-            } else {
-                ErrorCategory::ParserError
-            };
+            let category =
+                if e.to_string().contains("password") || e.to_string().contains("encrypt") {
+                    ErrorCategory::EncryptedDocument
+                } else {
+                    ErrorCategory::ParserError
+                };
             OrbokError::Extraction {
                 category,
                 message: format!("lopdf: {e}"),
@@ -127,11 +126,7 @@ impl DocumentExtractor for PdfExtractor {
 /// lopdf's `extract_text` returns a `Result<String>`. Errors are
 /// swallowed per RFC-005 §13 (failure isolation: one page failure must
 /// not stop extraction of the whole document).
-fn extract_page_text(
-    doc: &lopdf::Document,
-    obj_id: u32,
-    _page_num: u32,
-) -> OrbokResult<String> {
+fn extract_page_text(doc: &lopdf::Document, obj_id: u32, _page_num: u32) -> OrbokResult<String> {
     match doc.extract_text(&[obj_id]) {
         Ok(text) => Ok(text),
         Err(_) => Ok(String::new()), // page-level failure isolation

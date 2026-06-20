@@ -23,15 +23,15 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    tracing_subscriber::fmt()
-        .with_env_filter("warn")
-        .init();
+    tracing_subscriber::fmt().with_env_filter("warn").init();
 
     let args: Vec<String> = std::env::args().collect();
-    let n_docs: usize = args.get(1)
-        .and_then(|s| s.parse().ok())
-        .unwrap_or(100);
-    let out_dir = PathBuf::from(args.get(2).map(|s| s.as_str()).unwrap_or("orbok-bench-output"));
+    let n_docs: usize = args.get(1).and_then(|s| s.parse().ok()).unwrap_or(100);
+    let out_dir = PathBuf::from(
+        args.get(2)
+            .map(|s| s.as_str())
+            .unwrap_or("orbok-bench-output"),
+    );
     std::fs::create_dir_all(&out_dir)?;
 
     eprintln!("orbok-bench: generating {n_docs} synthetic documents…");
@@ -46,7 +46,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         use orbok_core::{HiddenFilePolicy, IndexMode, PersistenceMode, SourceType, SymlinkPolicy};
         use orbok_db::repo::{NewSource, SourceRepository};
-        let root = std::fs::canonicalize(work_dir.path())?.to_string_lossy().to_string();
+        let root = std::fs::canonicalize(work_dir.path())?
+            .to_string_lossy()
+            .to_string();
         SourceRepository::new(&catalog).insert(NewSource {
             source_type: SourceType::Directory,
             persistence_mode: PersistenceMode::Persistent,

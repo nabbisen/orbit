@@ -151,11 +151,16 @@ impl<'a> EmbeddingRepository<'a> {
              VALUES (?1,?2,?3,'int8',?4,'l2','sqlite_blob',?5,'active',?6,?6) \
              ON CONFLICT(chunk_id, model_id, vector_format) DO UPDATE SET \
              vector_blob=?5, status='active', updated_at=?6",
-            rusqlite::params![id.as_str(), chunk_id.as_str(), model_id.as_str(),
-                              dimension as i64, blob, now],
+            rusqlite::params![
+                id.as_str(),
+                chunk_id.as_str(),
+                model_id.as_str(),
+                dimension as i64,
+                blob,
+                now
+            ],
         )
         .map_err(crate::catalog::db_err)?;
         Ok(())
     }
-
 }

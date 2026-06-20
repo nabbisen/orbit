@@ -44,19 +44,33 @@ pub fn update_storage_accounting(
             .unwrap_or(4096);
         (pages * page_size) as u64
     } else {
-        std::fs::metadata(catalog_path).map(|m| m.len()).unwrap_or(0)
+        std::fs::metadata(catalog_path)
+            .map(|m| m.len())
+            .unwrap_or(0)
     };
     // Source count for "items"
     let source_count: i64 = conn
-        .query_row("SELECT COUNT(*) FROM sources WHERE status != 'removed'", [], |r| r.get(0))
+        .query_row(
+            "SELECT COUNT(*) FROM sources WHERE status != 'removed'",
+            [],
+            |r| r.get(0),
+        )
         .unwrap_or(0);
     drop(conn); // release before re-acquiring below
-    measure!(StorageCategory::PersistentCatalog, catalog_bytes, source_count as u64);
+    measure!(
+        StorageCategory::PersistentCatalog,
+        catalog_bytes,
+        source_count as u64
+    );
 
     // Keyword index: row count from keyword_index_records.
     let conn = catalog.lock();
     let kw_count: i64 = conn
-        .query_row("SELECT COUNT(*) FROM keyword_index_records WHERE status='active'", [], |r| r.get(0))
+        .query_row(
+            "SELECT COUNT(*) FROM keyword_index_records WHERE status='active'",
+            [],
+            |r| r.get(0),
+        )
         .unwrap_or(0);
     // Approximate size: 256 bytes per token record (FTS overhead).
     let kw_bytes = kw_count as u64 * 256;
@@ -73,7 +87,11 @@ pub fn update_storage_accounting(
         )
         .unwrap_or((0, 0));
     drop(conn);
-    measure!(StorageCategory::VectorIndex, emb_bytes as u64, emb_count as u64);
+    measure!(
+        StorageCategory::VectorIndex,
+        emb_bytes as u64,
+        emb_count as u64
+    );
 
     // Snippet cache: stored size_bytes column.
     let conn = catalog.lock();
@@ -85,7 +103,11 @@ pub fn update_storage_accounting(
         )
         .unwrap_or((0, 0));
     drop(conn);
-    measure!(StorageCategory::SnippetCache, snip_bytes as u64, snip_count as u64);
+    measure!(
+        StorageCategory::SnippetCache,
+        snip_bytes as u64,
+        snip_count as u64
+    );
 
     // Search cache: row count (size unknown; estimate 512 bytes each).
     let conn = catalog.lock();
@@ -93,7 +115,11 @@ pub fn update_storage_accounting(
         .query_row("SELECT COUNT(*) FROM search_result_cache", [], |r| r.get(0))
         .unwrap_or(0);
     drop(conn);
-    measure!(StorageCategory::SearchCache, sr_count as u64 * 512, sr_count as u64);
+    measure!(
+        StorageCategory::SearchCache,
+        sr_count as u64 * 512,
+        sr_count as u64
+    );
 
     // Temporary extraction: localcache DB file size.
     let cache_bytes = std::fs::metadata(cache_db_path)
@@ -101,10 +127,18 @@ pub fn update_storage_accounting(
         .unwrap_or(0);
     let conn = catalog.lock();
     let extract_count: i64 = conn
-        .query_row("SELECT COUNT(*) FROM extraction_records WHERE status='succeeded'", [], |r| r.get(0))
+        .query_row(
+            "SELECT COUNT(*) FROM extraction_records WHERE status='succeeded'",
+            [],
+            |r| r.get(0),
+        )
         .unwrap_or(0);
     drop(conn);
-    measure!(StorageCategory::TemporaryExtraction, cache_bytes, extract_count as u64);
+    measure!(
+        StorageCategory::TemporaryExtraction,
+        cache_bytes,
+        extract_count as u64
+    );
 
     // Logs: app_events row estimate.
     let conn = catalog.lock();
@@ -112,7 +146,11 @@ pub fn update_storage_accounting(
         .query_row("SELECT COUNT(*) FROM app_events", [], |r| r.get(0))
         .unwrap_or(0);
     drop(conn);
-    measure!(StorageCategory::Logs, evt_count as u64 * 256, evt_count as u64);
+    measure!(
+        StorageCategory::Logs,
+        evt_count as u64 * 256,
+        evt_count as u64
+    );
 
     // Model files: not tracked in v0.4 (full workflow lands in M12).
     measure!(StorageCategory::ModelFiles, 0, 0);

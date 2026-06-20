@@ -25,9 +25,7 @@ impl<'a> ChunkAndIndexWorker<'a> {
     /// Load the extraction cache for a file, chunk, and index.
     pub fn run(&self, file_id: &FileId) -> OrbokResult<()> {
         let files = FileRepository::new(self.catalog);
-        let record = files
-            .get_by_id(file_id)?
-            .ok_or(OrbokError::FileNotFound)?;
+        let record = files.get_by_id(file_id)?.ok_or(OrbokError::FileNotFound)?;
         let sources = SourceRepository::new(self.catalog);
         let source = sources
             .get(&record.source_id)?

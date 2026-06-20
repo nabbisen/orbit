@@ -51,7 +51,11 @@ impl BenchmarkResult {
             self.n_docs,
             self.corpus_bytes as f64 / 1024.0,
             self.catalog_bytes as f64 / 1024.0,
-            if self.n_docs > 0 { self.catalog_bytes as f64 / self.n_docs as f64 } else { 0.0 },
+            if self.n_docs > 0 {
+                self.catalog_bytes as f64 / self.n_docs as f64
+            } else {
+                0.0
+            },
             self.index_elapsed_ms,
             self.indexing_files_per_sec,
             self.search_latency_ms.p50_ms,

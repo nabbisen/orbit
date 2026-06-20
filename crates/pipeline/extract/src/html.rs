@@ -21,9 +21,15 @@ const EXTRACTOR_VERSION: &str = "v1";
 pub struct HtmlExtractor;
 
 impl DocumentExtractor for HtmlExtractor {
-    fn name(&self) -> &'static str { EXTRACTOR_NAME }
-    fn version(&self) -> &'static str { EXTRACTOR_VERSION }
-    fn supported_extensions(&self) -> &'static [&'static str] { &["html", "htm"] }
+    fn name(&self) -> &'static str {
+        EXTRACTOR_NAME
+    }
+    fn version(&self) -> &'static str {
+        EXTRACTOR_VERSION
+    }
+    fn supported_extensions(&self) -> &'static [&'static str] {
+        &["html", "htm"]
+    }
 
     fn extract(&self, path: &ValidatedPath) -> OrbokResult<ExtractOutput> {
         let content = std::fs::read_to_string(&path.canonical)?;
@@ -34,7 +40,10 @@ impl DocumentExtractor for HtmlExtractor {
 
         for block in &blocks {
             let norm = normalize_document(&block.text);
-            if norm.trim().is_empty() { line += 1; continue; }
+            if norm.trim().is_empty() {
+                line += 1;
+                continue;
+            }
             total_chars += norm.len() as u64;
             segments.push(ExtractedSegment {
                 kind: block.kind,
@@ -64,9 +73,28 @@ struct Block {
 }
 
 /// Block-level elements that cause paragraph breaks.
-const BLOCK_TAGS: &[&str] = &["p", "div", "section", "article", "aside",
-    "h1", "h2", "h3", "h4", "h5", "h6", "li", "dt", "dd",
-    "td", "th", "caption", "blockquote", "pre", "br"];
+const BLOCK_TAGS: &[&str] = &[
+    "p",
+    "div",
+    "section",
+    "article",
+    "aside",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "li",
+    "dt",
+    "dd",
+    "td",
+    "th",
+    "caption",
+    "blockquote",
+    "pre",
+    "br",
+];
 const HEADING_TAGS: &[&str] = &["h1", "h2", "h3", "h4", "h5", "h6"];
 /// Tags whose content should be suppressed entirely.
 const SKIP_TAGS: &[&str] = &["script", "style", "head", "noscript", "template"];
@@ -85,7 +113,11 @@ fn extract_blocks(html: &str) -> Vec<Block> {
     let flush = |text: &mut String, heading: &Option<String>, blocks: &mut Vec<Block>| {
         let t = text.trim().to_string();
         if !t.is_empty() {
-            blocks.push(Block { text: t, kind: SegmentKind::Paragraph, heading: heading.clone() });
+            blocks.push(Block {
+                text: t,
+                kind: SegmentKind::Paragraph,
+                heading: heading.clone(),
+            });
         }
         text.clear();
     };
@@ -94,7 +126,9 @@ fn extract_blocks(html: &str) -> Vec<Block> {
         if chars[pos] == '<' {
             // Collect tag
             let mut tag_end = pos + 1;
-            while tag_end < n && chars[tag_end] != '>' { tag_end += 1; }
+            while tag_end < n && chars[tag_end] != '>' {
+                tag_end += 1;
+            }
             let tag_str: String = chars[pos..tag_end.min(n)].iter().collect();
             let is_close = tag_str.starts_with("</");
             let tag_name = tag_str
@@ -106,10 +140,17 @@ fn extract_blocks(html: &str) -> Vec<Block> {
                 .to_ascii_lowercase();
 
             if skip_depth > 0 {
-                if is_close && tag_name == skip_tag { skip_depth -= 1; }
-                else if !is_close && tag_name == skip_tag { skip_depth += 1; }
+                if is_close && tag_name == skip_tag {
+                    skip_depth -= 1;
+                } else if !is_close && tag_name == skip_tag {
+                    skip_depth += 1;
+                }
             } else if !is_close && SKIP_TAGS.contains(&tag_name.as_str()) {
-                skip_tag = SKIP_TAGS.iter().find(|&&t| t == tag_name.as_str()).copied().unwrap_or("");
+                skip_tag = SKIP_TAGS
+                    .iter()
+                    .find(|&&t| t == tag_name.as_str())
+                    .copied()
+                    .unwrap_or("");
                 skip_depth = 1;
                 flush(&mut current_text, &current_heading, &mut blocks);
             } else if is_close && HEADING_TAGS.contains(&tag_name.as_str()) {

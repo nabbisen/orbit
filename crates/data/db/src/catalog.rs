@@ -40,11 +40,14 @@ impl Catalog {
     }
 
     fn from_connection(conn: Connection, path: PathBuf) -> OrbokResult<Self> {
-        conn.pragma_update(None, "foreign_keys", "ON").map_err(db_err)?;
+        conn.pragma_update(None, "foreign_keys", "ON")
+            .map_err(db_err)?;
         // WAL is unsupported for in-memory databases; ignore that case.
         let _ = conn.pragma_update(None, "journal_mode", "WAL");
-        conn.pragma_update(None, "synchronous", "NORMAL").map_err(db_err)?;
-        conn.pragma_update(None, "temp_store", "MEMORY").map_err(db_err)?;
+        conn.pragma_update(None, "synchronous", "NORMAL")
+            .map_err(db_err)?;
+        conn.pragma_update(None, "temp_store", "MEMORY")
+            .map_err(db_err)?;
 
         let catalog = Self {
             conn: Mutex::new(conn),

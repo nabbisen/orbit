@@ -63,7 +63,6 @@ impl<'a> FileRepository<'a> {
         Self { catalog }
     }
 
-
     /// Fetch a file record by its primary key.
     pub fn get_by_id(&self, id: &FileId) -> OrbokResult<Option<FileRecord>> {
         let conn = self.catalog.lock();
@@ -79,7 +78,6 @@ impl<'a> FileRepository<'a> {
         }
     }
 
-
     /// Find a file by the tail of its display_path (test convenience).
     pub fn get_by_path_str(&self, display_path_tail: &str) -> OrbokResult<Option<FileRecord>> {
         let conn = self.catalog.lock();
@@ -89,7 +87,10 @@ impl<'a> FileRepository<'a> {
             ))
             .map_err(db_err)?;
         let mut rows = stmt
-            .query_map(rusqlite::params![format!("%{display_path_tail}")], row_to_record)
+            .query_map(
+                rusqlite::params![format!("%{display_path_tail}")],
+                row_to_record,
+            )
             .map_err(db_err)?;
         match rows.next() {
             Some(r) => Ok(Some(r.map_err(db_err)??)),
@@ -285,9 +286,7 @@ impl<'a> FileRepository<'a> {
             .map_err(crate::catalog::db_err)?;
         Ok(n as u64)
     }
-
 }
-
 
 fn row_to_record(row: &Row<'_>) -> rusqlite::Result<OrbokResult<FileRecord>> {
     let status: String = row.get(11)?;

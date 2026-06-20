@@ -12,10 +12,10 @@ mod bootstrap;
 mod download;
 mod settings;
 
-use orbok_ui::{Message, OrbokApp};
 use orbok_ui::state::WizardFileCheck;
-use orbok_workers::{VerifyOutcome, verify_embedding_model};
+use orbok_ui::{Message, OrbokApp};
 use orbok_workers::model_verifier::REQUIRED_MODEL_FILES;
+use orbok_workers::{VerifyOutcome, verify_embedding_model};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt()
@@ -48,9 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // Handle backend effects before passing message to UI state.
             match &message {
                 Message::DownloadModel => {
-                    let dest = data_dir
-                        .join("models")
-                        .join("multilingual-e5-small");
+                    let dest = data_dir.join("models").join("multilingual-e5-small");
                     std::fs::create_dir_all(&dest).ok();
                     let dest_str = dest.to_string_lossy().to_string();
                     app.update(Message::DownloadStarted { dest_dir: dest_str });
@@ -101,7 +99,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                     }
                                     let source_id = card.source_id.clone();
                                     app.update(Message::SourceAdded(card));
-                                    match bootstrap::scan_and_index_source(&catalog, &cache, &source_id) {
+                                    match bootstrap::scan_and_index_source(
+                                        &catalog, &cache, &source_id,
+                                    ) {
                                         Ok(health) => app.update(Message::ScanCompleted(health)),
                                         Err(e) => {
                                             tracing::error!("scan failed: {e}");
@@ -195,10 +195,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 /// Convert a `VerifyOutcome` into the file check list shown in the wizard.
-fn build_wizard_checks(
-    outcome: &VerifyOutcome,
-    _path: &str,
-) -> (Vec<WizardFileCheck>, bool) {
+fn build_wizard_checks(outcome: &VerifyOutcome, _path: &str) -> (Vec<WizardFileCheck>, bool) {
     match outcome {
         VerifyOutcome::Ready => {
             let checks = REQUIRED_MODEL_FILES

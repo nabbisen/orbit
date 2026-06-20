@@ -2,23 +2,25 @@
 //! table family and exposes application-level types.
 
 pub mod chunks;
-pub mod models;
-pub mod embeddings;
 pub mod cleanup;
+pub mod embeddings;
 pub mod events;
 pub mod files;
 pub mod jobs;
+pub mod models;
 pub mod settings;
 pub mod sources;
 pub mod storage;
 
 pub use chunks::{ChunkRecord, ChunkRepository, ChunkSpec};
-pub use models::{ModelRecord, ModelRepository, ModelRole, ModelStatus, NewModel, verify_model_sha256};
-pub use embeddings::{EmbeddingRecord, EmbeddingRepository, NewEmbedding};
 pub use cleanup::CleanupExecutor;
+pub use embeddings::{EmbeddingRecord, EmbeddingRepository, NewEmbedding};
 pub use events::{EventRepository, Severity};
-pub use files::{FileRepository, FileRecord, NewFile, ObservedMetadata};
+pub use files::{FileRecord, FileRepository, NewFile, ObservedMetadata};
 pub use jobs::{IndexJobRepository, JobRecord};
+pub use models::{
+    ModelRecord, ModelRepository, ModelRole, ModelStatus, NewModel, verify_model_sha256,
+};
 pub use orbok_core::{ExtractionId, JobStatus, JobType};
 pub use settings::SettingsRepository;
 pub use sources::{NewSource, SourceRecord, SourceRepository};

@@ -32,7 +32,6 @@ impl<'a> EmbeddingWorker<'a> {
         }
     }
 
-
     /// Use a specific embedding model (real or mock).
     /// Supply a stable `model_id` string for registry lookup
     /// (e.g. `"mock_mock-v1"` or `"embedding_multilingual-e5-small-v1"`).
@@ -42,15 +41,18 @@ impl<'a> EmbeddingWorker<'a> {
         model: Box<dyn EmbeddingModel>,
         model_id: ModelId,
     ) -> Self {
-        Self { catalog, cache, model, model_id }
+        Self {
+            catalog,
+            cache,
+            model,
+            model_id,
+        }
     }
 
     /// Embed all active chunks of a file and persist vectors.
     pub fn run(&self, file_id: &FileId) -> OrbokResult<()> {
         let files = FileRepository::new(self.catalog);
-        let record = files
-            .get_by_id(file_id)?
-            .ok_or(OrbokError::FileNotFound)?;
+        let record = files.get_by_id(file_id)?.ok_or(OrbokError::FileNotFound)?;
         let sources = SourceRepository::new(self.catalog);
         let source = sources
             .get(&record.source_id)?

@@ -138,7 +138,7 @@ mod tests {
             model_name: "mock".into(),
             model_version: "v1".into(),
         };
-    let model = create_embedding_model(&config).unwrap();
+        let model = create_embedding_model(&config).unwrap();
         let vecs = model.embed_batch(&["hello world"]).unwrap();
         assert_eq!(vecs.len(), 1);
         assert_eq!(vecs[0].len(), model.dimension() as usize);
@@ -160,7 +160,10 @@ mod tests {
         match create_embedding_model(&config) {
             Err(err) => {
                 let msg = err.to_string();
-                assert!(msg.contains("tract") || msg.contains("compiled"), "error should mention feature flag");
+                assert!(
+                    msg.contains("tract") || msg.contains("compiled"),
+                    "error should mention feature flag"
+                );
             }
             Ok(_) => panic!("ONNX without tract feature should fail"),
         }

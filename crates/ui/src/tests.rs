@@ -68,6 +68,10 @@ const ALL_KEYS: &[MessageKey] = &[
     MessageKey::NoticePreviewsClearedBody,
     MessageKey::NoticeActionTryAgain,
     MessageKey::NoticeActionChooseFolder,
+    MessageKey::SettingsAccessibilityHeading,
+    MessageKey::SettingsHighContrastOn,
+    MessageKey::SettingsHighContrastOff,
+    MessageKey::SettingsHighContrastHint,
     MessageKey::NoticeSensitiveSourceTitle,
     MessageKey::NoticeSensitiveSourceBody,
     MessageKey::NoticeDismiss,
@@ -80,10 +84,7 @@ const ALL_KEYS: &[MessageKey] = &[
 fn all_messages_non_empty_in_all_locales() {
     for locale in Locale::ALL {
         for key in ALL_KEYS {
-            assert!(
-                !tr(*locale, *key).is_empty(),
-                "{locale:?} {key:?} is empty"
-            );
+            assert!(!tr(*locale, *key).is_empty(), "{locale:?} {key:?} is empty");
         }
     }
 }
@@ -95,7 +96,10 @@ fn locales_differ_for_translatable_keys() {
         .iter()
         .filter(|key| tr(Locale::En, **key) != tr(Locale::Ja, **key))
         .count();
-    assert!(differing > ALL_KEYS.len() / 2, "catalogs are suspiciously identical");
+    assert!(
+        differing > ALL_KEYS.len() / 2,
+        "catalogs are suspiciously identical"
+    );
 }
 
 // RFC-031 §5.3: parameterized messages localize.
@@ -164,7 +168,10 @@ fn failures_surface_notice_success_clears_it() {
 
     // A successful result must clear the notice.
     state.update(&Message::SearchResultsReady(vec![]));
-    assert!(state.notice.is_none(), "successful search clears the notice");
+    assert!(
+        state.notice.is_none(),
+        "successful search clears the notice"
+    );
 
     // ClearNotice dismisses any active notice.
     state.update(&Message::ShowNotice(UserNotice::DownloadDidNotFinish));
@@ -191,7 +198,9 @@ fn problem_notices_offer_action_confirmations_do_not() {
 fn locale_from_env_detects_japanese() {
     let prev = std::env::var("LANG").ok();
     // SAFETY: single-threaded test; no other threads are reading LANG.
-    unsafe { std::env::set_var("LANG", "ja_JP.UTF-8"); }
+    unsafe {
+        std::env::set_var("LANG", "ja_JP.UTF-8");
+    }
     let detected = Locale::from_env();
     unsafe {
         match prev {
@@ -206,7 +215,9 @@ fn locale_from_env_detects_japanese() {
 #[test]
 fn locale_from_env_english_fallback() {
     let prev = std::env::var("LANG").ok();
-    unsafe { std::env::set_var("LANG", "en_US.UTF-8"); }
+    unsafe {
+        std::env::set_var("LANG", "en_US.UTF-8");
+    }
     let detected = Locale::from_env();
     unsafe {
         match prev {
@@ -215,4 +226,47 @@ fn locale_from_env_english_fallback() {
         }
     }
     assert_eq!(detected, Some(Locale::En));
+}
+
+// snora 0.25 design migration: every notice maps to a tone, and problem
+// notices use Danger/Warning while confirmations use Success/Info.
+#[test]
+fn notice_tone_mapping_is_consistent() {
+    use crate::notice::UserNotice;
+    use snora::design::Tone;
+
+    // Problems must use attention-grabbing tones.
+    assert_eq!(UserNotice::DownloadDidNotFinish.tone(), Tone::Danger);
+    assert_eq!(UserNotice::FolderCouldNotBeAdded.tone(), Tone::Danger);
+    assert_eq!(UserNotice::SearchDidNotFinish.tone(), Tone::Danger);
+    assert_eq!(UserNotice::SensitiveSourceAdded.tone(), Tone::Warning);
+    assert_eq!(UserNotice::FilesMovedOrMissing.tone(), Tone::Warning);
+
+    // Confirmations must use positive/neutral tones.
+    assert_eq!(UserNotice::FolderAdded.tone(), Tone::Success);
+    assert_eq!(UserNotice::SearchReady.tone(), Tone::Success);
+    assert_eq!(UserNotice::PreviewsCleared.tone(), Tone::Info);
+
+    // Every problem notice is also flagged is_problem; tone agrees.
+    for n in [
+        UserNotice::DownloadDidNotFinish,
+        UserNotice::FolderCouldNotBeAdded,
+        UserNotice::SearchDidNotFinish,
+    ] {
+        assert!(n.is_problem());
+        assert_eq!(n.tone(), Tone::Danger);
+    }
+}
+
+// snora 0.25 design migration: toggling high contrast swaps the token preset.
+#[test]
+fn high_contrast_toggle_swaps_token_preset() {
+    let mut state = AppState::default();
+    assert!(!state.high_contrast, "default is standard contrast");
+
+    state.update(&Message::ToggleHighContrast);
+    assert!(state.high_contrast, "toggle enables high contrast");
+
+    state.update(&Message::ToggleHighContrast);
+    assert!(!state.high_contrast, "toggle again returns to standard");
 }

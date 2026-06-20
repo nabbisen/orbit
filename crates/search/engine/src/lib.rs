@@ -33,10 +33,10 @@ mod tests;
 pub use fts5::Fts5KeywordEngine;
 pub use hybrid::{HybridSearchService, SearchMode};
 pub use multilingual::{MultilingualKeywordEngine, contains_cjk, normalize_query};
+pub use query::build_match_expression;
 pub use rrf::{FusedCandidate, rrf_fuse};
 pub use service::{MatchBadge, SearchResult, SearchService};
 pub use vector::ExactVectorSearch;
-pub use query::build_match_expression;
 
 use orbok_core::{ChunkId, FileId, OrbokResult};
 

@@ -72,8 +72,7 @@ pub fn message(key: MessageKey) -> &'static str {
         SettingsAdvancedOn => "詳細表示: オン",
         SettingsAdvancedOff => "詳細表示: オフ",
         SettingsAdvancedHint => "検索結果・インデックス・ストレージに技術的な詳細を表示します。",
-        SettingsPrivacyLocalOnly => "文書はこのコンピューター上でのみ処理されます。"
-        ,
+        SettingsPrivacyLocalOnly => "文書はこのコンピューター上でのみ処理されます。",
         SearchModeLabel => "モード",
         SearchModeAuto => "自動",
         SearchModeExact => "完全一致",
@@ -93,7 +92,9 @@ pub fn message(key: MessageKey) -> &'static str {
             "モデルフォルダが指定された場所にありません。             ドライブが切断されたか、ファイルが移動した可能性があります。"
         }
         WizardFilesNeededLabel => "フォルダ内の必要ファイル:",
-        WizardDownloadHint => "ダウンロード: huggingface-cli download intfloat/multilingual-e5-small",
+        WizardDownloadHint => {
+            "ダウンロード: huggingface-cli download intfloat/multilingual-e5-small"
+        }
         WizardPathInputPlaceholder => "モデルフォルダのパス (例: ~/models/multilingual-e5-small)",
         WizardActionLocate => "モデルフォルダを選択",
         WizardActionValidate => "検証",
@@ -108,13 +109,19 @@ pub fn message(key: MessageKey) -> &'static str {
         WizardValidationFail => "見つかりません",
         WizardReadyBody => "セマンティック検索が利用可能になりました。",
         NoticeDownloadFailTitle => "ダウンロードが完了しませんでした",
-        NoticeDownloadFailBody => "ダウンロードを完了できませんでした。接続を確認して、もう一度お試しください。",
+        NoticeDownloadFailBody => {
+            "ダウンロードを完了できませんでした。接続を確認して、もう一度お試しください。"
+        }
         NoticeFolderFailTitle => "フォルダを追加できませんでした",
-        NoticeFolderFailBody => "そのフォルダを追加できませんでした。別のフォルダを選ぶか、開けるか確認してください。",
+        NoticeFolderFailBody => {
+            "そのフォルダを追加できませんでした。別のフォルダを選ぶか、開けるか確認してください。"
+        }
         NoticeSearchFailTitle => "検索が完了しませんでした",
         NoticeSearchFailBody => "検索中に問題が発生しました。もう一度お試しください。",
         NoticeFilesMissingTitle => "ファイルが移動した可能性があります",
-        NoticeFilesMissingBody => "一部のファイルが見つかりません。ドライブが取り外されたか、ファイルが移動された可能性があります。",
+        NoticeFilesMissingBody => {
+            "一部のファイルが見つかりません。ドライブが取り外されたか、ファイルが移動された可能性があります。"
+        }
         NoticeFolderAddedTitle => "フォルダを追加しました",
         NoticeFolderAddedBody => "検索の準備をしています。",
         NoticeSearchReadyTitle => "検索の準備ができました",
@@ -123,8 +130,14 @@ pub fn message(key: MessageKey) -> &'static str {
         NoticePreviewsClearedBody => "空き容量を増やしました。ファイルはそのままです。",
         NoticeActionTryAgain => "もう一度試す",
         NoticeActionChooseFolder => "別のフォルダを選ぶ",
+        SettingsAccessibilityHeading => "アクセシビリティ",
+        SettingsHighContrastOn => "ハイコントラスト: オン",
+        SettingsHighContrastOff => "ハイコントラスト: オフ",
+        SettingsHighContrastHint => "読みやすさのために、より強いコントラストの配色を使用します。",
         NoticeSensitiveSourceTitle => "このフォルダには機密ファイルが含まれている可能性があります",
-        NoticeSensitiveSourceBody => "SSH鍵、ブラウザのプロフィール、またはその他の機密データが含まれている可能性があります。フォルダは追加されました。意図しない場合は削除してください。",
+        NoticeSensitiveSourceBody => {
+            "SSH鍵、ブラウザのプロフィール、またはその他の機密データが含まれている可能性があります。フォルダは追加されました。意図しない場合は削除してください。"
+        }
         NoticeDismiss => "閉じる",
         Cancel => "キャンセル",
         Confirm => "確認",

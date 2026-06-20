@@ -36,7 +36,10 @@ pub fn run_startup_recovery(
     report.cache_recreated = cache_status == CacheDbStatus::Recreated;
     report.cache_rebuilt = cache_status == CacheDbStatus::Rebuilt;
     if report.jobs_reset > 0 {
-        tracing::warn!(reset = report.jobs_reset, "reset interrupted jobs to queued on startup");
+        tracing::warn!(
+            reset = report.jobs_reset,
+            "reset interrupted jobs to queued on startup"
+        );
     }
     Ok(report)
 }
@@ -57,7 +60,11 @@ fn reset_interrupted_jobs(catalog: &Catalog) -> OrbokResult<u64> {
 fn count_pending_jobs(catalog: &Catalog) -> OrbokResult<u64> {
     let conn = catalog.lock();
     let n: i64 = conn
-        .query_row("SELECT COUNT(*) FROM index_jobs WHERE status = 'queued'", [], |r| r.get(0))
+        .query_row(
+            "SELECT COUNT(*) FROM index_jobs WHERE status = 'queued'",
+            [],
+            |r| r.get(0),
+        )
         .map_err(|e| orbok_core::OrbokError::Database(e.to_string()))?;
     Ok(n as u64)
 }
@@ -132,22 +139,14 @@ pub fn check_catalog_integrity(catalog: &Catalog) -> OrbokResult<IntegrityReport
             .map_err(|e| orbok_core::OrbokError::Database(e.to_string()))?;
         Ok(n as u64)
     };
-    report.orphaned_child_chunks = q(
-        "SELECT COUNT(*) FROM chunks c \
+    report.orphaned_child_chunks = q("SELECT COUNT(*) FROM chunks c \
          WHERE c.parent_chunk_id IS NOT NULL \
-         AND NOT EXISTS (SELECT 1 FROM chunks p WHERE p.chunk_id = c.parent_chunk_id)",
-    )?;
-    report.orphaned_kw_records = q(
-        "SELECT COUNT(*) FROM keyword_index_records k \
-         WHERE NOT EXISTS (SELECT 1 FROM chunks c WHERE c.chunk_id = k.chunk_id)",
-    )?;
-    report.orphaned_embedding_records = q(
-        "SELECT COUNT(*) FROM embeddings e \
-         WHERE NOT EXISTS (SELECT 1 FROM chunks c WHERE c.chunk_id = e.chunk_id)",
-    )?;
-    report.orphaned_files = q(
-        "SELECT COUNT(*) FROM files f \
-         WHERE NOT EXISTS (SELECT 1 FROM sources s WHERE s.source_id = f.source_id)",
-    )?;
+         AND NOT EXISTS (SELECT 1 FROM chunks p WHERE p.chunk_id = c.parent_chunk_id)")?;
+    report.orphaned_kw_records = q("SELECT COUNT(*) FROM keyword_index_records k \
+         WHERE NOT EXISTS (SELECT 1 FROM chunks c WHERE c.chunk_id = k.chunk_id)")?;
+    report.orphaned_embedding_records = q("SELECT COUNT(*) FROM embeddings e \
+         WHERE NOT EXISTS (SELECT 1 FROM chunks c WHERE c.chunk_id = e.chunk_id)")?;
+    report.orphaned_files = q("SELECT COUNT(*) FROM files f \
+         WHERE NOT EXISTS (SELECT 1 FROM sources s WHERE s.source_id = f.source_id)")?;
     Ok(report)
 }

@@ -22,9 +22,15 @@ const EXTRACTOR_VERSION: &str = "v1";
 pub struct DocxExtractor;
 
 impl DocumentExtractor for DocxExtractor {
-    fn name(&self) -> &'static str { EXTRACTOR_NAME }
-    fn version(&self) -> &'static str { EXTRACTOR_VERSION }
-    fn supported_extensions(&self) -> &'static [&'static str] { &["docx"] }
+    fn name(&self) -> &'static str {
+        EXTRACTOR_NAME
+    }
+    fn version(&self) -> &'static str {
+        EXTRACTOR_VERSION
+    }
+    fn supported_extensions(&self) -> &'static [&'static str] {
+        &["docx"]
+    }
 
     fn extract(&self, path: &ValidatedPath) -> OrbokResult<ExtractOutput> {
         let file = std::fs::File::open(&path.canonical)?;
@@ -36,16 +42,20 @@ impl DocumentExtractor for DocxExtractor {
         let xml = match zip.by_name("word/document.xml") {
             Ok(mut entry) => {
                 let mut s = String::new();
-                entry.read_to_string(&mut s).map_err(|e| OrbokError::Extraction {
-                    category: ErrorCategory::ParserError,
-                    message: format!("docx xml read: {e}"),
-                })?;
+                entry
+                    .read_to_string(&mut s)
+                    .map_err(|e| OrbokError::Extraction {
+                        category: ErrorCategory::ParserError,
+                        message: format!("docx xml read: {e}"),
+                    })?;
                 s
             }
-            Err(_) => return Err(OrbokError::Extraction {
-                category: ErrorCategory::UnsupportedFormat,
-                message: "no word/document.xml in archive".into(),
-            }),
+            Err(_) => {
+                return Err(OrbokError::Extraction {
+                    category: ErrorCategory::UnsupportedFormat,
+                    message: "no word/document.xml in archive".into(),
+                });
+            }
         };
 
         // Extract text runs from w:p paragraphs.
@@ -55,7 +65,9 @@ impl DocumentExtractor for DocxExtractor {
 
         for (para_idx, para_text) in paragraphs.iter().enumerate() {
             let norm = normalize_document(para_text);
-            if norm.trim().is_empty() { continue; }
+            if norm.trim().is_empty() {
+                continue;
+            }
             total_chars += norm.len() as u64;
             segments.push(ExtractedSegment {
                 kind: SegmentKind::Paragraph,
@@ -89,7 +101,11 @@ fn extract_paragraphs(xml: &str) -> Vec<String> {
     while pos < bytes.len() {
         if bytes[pos] == b'<' {
             // Find end of tag
-            let end = bytes[pos..].iter().position(|&b| b == b'>').map(|p| pos + p + 1).unwrap_or(bytes.len());
+            let end = bytes[pos..]
+                .iter()
+                .position(|&b| b == b'>')
+                .map(|p| pos + p + 1)
+                .unwrap_or(bytes.len());
             let tag = &xml[pos..end];
             if tag.starts_with("<w:p ") || tag == "<w:p>" {
                 in_para = true;
@@ -103,7 +119,10 @@ fn extract_paragraphs(xml: &str) -> Vec<String> {
             } else if in_para && (tag.starts_with("<w:t") || tag.starts_with("<w:t>")) {
                 // Collect text until </w:t>
                 let text_start = end;
-                let text_end = xml[text_start..].find("</w:t>").map(|p| text_start + p).unwrap_or(text_start);
+                let text_end = xml[text_start..]
+                    .find("</w:t>")
+                    .map(|p| text_start + p)
+                    .unwrap_or(text_start);
                 let text = &xml[text_start..text_end];
                 // Skip any nested tags in text content
                 let clean: String = {

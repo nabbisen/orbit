@@ -5,7 +5,7 @@
 //! must never show those directly. Instead they are mapped to a [`UserNotice`]
 //! with a plain title, an explanation, and a suggested next action.
 
-use crate::i18n::{tr, Locale, MessageKey};
+use crate::i18n::{Locale, MessageKey, tr};
 
 /// A friendly, actionable message shown to the user. Covers both problems
 /// (download failed) and confirmations (folder added).
@@ -30,11 +30,31 @@ impl UserNotice {
     pub fn is_problem(&self) -> bool {
         matches!(
             self,
-            Self::SensitiveSourceAdded | Self::DownloadDidNotFinish
+            Self::SensitiveSourceAdded
+                | Self::DownloadDidNotFinish
                 | Self::FolderCouldNotBeAdded
                 | Self::SearchDidNotFinish
                 | Self::FilesMovedOrMissing
         )
+    }
+
+    /// Map this notice to a Snora Design tone. Problem notices use Danger or
+    /// Warning; confirmations use Success or Info. The tone drives the
+    /// WCAG-AA-verified colors in `snora::design::notice::Notice`.
+    pub fn tone(&self) -> snora::design::Tone {
+        use snora::design::Tone;
+        match self {
+            // Hard failures the user must notice.
+            Self::DownloadDidNotFinish | Self::FolderCouldNotBeAdded | Self::SearchDidNotFinish => {
+                Tone::Danger
+            }
+            // Cautions: action succeeded but the user should be aware.
+            Self::FilesMovedOrMissing | Self::SensitiveSourceAdded => Tone::Warning,
+            // Positive confirmations.
+            Self::FolderAdded | Self::SearchReady => Tone::Success,
+            // Neutral/informational.
+            Self::PreviewsCleared => Tone::Info,
+        }
     }
 
     pub fn title(&self, locale: Locale) -> &'static str {
@@ -69,7 +89,9 @@ impl UserNotice {
     /// Confirmations return `None` (they are dismissed, not acted upon).
     pub fn action(&self, locale: Locale) -> Option<&'static str> {
         let key = match self {
-            Self::DownloadDidNotFinish | Self::SearchDidNotFinish => MessageKey::NoticeActionTryAgain,
+            Self::DownloadDidNotFinish | Self::SearchDidNotFinish => {
+                MessageKey::NoticeActionTryAgain
+            }
             Self::FolderCouldNotBeAdded => MessageKey::NoticeActionChooseFolder,
             Self::FilesMovedOrMissing => MessageKey::NoticeActionChooseFolder,
             Self::SensitiveSourceAdded => return None, // informational only

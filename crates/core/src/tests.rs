@@ -23,7 +23,11 @@ fn safe_cleanup_actions_never_touch_persistent_catalog() {
             plan.assert_safe_for_ordinary_cleanup().is_ok(),
             "{action:?} must be safe"
         );
-        assert!(!plan.affected_classes.contains(&DataClass::PersistentCatalog));
+        assert!(
+            !plan
+                .affected_classes
+                .contains(&DataClass::PersistentCatalog)
+        );
     }
 }
 
@@ -108,7 +112,13 @@ fn safe_policy_defaults() {
 
 #[test]
 fn source_status_vocabulary_complete() {
-    for s in ["active", "paused", "missing", "permission_denied", "removed"] {
+    for s in [
+        "active",
+        "paused",
+        "missing",
+        "permission_denied",
+        "removed",
+    ] {
         assert!(SourceStatus::parse(s).is_ok(), "{s}");
     }
 }

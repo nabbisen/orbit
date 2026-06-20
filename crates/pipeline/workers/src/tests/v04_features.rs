@@ -1,7 +1,9 @@
 //! v0.4 integration tests: RFC-010 (reranking), RFC-011 (storage),
 //! RFC-013 (search UX state), RFC-014 (multilingual search).
 
-use crate::{ChunkAndIndexWorker, EmbeddingWorker, ExtractionWorker, run_pending, update_storage_accounting};
+use crate::{
+    ChunkAndIndexWorker, EmbeddingWorker, ExtractionWorker, run_pending, update_storage_accounting,
+};
 use orbok_cache::CacheService;
 use orbok_core::{
     FileStatus, HiddenFilePolicy, IndexMode, JobType, PersistenceMode, SourceType, SymlinkPolicy,
@@ -20,41 +22,56 @@ fn setup(root: &std::path::Path) -> (Catalog, CacheService) {
     (catalog, cache)
 }
 
-fn seed(catalog: &Catalog, cache: &CacheService, root: &std::path::Path,
-        name: &str, content: &str) -> orbok_core::FileId {
+fn seed(
+    catalog: &Catalog,
+    cache: &CacheService,
+    root: &std::path::Path,
+    name: &str,
+    content: &str,
+) -> orbok_core::FileId {
     let path = root.join(name);
     fs::write(&path, content).unwrap();
-    let canonical = fs::canonicalize(&path).unwrap().to_string_lossy().to_string();
-    let root_str = fs::canonicalize(root).unwrap().to_string_lossy().to_string();
+    let canonical = fs::canonicalize(&path)
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+    let root_str = fs::canonicalize(root)
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
 
-    let src = SourceRepository::new(catalog).insert(NewSource {
-        source_type: SourceType::File,
-        persistence_mode: PersistenceMode::Persistent,
-        display_name: Some(name.into()),
-        original_path: canonical.clone(),
-        canonical_path: root_str,
-        index_mode: IndexMode::Balanced,
-        include_patterns: vec![],
-        exclude_patterns: vec![],
-        hidden_file_policy: HiddenFilePolicy::Exclude,
-        symlink_policy: SymlinkPolicy::Ignore,
-        max_file_size_bytes: None,
-    }).unwrap();
+    let src = SourceRepository::new(catalog)
+        .insert(NewSource {
+            source_type: SourceType::File,
+            persistence_mode: PersistenceMode::Persistent,
+            display_name: Some(name.into()),
+            original_path: canonical.clone(),
+            canonical_path: root_str,
+            index_mode: IndexMode::Balanced,
+            include_patterns: vec![],
+            exclude_patterns: vec![],
+            hidden_file_policy: HiddenFilePolicy::Exclude,
+            symlink_policy: SymlinkPolicy::Ignore,
+            max_file_size_bytes: None,
+        })
+        .unwrap();
 
-    let file = FileRepository::new(catalog).insert(NewFile {
-        source_id: src.source_id.clone(),
-        original_path: canonical.clone(),
-        canonical_path: canonical,
-        display_path: name.into(),
-        extension: Some("md".into()),
-        metadata: ObservedMetadata {
-            file_size_bytes: content.len() as u64,
-            modified_at: Some("2026-01-01T00:00:00Z".into()),
-            platform_file_key: None,
-            content_hash: Some("abc".into()),
-        },
-        status: FileStatus::Discovered,
-    }).unwrap();
+    let file = FileRepository::new(catalog)
+        .insert(NewFile {
+            source_id: src.source_id.clone(),
+            original_path: canonical.clone(),
+            canonical_path: canonical,
+            display_path: name.into(),
+            extension: Some("md".into()),
+            metadata: ObservedMetadata {
+                file_size_bytes: content.len() as u64,
+                modified_at: Some("2026-01-01T00:00:00Z".into()),
+                platform_file_key: None,
+                content_hash: Some("abc".into()),
+            },
+            status: FileStatus::Discovered,
+        })
+        .unwrap();
 
     IndexJobRepository::new(catalog)
         .enqueue(JobType::Extract, Some(&src.source_id), Some(&file.file_id))
@@ -73,20 +90,32 @@ fn reranker_reorders_results() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
     seed(&catalog, &cache, dir.path(), "short.md", "auth token\n");
-    seed(&catalog, &cache, dir.path(), "long.md",
+    seed(
+        &catalog,
+        &cache,
+        dir.path(),
+        "long.md",
         "auth token — this document discusses authentication token rotation \
-         policies in detail, with many paragraphs of explanation.\n");
+         policies in detail, with many paragraphs of explanation.\n",
+    );
 
     let reranker = MockReranker;
-    let service = HybridSearchService::keyword_only(&catalog)
-        .with_reranker(&reranker);
+    let service = HybridSearchService::keyword_only(&catalog).with_reranker(&reranker);
     let results = service.search("auth token", SearchMode::Auto, 10).unwrap();
     assert!(!results.is_empty());
     // MockReranker sorts by passage length → longer snippet should rank first.
     let first_snippet_len = results[0].snippet.as_deref().unwrap_or("").len();
-    let last_snippet_len = results.last().unwrap().snippet.as_deref().unwrap_or("").len();
-    assert!(first_snippet_len >= last_snippet_len,
-        "reranker should put longer passage first");
+    let last_snippet_len = results
+        .last()
+        .unwrap()
+        .snippet
+        .as_deref()
+        .unwrap_or("")
+        .len();
+    assert!(
+        first_snippet_len >= last_snippet_len,
+        "reranker should put longer passage first"
+    );
 }
 
 // RFC-010 §20: missing reranker does not break search.
@@ -94,7 +123,13 @@ fn reranker_reorders_results() {
 fn search_works_without_reranker() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
-    seed(&catalog, &cache, dir.path(), "doc.md", "important content here\n");
+    seed(
+        &catalog,
+        &cache,
+        dir.path(),
+        "doc.md",
+        "important content here\n",
+    );
 
     // No reranker attached.
     let service = HybridSearchService::keyword_only(&catalog);
@@ -107,12 +142,19 @@ fn search_works_without_reranker() {
 fn fast_mode_returns_results_without_rerank() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
-    seed(&catalog, &cache, dir.path(), "doc.md", "quick search test\n");
+    seed(
+        &catalog,
+        &cache,
+        dir.path(),
+        "doc.md",
+        "quick search test\n",
+    );
     let reranker = MockReranker;
-    let service = HybridSearchService::keyword_only(&catalog)
-        .with_reranker(&reranker);
+    let service = HybridSearchService::keyword_only(&catalog).with_reranker(&reranker);
     // Fast mode skips reranking in Limits — result still returned.
-    let results = service.search("quick search", SearchMode::Fast, 10).unwrap();
+    let results = service
+        .search("quick search", SearchMode::Fast, 10)
+        .unwrap();
     assert!(!results.is_empty());
 }
 
@@ -123,14 +165,22 @@ fn fast_mode_returns_results_without_rerank() {
 fn storage_accounting_reflects_actual_data() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
-    seed(&catalog, &cache, dir.path(), "doc.md", "# Title\n\nContent here.\n");
+    seed(
+        &catalog,
+        &cache,
+        dir.path(),
+        "doc.md",
+        "# Title\n\nContent here.\n",
+    );
 
     let cache_path = dir.path().join(orbok_db::CACHE_FILE_NAME);
     let rows = update_storage_accounting(&catalog, &cache_path).unwrap();
     assert!(!rows.is_empty());
 
     // Keyword index should have at least some entries.
-    let kw = rows.iter().find(|(cat, _, _)| cat == &orbok_core::StorageCategory::KeywordIndex);
+    let kw = rows
+        .iter()
+        .find(|(cat, _, _)| cat == &orbok_core::StorageCategory::KeywordIndex);
     assert!(kw.is_some());
 
     // Sources should still be present.
@@ -150,13 +200,23 @@ fn delete_embeddings_preserves_file_catalog() {
          dimension, status, created_at, updated_at) VALUES ('mock_mock-v1','embedding','mock','v1',8,'available','t','t')",
         [],
     ).unwrap();
-    EmbeddingWorker::with_mock(&catalog, &cache).run(&file_id).unwrap();
+    EmbeddingWorker::with_mock(&catalog, &cache)
+        .run(&file_id)
+        .unwrap();
 
     // Delete all embeddings.
-    catalog.lock().execute("DELETE FROM embeddings", []).unwrap();
+    catalog
+        .lock()
+        .execute("DELETE FROM embeddings", [])
+        .unwrap();
 
     // File catalog intact.
-    assert!(FileRepository::new(&catalog).get_by_id(&file_id).unwrap().is_some());
+    assert!(
+        FileRepository::new(&catalog)
+            .get_by_id(&file_id)
+            .unwrap()
+            .is_some()
+    );
     assert!(!SourceRepository::new(&catalog).list().unwrap().is_empty());
 }
 
@@ -167,11 +227,22 @@ fn delete_embeddings_preserves_file_catalog() {
 fn search_results_carry_keyword_badge() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
-    seed(&catalog, &cache, dir.path(), "doc.md", "authentication token rotation\n");
+    seed(
+        &catalog,
+        &cache,
+        dir.path(),
+        "doc.md",
+        "authentication token rotation\n",
+    );
     let results = HybridSearchService::keyword_only(&catalog)
-        .search("authentication", SearchMode::Auto, 10).unwrap();
+        .search("authentication", SearchMode::Auto, 10)
+        .unwrap();
     assert!(!results.is_empty());
-    assert!(results[0].badges.contains(&orbok_search::MatchBadge::Keyword));
+    assert!(
+        results[0]
+            .badges
+            .contains(&orbok_search::MatchBadge::Keyword)
+    );
 }
 
 // RFC-013 §20 test 5: UI state handles missing source gracefully.
@@ -185,7 +256,8 @@ fn search_view_handles_no_snippet() {
     fs::remove_file(dir.path().join("temp.md")).unwrap();
 
     let results = HybridSearchService::keyword_only(&catalog)
-        .search("content", SearchMode::Auto, 10).unwrap();
+        .search("content", SearchMode::Auto, 10)
+        .unwrap();
     if !results.is_empty() {
         // snippet.is_none() is acceptable when source is missing (FR-092).
         // The result itself should still appear.
@@ -232,11 +304,16 @@ fn rfc_style_identifier_preserved() {
 fn cjk_query_routes_to_trigram() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
-    seed(&catalog, &cache, dir.path(), "ja.md",
-        "# 認証トークンのローテーション\n\nOAuthクライアントシークレットの有効期限を設定します。\n");
+    seed(
+        &catalog,
+        &cache,
+        dir.path(),
+        "ja.md",
+        "# 認証トークンのローテーション\n\nOAuthクライアントシークレットの有効期限を設定します。\n",
+    );
 
-    use orbok_search::MultilingualKeywordEngine;
     use orbok_search::KeywordSearchEngine;
+    use orbok_search::MultilingualKeywordEngine;
     // Japanese query — must not error.
     let engine = MultilingualKeywordEngine::new(&catalog);
     let results = engine.search("認証トークン", 10).unwrap();
@@ -250,11 +327,21 @@ fn cjk_query_routes_to_trigram() {
 fn japanese_query_does_not_break_english_search() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
-    seed(&catalog, &cache, dir.path(), "code.md", "fn refresh_token() -> Token { ... }\n");
+    seed(
+        &catalog,
+        &cache,
+        dir.path(),
+        "code.md",
+        "fn refresh_token() -> Token { ... }\n",
+    );
 
     let results = HybridSearchService::keyword_only(&catalog)
-        .search("refresh_token", SearchMode::Exact, 10).unwrap();
-    assert!(!results.is_empty(), "English identifier search must work alongside Japanese support");
+        .search("refresh_token", SearchMode::Exact, 10)
+        .unwrap();
+    assert!(
+        !results.is_empty(),
+        "English identifier search must work alongside Japanese support"
+    );
 }
 
 // CJK detection function.
@@ -274,7 +361,13 @@ fn safe_cleanup_preserves_sources() {
 
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
-    seed(&catalog, &cache, dir.path(), "note.md", "# Test\n\nContent.\n");
+    seed(
+        &catalog,
+        &cache,
+        dir.path(),
+        "note.md",
+        "# Test\n\nContent.\n",
+    );
 
     // Baseline: source exists.
     assert!(!SourceRepository::new(&catalog).list().unwrap().is_empty());

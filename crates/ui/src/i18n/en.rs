@@ -20,9 +20,7 @@ pub fn message(key: MessageKey) -> &'static str {
         SearchNoSourcesBody => "Add a folder or file so orbok can build a local search index.",
         SearchAddSource => "Add Source",
         SearchNoResults => "No results found",
-        SearchKeywordOnlyNotice => {
-            "Search by meaning is not set up yet. Basic search still works."
-        }
+        SearchKeywordOnlyNotice => "Search by meaning is not set up yet. Basic search still works.",
         SourcesTitle => "Sources",
         SourcesEmptyTitle => "No sources added",
         SourcesEmptyBody => {
@@ -128,8 +126,14 @@ pub fn message(key: MessageKey) -> &'static str {
         NoticePreviewsClearedBody => "Freed up space. Your files are untouched.",
         NoticeActionTryAgain => "Try again",
         NoticeActionChooseFolder => "Choose another folder",
+        SettingsAccessibilityHeading => "Accessibility",
+        SettingsHighContrastOn => "High contrast: On",
+        SettingsHighContrastOff => "High contrast: Off",
+        SettingsHighContrastHint => "Use stronger colors for better readability.",
         NoticeSensitiveSourceTitle => "This folder may contain private files",
-        NoticeSensitiveSourceBody => "It may include SSH keys, browser profiles, or other sensitive data. The folder was added. Remove it if you did not intend to search it.",
+        NoticeSensitiveSourceBody => {
+            "It may include SSH keys, browser profiles, or other sensitive data. The folder was added. Remove it if you did not intend to search it."
+        }
         NoticeDismiss => "Dismiss",
         Cancel => "Cancel",
         Confirm => "Confirm",

@@ -55,8 +55,14 @@ pub struct PluginExtractor {
 impl PluginExtractor {
     /// Wrap a built-in extractor with its manifest.
     pub fn builtin(manifest: PluginManifest, extractor: Box<dyn DocumentExtractor>) -> Self {
-        debug_assert!(manifest.builtin, "use PluginExtractor::external for non-built-in plugins");
-        Self { manifest, extractor }
+        debug_assert!(
+            manifest.builtin,
+            "use PluginExtractor::external for non-built-in plugins"
+        );
+        Self {
+            manifest,
+            extractor,
+        }
     }
 }
 
@@ -75,7 +81,9 @@ impl Default for PluginRegistry {
         use crate::markdown::MarkdownExtractor;
         use crate::pdf::PdfExtractor;
         use crate::text::PlainTextExtractor;
-        let mut reg = Self { plugins: Vec::new() };
+        let mut reg = Self {
+            plugins: Vec::new(),
+        };
         reg.register_builtin(
             PluginManifest {
                 plugin_id: "docx-v1",
@@ -116,8 +124,10 @@ impl Default for PluginRegistry {
             PluginManifest {
                 plugin_id: "plain-text-v1",
                 display_name: "Plain Text",
-                extensions: &["txt", "log", "rs", "py", "js", "ts", "go", "sql", "toml",
-                              "yaml", "yml", "json", "xml", "css", "html", "htm"],
+                extensions: &[
+                    "txt", "log", "rs", "py", "js", "ts", "go", "sql", "toml", "yaml", "yml",
+                    "json", "xml", "css", "html", "htm",
+                ],
                 author: "orbok built-in",
                 license: "Apache-2.0",
                 builtin: true,
@@ -142,8 +152,13 @@ impl Default for PluginRegistry {
 }
 
 impl PluginRegistry {
-    fn register_builtin(&mut self, manifest: PluginManifest, extractor: Box<dyn DocumentExtractor>) {
-        self.plugins.push(PluginExtractor::builtin(manifest, extractor));
+    fn register_builtin(
+        &mut self,
+        manifest: PluginManifest,
+        extractor: Box<dyn DocumentExtractor>,
+    ) {
+        self.plugins
+            .push(PluginExtractor::builtin(manifest, extractor));
     }
 
     /// Find the plugin that handles the given extension.

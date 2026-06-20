@@ -37,8 +37,8 @@ const SUPPORTED_EXTENSIONS: &[&str] = &[
     // text-oriented documents
     "txt", "log", "md", "markdown", "html", "htm", "pdf", "docx", "csv",
     // source code (line-aware text)
-    "rs", "py", "js", "ts", "jsx", "tsx", "java", "c", "h", "cpp", "hpp", "go", "rb", "php",
-    "sh", "bash", "sql", "toml", "yaml", "yml", "json", "xml", "css",
+    "rs", "py", "js", "ts", "jsx", "tsx", "java", "c", "h", "cpp", "hpp", "go", "rb", "php", "sh",
+    "bash", "sql", "toml", "yaml", "yml", "json", "xml", "css",
 ];
 
 /// A source policy compiled for fast per-entry checks.

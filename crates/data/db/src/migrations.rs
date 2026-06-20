@@ -76,7 +76,11 @@ pub fn run_pending(catalog: &Catalog) -> OrbokResult<()> {
             message: e.to_string(),
         })?;
 
-        tracing::info!(version = migration.version, name = migration.name, "applied migration");
+        tracing::info!(
+            version = migration.version,
+            name = migration.name,
+            "applied migration"
+        );
     }
 
     Ok(())

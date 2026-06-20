@@ -9,10 +9,10 @@ pub use wizard::wizard_view;
 
 use crate::i18n::{Locale, MessageKey, files_indexed, search_result_count, source_summary, tr};
 use crate::state::{AppState, Message};
-use snora::lucide;
 use iced::widget::{button, column, container, row, text, text_input};
 use iced::{Element, Length, Padding};
 use orbok_models::SearchCapability;
+use snora::lucide;
 
 /// Render a lucide icon as a sized Text widget using char::from().
 /// This is the same technique snora uses in icon_element_sized() and
@@ -40,25 +40,28 @@ fn icon_btn<'a>(
 /// show a Dismiss action instead. Status is conveyed in words, never colour
 /// alone, satisfying the accessibility requirement.
 fn friendly_notice<'a>(
+    tokens: &'a snora::design::Tokens,
     locale: Locale,
     notice: &crate::notice::UserNotice,
 ) -> Element<'a, Message> {
-    let action_label = notice
-        .action(locale)
-        .unwrap_or_else(|| tr(locale, MessageKey::NoticeDismiss));
-    container(
-        column![
-            text(notice.title(locale).to_string()).size(18),
-            text(notice.body(locale).to_string()).size(15),
-            button(text(action_label.to_string()).size(15))
-                .padding(Padding::from([10.0, 16.0]))
-                .on_press(Message::ClearNotice),
-        ]
-        .spacing(8),
-    )
-    .padding(Padding::from([16.0, 16.0]))
-    .width(Length::Fill)
-    .into()
+    use snora::design::notice::Notice;
+
+    // Render via the Snora Design notice primitive: tone-driven, WCAG-AA
+    // verified colors, keyboard-reachable action/dismiss controls. The
+    // UserNotice domain type still owns the semantics and i18n; the snora
+    // primitive owns the accessible presentation.
+    let mut builder = Notice::new(tokens, notice.tone(), notice.body(locale).to_string())
+        .title(notice.title(locale).to_string());
+
+    // Problem notices get a recovery action that clears the notice;
+    // confirmations get a dismiss control instead.
+    if let Some(action_label) = notice.action(locale) {
+        builder = builder.action(action_label.to_string(), Message::ClearNotice);
+    } else {
+        builder = builder.dismiss(Message::ClearNotice);
+    }
+
+    builder.render()
 }
 
 fn page<'a>(content: iced::widget::Column<'a, Message>) -> Element<'a, Message> {
@@ -86,7 +89,11 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
         .on_input(Message::QueryChanged)
         .on_submit(Message::SubmitSearch)
         .padding(8);
-    let submit = icon_btn(icon_text(char::from(lucide::Search), 13.0), tr(locale, MessageKey::SearchButton), Message::SubmitSearch);
+    let submit = icon_btn(
+        icon_text(char::from(lucide::Search), 13.0),
+        tr(locale, MessageKey::SearchButton),
+        Message::SubmitSearch,
+    );
 
     let mut content = column![
         heading(tr(locale, MessageKey::NavSearch)),
@@ -96,7 +103,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
     // Surface any active notice (problem or confirmation) at the top of the
     // page so failures are never silent (UX review P0).
     if let Some(notice) = &state.notice {
-        content = content.push(friendly_notice(locale, notice));
+        content = content.push(friendly_notice(&state.tokens, locale, notice));
     }
 
     // Search mode is "Auto" by default — only mature users need the
@@ -129,8 +136,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
         );
     } else {
         if state.capability == SearchCapability::KeywordOnly {
-            content = content
-                .push(text(tr(locale, MessageKey::SearchKeywordOnlyNotice)).size(12));
+            content = content.push(text(tr(locale, MessageKey::SearchKeywordOnlyNotice)).size(12));
         }
         if state.search_running {
             content = content.push(text("Searching…").size(15));
@@ -144,9 +150,8 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
                     .spacing(4),
                 );
             } else {
-                content = content.push(
-                    text(search_result_count(locale, state.search_results.len())).size(12),
-                );
+                content = content
+                    .push(text(search_result_count(locale, state.search_results.len())).size(12));
                 for (i, result) in state.search_results.iter().enumerate() {
                     let is_selected = state.selected_result == Some(i);
                     let title_raw = result.title.as_deref().unwrap_or(&result.display_path);
@@ -156,17 +161,17 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
                         std::borrow::Cow::Borrowed(title_raw)
                     };
                     let title_str: &str = &title_str;
-                    let snippet_str = result
-                        .snippet
-                        .as_deref()
-                        .unwrap_or("(source unavailable)");
+                    let snippet_str = result.snippet.as_deref().unwrap_or("(source unavailable)");
                     let heading_str = result.heading_path.as_deref().unwrap_or("");
                     let card = container(
                         column![
                             text(title_str.to_string()).size(15),
                             text(result.display_path.clone()).size(12),
-                            if !heading_str.is_empty() { text(heading_str.to_string()).size(11) }
-                            else { text("").size(11) },
+                            if !heading_str.is_empty() {
+                                text(heading_str.to_string()).size(11)
+                            } else {
+                                text("").size(11)
+                            },
                             text(snippet_str.chars().take(120).collect::<String>()).size(12),
                             {
                                 // Less is more: by default show only status
@@ -175,7 +180,9 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
                                 let shown: Vec<String> = if state.show_advanced {
                                     result.badges.clone()
                                 } else {
-                                    result.badges.iter()
+                                    result
+                                        .badges
+                                        .iter()
                                         .filter(|b| {
                                             let l = b.to_lowercase();
                                             l.contains("stale") || l.contains("missing")
@@ -189,9 +196,7 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
                         .spacing(2),
                     )
                     .padding(10);
-                    content = content.push(
-                        button(card).on_press(Message::SelectResult(i)),
-                    );
+                    content = content.push(button(card).on_press(Message::SelectResult(i)));
                 }
             }
         }
@@ -203,14 +208,15 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
 pub fn sources_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
     // Add-source controls — folder picker button + optional manual path input.
-    let add_btn = icon_btn(icon_text(char::from(lucide::FolderPlus), 13.0), tr(locale, MessageKey::SourcesAddFolder), Message::RequestAddSource);
-    let add_input = text_input(
-        "Or type a path manually…",
-        &state.source_path_input,
-    )
-    .on_input(Message::SourcePathChanged)
-    .on_submit(Message::RequestAddSource)
-    .padding(8);
+    let add_btn = icon_btn(
+        icon_text(char::from(lucide::FolderPlus), 13.0),
+        tr(locale, MessageKey::SourcesAddFolder),
+        Message::RequestAddSource,
+    );
+    let add_input = text_input("Or type a path manually…", &state.source_path_input)
+        .on_input(Message::SourcePathChanged)
+        .on_submit(Message::RequestAddSource)
+        .padding(8);
     let recursive_note = text("All sub-folders are scanned recursively.").size(12);
     let mut content = column![
         heading(tr(locale, MessageKey::SourcesTitle)),
@@ -219,7 +225,7 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
     ];
 
     if let Some(notice) = &state.notice {
-        content = content.push(friendly_notice(locale, notice));
+        content = content.push(friendly_notice(&state.tokens, locale, notice));
     }
     if state.sources.is_empty() {
         content = content.push(
@@ -242,13 +248,22 @@ pub fn sources_view(state: &AppState) -> Element<'_, Message> {
                     column![
                         text(card.display_name.clone()).size(15),
                         text(card.display_path.clone()).size(12),
-                        text(source_summary(locale, card.indexed, card.stale, card.failed))
-                            .size(12),
+                        text(source_summary(
+                            locale,
+                            card.indexed,
+                            card.stale,
+                            card.failed
+                        ))
+                        .size(12),
                         row![
                             text(status).size(11),
-                            button(row![icon_text(char::from(lucide::Trash2), 12.0).size(12)].spacing(2))
-                                .on_press(Message::SourceRemoved(src_id)),
-                        ].spacing(8),
+                            button(
+                                row![icon_text(char::from(lucide::Trash2), 12.0).size(12)]
+                                    .spacing(2)
+                            )
+                            .on_press(Message::SourceRemoved(src_id)),
+                        ]
+                        .spacing(8),
                     ]
                     .spacing(2),
                 )
@@ -270,8 +285,11 @@ pub fn indexing_view(state: &AppState) -> Element<'_, Message> {
     // Less is more: always show "Indexed". Show queued/stale/failed cells
     // only when they are non-zero (or when advanced view is on), so a healthy
     // idle state is a single clean number rather than three zeros of noise.
-    let mut cells = row![cell(tr(locale, MessageKey::IndexingHealthIndexed), h.indexed)]
-        .spacing(10);
+    let mut cells = row![cell(
+        tr(locale, MessageKey::IndexingHealthIndexed),
+        h.indexed
+    )]
+    .spacing(10);
     if h.queued > 0 || state.show_advanced {
         cells = cells.push(cell(tr(locale, MessageKey::IndexingHealthQueued), h.queued));
     }
@@ -332,9 +350,8 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
             for (category, bytes, count) in &state.storage_rows {
                 if *bytes > 0 || *count > 0 {
                     let mib = *bytes as f64 / (1024.0 * 1024.0);
-                    breakdown = breakdown.push(
-                        text(format!("  {category}: {mib:.1} MiB ({count} items)")).size(12),
-                    );
+                    breakdown = breakdown
+                        .push(text(format!("  {category}: {mib:.1} MiB ({count} items)")).size(12));
                 }
             }
         } else {
@@ -352,14 +369,16 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
             }
             let mib = |b: u64| b as f64 / (1024.0 * 1024.0);
             for (label, bytes) in [
-                (tr(locale, MessageKey::StorageGroupSearchIndex), search_index),
+                (
+                    tr(locale, MessageKey::StorageGroupSearchIndex),
+                    search_index,
+                ),
                 (tr(locale, MessageKey::StorageGroupModels), ai_models),
                 (tr(locale, MessageKey::StorageGroupCaches), caches),
             ] {
                 if bytes > 0 {
-                    breakdown = breakdown.push(
-                        text(format!("  {label}: {:.1} MiB", mib(bytes))).size(15),
-                    );
+                    breakdown =
+                        breakdown.push(text(format!("  {label}: {:.1} MiB", mib(bytes))).size(15));
                 }
             }
         }
@@ -370,11 +389,11 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
         text(tr(locale, MessageKey::StorageSafeCleanupHeading)).size(15),
         row![
             button(text(tr(locale, MessageKey::StorageClearSnippets)).size(15))
-            .padding(Padding::from([12.0, 16.0]))
-            .on_press(Message::CleanSnippets),
+                .padding(Padding::from([12.0, 16.0]))
+                .on_press(Message::CleanSnippets),
             button(text(tr(locale, MessageKey::StorageClearSearchCache)).size(15))
-            .padding(Padding::from([12.0, 16.0]))
-            .on_press(Message::CleanSearchCache),
+                .padding(Padding::from([12.0, 16.0]))
+                .on_press(Message::CleanSearchCache),
         ]
         .spacing(8),
         text(tr(locale, MessageKey::StorageDangerHeading)).size(15),
@@ -398,8 +417,16 @@ pub fn models_view(state: &AppState) -> Element<'_, Message> {
     };
     let mut content = column![
         heading(tr(locale, MessageKey::ModelsTitle)),
-        text(format!("{}: {embedding}", tr(locale, MessageKey::ModelsEmbeddingRole))).size(14),
-        text(format!("{}: {reranker}", tr(locale, MessageKey::ModelsRerankerRole))).size(14),
+        text(format!(
+            "{}: {embedding}",
+            tr(locale, MessageKey::ModelsEmbeddingRole)
+        ))
+        .size(14),
+        text(format!(
+            "{}: {reranker}",
+            tr(locale, MessageKey::ModelsRerankerRole)
+        ))
+        .size(14),
     ];
     if state.capability == SearchCapability::KeywordOnly {
         content = content.push(text(tr(locale, MessageKey::ModelsKeywordOnlyHint)).size(12));
@@ -437,6 +464,20 @@ pub fn settings_view(state: &AppState) -> Element<'_, Message> {
             )
             .on_press(Message::ToggleAdvanced),
             text(tr(locale, MessageKey::SettingsAdvancedHint)).size(11),
+        ]
+        .spacing(8),
+        text(tr(locale, MessageKey::SettingsAccessibilityHeading)).size(15),
+        row![
+            button(
+                text(if state.high_contrast {
+                    tr(locale, MessageKey::SettingsHighContrastOn)
+                } else {
+                    tr(locale, MessageKey::SettingsHighContrastOff)
+                })
+                .size(13),
+            )
+            .on_press(Message::ToggleHighContrast),
+            text(tr(locale, MessageKey::SettingsHighContrastHint)).size(11),
         ]
         .spacing(8),
     ];

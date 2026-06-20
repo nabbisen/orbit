@@ -1,19 +1,17 @@
 //! v0.7 tests: RFC-021 (embedding backend), RFC-022 (PDF extraction),
 //! RFC-029 (model integrity).
 
-use orbok_db::Catalog;
-use orbok_db::repo::{ModelRepository, ModelRole, ModelStatus, NewModel};
-use orbok_db::repo::verify_model_sha256;
-use orbok_embed::{RECOMMENDED_MODEL_DIMENSION, create_embedding_model, recommended_config};
-use crate::{ExtractorRegistry};
+use crate::ExtractorRegistry;
 use crate::types::{DocumentExtractor, LocationQuality};
+use orbok_db::Catalog;
+use orbok_db::repo::verify_model_sha256;
+use orbok_db::repo::{ModelRepository, ModelRole, ModelStatus, NewModel};
+use orbok_embed::{RECOMMENDED_MODEL_DIMENSION, create_embedding_model, recommended_config};
 use orbok_fs::ValidatedPath;
 use orbok_models::{EmbeddingModel, EmbeddingModelConfig, InferenceBackend, MockEmbeddingModel};
 
 use std::fs;
 use std::path::PathBuf;
-
-
 
 // ── RFC-021: Embedding backend ─────────────────────────────────────────
 
@@ -51,8 +49,10 @@ fn onnx_backend_returns_feature_error_when_not_compiled() {
     match create_embedding_model(&config) {
         Err(e) => {
             let msg = e.to_string();
-            assert!(msg.contains("tract") || msg.contains("compiled"),
-                    "error should name the feature flag: {msg}");
+            assert!(
+                msg.contains("tract") || msg.contains("compiled"),
+                "error should name the feature flag: {msg}"
+            );
         }
         Ok(_) => panic!("should fail without tract feature"),
     }
@@ -77,8 +77,10 @@ fn storage_impact_384_dim_is_half_of_768() {
     assert_eq!(bytes_per_chunk_384 * 2, bytes_per_chunk_768);
     // At 100k chunks: 384-dim = ~147 MB, 768-dim = ~293 MB.
     let chunks = 100_000u64;
-    assert!(chunks * bytes_per_chunk_384 < 200 * 1024 * 1024,
-            "384-dim storage for 100k chunks should be < 200 MB");
+    assert!(
+        chunks * bytes_per_chunk_384 < 200 * 1024 * 1024,
+        "384-dim storage for 100k chunks should be < 200 MB"
+    );
 }
 
 // RFC-021 AC: Japanese/multilingual considerations documented in model selection.
@@ -86,7 +88,10 @@ fn storage_impact_384_dim_is_half_of_768() {
 fn multilingual_e5_small_is_the_recommendation() {
     // This test documents the decision. The recommended model supports
     // 100 languages including Japanese, satisfying RFC-014 requirements.
-    assert_eq!(orbok_embed::RECOMMENDED_HF_MODEL_ID, "intfloat/multilingual-e5-small");
+    assert_eq!(
+        orbok_embed::RECOMMENDED_HF_MODEL_ID,
+        "intfloat/multilingual-e5-small"
+    );
     assert_eq!(orbok_embed::RECOMMENDED_MODEL_DIMENSION, 384);
 }
 
@@ -152,8 +157,11 @@ fn pdf_extractor_extracts_text_from_valid_pdf() {
         Ok(output) => {
             assert_eq!(output.extractor_name, "pdf-lopdf");
             for seg in &output.segments {
-                assert_eq!(seg.location_quality, LocationQuality::PageOnly,
-                    "PDF segments must use PageOnly quality");
+                assert_eq!(
+                    seg.location_quality,
+                    LocationQuality::PageOnly,
+                    "PDF segments must use PageOnly quality"
+                );
             }
         }
         Err(_e) => {
@@ -210,8 +218,11 @@ fn pdf_location_quality_is_page_only() {
     };
     if let Ok(output) = PdfExtractor.extract(&vp) {
         for seg in &output.segments {
-            assert_ne!(seg.location_quality, LocationQuality::Exact,
-                "PDF segments must never claim Exact location quality");
+            assert_ne!(
+                seg.location_quality,
+                LocationQuality::Exact,
+                "PDF segments must never claim Exact location quality"
+            );
         }
     }
 }
@@ -227,13 +238,13 @@ fn model_integrity_check_passes_correct_hash() {
     fs::write(&model_file, &contents).unwrap();
     let expected_hash = {
         use sha2::Digest;
-        sha2::Sha256::digest(&contents).iter().map(|b| format!("{b:02x}")).collect::<String>()
+        sha2::Sha256::digest(&contents)
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect::<String>()
     };
 
-    let result = verify_model_sha256(
-        &model_file.to_string_lossy(),
-        &expected_hash,
-    ).unwrap();
+    let result = verify_model_sha256(&model_file.to_string_lossy(), &expected_hash).unwrap();
     assert!(result, "correct hash should pass verification");
 }
 
@@ -245,10 +256,7 @@ fn model_integrity_check_fails_wrong_hash() {
     fs::write(&model_file, vec![0u8; 512]).unwrap();
     let wrong_hash = "a".repeat(64);
 
-    let result = verify_model_sha256(
-        &model_file.to_string_lossy(),
-        &wrong_hash,
-    ).unwrap();
+    let result = verify_model_sha256(&model_file.to_string_lossy(), &wrong_hash).unwrap();
     assert!(!result, "wrong hash should fail verification");
 }
 
@@ -274,7 +282,8 @@ fn manual_model_placement_supported_via_locate() {
             "multilingual-e5-small",
             "v1",
             Some(384),
-        ).unwrap();
+        )
+        .unwrap();
     assert_eq!(record.status, ModelStatus::Available);
     assert!(record.size_bytes.unwrap() > 0);
     assert_eq!(record.dimension, Some(384));
@@ -284,16 +293,20 @@ fn manual_model_placement_supported_via_locate() {
 #[test]
 fn model_registry_stores_license_summary() {
     let catalog = Catalog::open_in_memory().unwrap();
-    let record = ModelRepository::new(&catalog).insert(NewModel {
-        role: ModelRole::Embedding,
-        model_name: "multilingual-e5-small".into(),
-        model_version: "v1".into(),
-        local_path: None,
-        license_summary: Some("Apache 2.0 — https://huggingface.co/intfloat/multilingual-e5-small".into()),
-        size_bytes: Some(118 * 1024 * 1024),
-        backend: Some("onnx".into()),
-        dimension: Some(384),
-        status: ModelStatus::Missing,
-    }).unwrap();
+    let record = ModelRepository::new(&catalog)
+        .insert(NewModel {
+            role: ModelRole::Embedding,
+            model_name: "multilingual-e5-small".into(),
+            model_version: "v1".into(),
+            local_path: None,
+            license_summary: Some(
+                "Apache 2.0 — https://huggingface.co/intfloat/multilingual-e5-small".into(),
+            ),
+            size_bytes: Some(118 * 1024 * 1024),
+            backend: Some("onnx".into()),
+            dimension: Some(384),
+            status: ModelStatus::Missing,
+        })
+        .unwrap();
     assert!(record.license_summary.unwrap().contains("Apache 2.0"));
 }

@@ -60,10 +60,7 @@ pub fn measure_search_latency(
 
 /// Compute recall@k: for each labeled query, check whether any of the
 /// top-k results matches an expected document pattern.
-pub fn compute_recall(
-    catalog: &Catalog,
-    queries: &[LabeledQuery],
-) -> OrbokResult<RecallMetrics> {
+pub fn compute_recall(catalog: &Catalog, queries: &[LabeledQuery]) -> OrbokResult<RecallMetrics> {
     const K: usize = 5;
     let service = HybridSearchService::keyword_only(catalog);
     let mut hits = 0usize;
@@ -72,9 +69,7 @@ pub fn compute_recall(
         let results = service.search(q.query, orbok_search::SearchMode::Auto, K as u32)?;
         let hit = results.iter().any(|r| {
             let path = r.display_path.to_lowercase();
-            q.relevant_patterns
-                .iter()
-                .any(|pat| path.contains(pat))
+            q.relevant_patterns.iter().any(|pat| path.contains(pat))
         });
         if hit {
             hits += 1;
@@ -82,7 +77,11 @@ pub fn compute_recall(
     }
     Ok(RecallMetrics {
         k: K,
-        recall: if evaluated > 0 { hits as f64 / evaluated as f64 } else { 0.0 },
+        recall: if evaluated > 0 {
+            hits as f64 / evaluated as f64
+        } else {
+            0.0
+        },
         queries_evaluated: evaluated,
         queries_with_any_hit: hits,
     })

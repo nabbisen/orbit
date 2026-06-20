@@ -1,21 +1,19 @@
 //! v0.6 tests: M10 CleanupService end-to-end, M12 backend config,
 //! RFC-019 release gate validation, RFC-020 documentation smoke test.
 
+use crate::{
+    ChunkAndIndexWorker, CleanupService, ExtractionWorker, check_catalog_integrity, run_pending,
+};
 use orbok_cache::CacheService;
 use orbok_core::{
-    CleanupAction, CleanupPlan, FileStatus, HiddenFilePolicy, IndexMode,
-    JobStatus, JobType, PersistenceMode, SourceType, SymlinkPolicy,
+    CleanupAction, CleanupPlan, FileStatus, HiddenFilePolicy, IndexMode, JobStatus, JobType,
+    PersistenceMode, SourceType, SymlinkPolicy,
 };
 use orbok_db::Catalog;
 use orbok_db::repo::{
-    FileRepository, IndexJobRepository, ModelRepository, ModelRole, ModelStatus,
-    NewFile, NewModel, NewSource, ObservedMetadata, SourceRepository,
+    FileRepository, IndexJobRepository, NewFile, NewSource, ObservedMetadata, SourceRepository,
 };
 use orbok_models::{EmbeddingModel, EmbeddingModelConfig, InferenceBackend, MockEmbeddingModel};
-use crate::{
-    ChunkAndIndexWorker, CleanupService, ExtractionWorker,
-    check_catalog_integrity, run_pending, run_startup_recovery,
-};
 use std::fs;
 
 fn setup(root: &std::path::Path) -> (Catalog, CacheService) {
@@ -28,40 +26,55 @@ fn cache_db_path(root: &std::path::Path) -> std::path::PathBuf {
     root.join("orbok-cache.sqlite3")
 }
 
-fn seed_indexed(catalog: &Catalog, cache: &CacheService, root: &std::path::Path,
-                name: &str, content: &str) -> orbok_core::FileId {
+fn seed_indexed(
+    catalog: &Catalog,
+    cache: &CacheService,
+    root: &std::path::Path,
+    name: &str,
+    content: &str,
+) -> orbok_core::FileId {
     let path = root.join(name);
     fs::write(&path, content).unwrap();
-    let canonical = fs::canonicalize(&path).unwrap().to_string_lossy().to_string();
-    let root_str = fs::canonicalize(root).unwrap().to_string_lossy().to_string();
+    let canonical = fs::canonicalize(&path)
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+    let root_str = fs::canonicalize(root)
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
 
-    let src = SourceRepository::new(catalog).insert(NewSource {
-        source_type: SourceType::File,
-        persistence_mode: PersistenceMode::Persistent,
-        display_name: Some(name.into()),
-        original_path: canonical.clone(),
-        canonical_path: root_str,
-        index_mode: IndexMode::Balanced,
-        include_patterns: vec![],
-        exclude_patterns: vec![],
-        hidden_file_policy: HiddenFilePolicy::Exclude,
-        symlink_policy: SymlinkPolicy::Ignore,
-        max_file_size_bytes: None,
-    }).unwrap();
-    let file = FileRepository::new(catalog).insert(NewFile {
-        source_id: src.source_id.clone(),
-        original_path: canonical.clone(),
-        canonical_path: canonical,
-        display_path: name.into(),
-        extension: Some("md".into()),
-        metadata: ObservedMetadata {
-            file_size_bytes: content.len() as u64,
-            modified_at: Some("2026-01-01T00:00:00Z".into()),
-            platform_file_key: None,
-            content_hash: Some("abc".into()),
-        },
-        status: FileStatus::Discovered,
-    }).unwrap();
+    let src = SourceRepository::new(catalog)
+        .insert(NewSource {
+            source_type: SourceType::File,
+            persistence_mode: PersistenceMode::Persistent,
+            display_name: Some(name.into()),
+            original_path: canonical.clone(),
+            canonical_path: root_str,
+            index_mode: IndexMode::Balanced,
+            include_patterns: vec![],
+            exclude_patterns: vec![],
+            hidden_file_policy: HiddenFilePolicy::Exclude,
+            symlink_policy: SymlinkPolicy::Ignore,
+            max_file_size_bytes: None,
+        })
+        .unwrap();
+    let file = FileRepository::new(catalog)
+        .insert(NewFile {
+            source_id: src.source_id.clone(),
+            original_path: canonical.clone(),
+            canonical_path: canonical,
+            display_path: name.into(),
+            extension: Some("md".into()),
+            metadata: ObservedMetadata {
+                file_size_bytes: content.len() as u64,
+                modified_at: Some("2026-01-01T00:00:00Z".into()),
+                platform_file_key: None,
+                content_hash: Some("abc".into()),
+            },
+            status: FileStatus::Discovered,
+        })
+        .unwrap();
     IndexJobRepository::new(catalog)
         .enqueue(JobType::Extract, Some(&src.source_id), Some(&file.file_id))
         .unwrap();
@@ -79,7 +92,13 @@ fn cleanup_service_safe_preserves_sources() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
     let cache_path = cache_db_path(dir.path());
-    seed_indexed(&catalog, &cache, dir.path(), "doc.md", "# Test\n\nContent here.\n");
+    seed_indexed(
+        &catalog,
+        &cache,
+        dir.path(),
+        "doc.md",
+        "# Test\n\nContent here.\n",
+    );
 
     // Seed a snippet cache entry.
     catalog.lock().execute(
@@ -92,7 +111,10 @@ fn cleanup_service_safe_preserves_sources() {
     let plan = CleanupPlan::for_action(CleanupAction::ClearSnippetCache, 100);
     let outcome = svc.run_safe(&plan).unwrap();
 
-    assert_eq!(outcome.catalog_rows_deleted, 1, "snippet row should be deleted");
+    assert_eq!(
+        outcome.catalog_rows_deleted, 1,
+        "snippet row should be deleted"
+    );
     // Sources untouched.
     assert!(!SourceRepository::new(&catalog).list().unwrap().is_empty());
 }
@@ -103,14 +125,25 @@ fn cleanup_service_index_delete_preserves_catalog() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
     let cache_path = cache_db_path(dir.path());
-    let file_id = seed_indexed(&catalog, &cache, dir.path(), "doc.md", "important content\n");
+    let file_id = seed_indexed(
+        &catalog,
+        &cache,
+        dir.path(),
+        "doc.md",
+        "important content\n",
+    );
 
     let svc = CleanupService::new(&catalog, &cache, &cache_path);
     let plan = CleanupPlan::for_action(CleanupAction::RemoveReplacedStaleIndexes, 0);
     svc.run_safe(&plan).unwrap();
 
     // File catalog intact.
-    assert!(FileRepository::new(&catalog).get_by_id(&file_id).unwrap().is_some());
+    assert!(
+        FileRepository::new(&catalog)
+            .get_by_id(&file_id)
+            .unwrap()
+            .is_some()
+    );
     assert!(!SourceRepository::new(&catalog).list().unwrap().is_empty());
 }
 
@@ -131,7 +164,10 @@ fn cleanup_service_reset_removes_sources_not_files() {
     assert!(outcome.catalog_rows_deleted > 0);
     assert!(SourceRepository::new(&catalog).list().unwrap().is_empty());
     // Source file on disk is never deleted.
-    assert!(source_file.exists(), "source file must still exist after catalog reset");
+    assert!(
+        source_file.exists(),
+        "source file must still exist after catalog reset"
+    );
 }
 
 // ── M12: InferenceBackend configuration ───────────────────────────────
@@ -216,10 +252,14 @@ fn security_tests_are_present_and_labelled() {
 #[test]
 fn data_dir_resolves_to_platform_path_or_env_override() {
     // Safety: single-threaded test, no concurrent env reads
-    unsafe { std::env::set_var("ORBOK_DATA_DIR", "/tmp/orbok-ci-test"); }
+    unsafe {
+        std::env::set_var("ORBOK_DATA_DIR", "/tmp/orbok-ci-test");
+    }
     let dir = orbok_app_data_dir_from_env();
     assert_eq!(dir, std::path::PathBuf::from("/tmp/orbok-ci-test"));
-    unsafe { std::env::remove_var("ORBOK_DATA_DIR"); }
+    unsafe {
+        std::env::remove_var("ORBOK_DATA_DIR");
+    }
 }
 
 fn orbok_app_data_dir_from_env() -> std::path::PathBuf {

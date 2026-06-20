@@ -133,8 +133,14 @@ mod tests {
 
     #[test]
     fn verify_empty_string_is_not_configured() {
-        assert_eq!(verify_embedding_model(Some("")), VerifyOutcome::NotConfigured);
-        assert_eq!(verify_embedding_model(Some("  ")), VerifyOutcome::NotConfigured);
+        assert_eq!(
+            verify_embedding_model(Some("")),
+            VerifyOutcome::NotConfigured
+        );
+        assert_eq!(
+            verify_embedding_model(Some("  ")),
+            VerifyOutcome::NotConfigured
+        );
     }
 
     #[test]
@@ -205,8 +211,10 @@ mod tests {
                 reason: FileIssueKind::NotFound,
             }],
         });
-        assert!(!summary.contains("/secret/path"),
-            "summary must not include the model dir path");
+        assert!(
+            !summary.contains("/secret/path"),
+            "summary must not include the model dir path"
+        );
     }
 }
 

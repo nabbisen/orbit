@@ -10,7 +10,12 @@ use std::path::Path;
 /// Register a directory source over `root` with the safe defaults and
 /// return its record.
 pub fn register_dir_source(catalog: &Catalog, root: &Path) -> SourceRecord {
-    register_dir_source_with(catalog, root, HiddenFilePolicy::Exclude, SymlinkPolicy::Ignore)
+    register_dir_source_with(
+        catalog,
+        root,
+        HiddenFilePolicy::Exclude,
+        SymlinkPolicy::Ignore,
+    )
 }
 
 pub fn register_dir_source_with(

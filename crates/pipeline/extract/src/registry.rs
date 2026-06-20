@@ -19,7 +19,13 @@ pub struct ExtractorRegistry {
 impl Default for ExtractorRegistry {
     fn default() -> Self {
         Self {
-            extractors: vec![Box::new(MarkdownExtractor), Box::new(DocxExtractor), Box::new(HtmlExtractor), Box::new(PlainTextExtractor), Box::new(PdfExtractor)],
+            extractors: vec![
+                Box::new(MarkdownExtractor),
+                Box::new(DocxExtractor),
+                Box::new(HtmlExtractor),
+                Box::new(PlainTextExtractor),
+                Box::new(PdfExtractor),
+            ],
         }
     }
 }

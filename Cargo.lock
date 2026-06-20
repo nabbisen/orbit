@@ -547,9 +547,9 @@ checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
 
 [[package]]
 name = "bytes"
-version = "1.11.1"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
+checksum = "8ae3f5d315924270530207e2a68396c3cc547f6dca3fbdca317cfb1a51edb593"
 
 [[package]]
 name = "calloop"
@@ -662,9 +662,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.64"
+version = "1.2.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dad887fd958be91b5098c0248def011f4523ab786cd411be668777e55063501f"
+checksum = "e228eec9be7c17ccb640b59b36a5cd805ea2a564a4c5e162c2f659fea30d3b96"
 dependencies = [
  "find-msvc-tools",
  "jobserver",
@@ -2918,9 +2918,9 @@ checksum = "112b39cec0b298b6c1999fee3e31427f74f676e4cb9879ed1a121b43661a4154"
 
 [[package]]
 name = "lucide-icons"
-version = "1.20.0"
+version = "1.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c06438dbeddbe9dafd9911a1fa74c8f483d1248458f01eec42e245aad5d182d0"
+checksum = "8dbb0a9db524d2167609e8fe281a011259bca3d57ca0340954b55f0aa8f3cc4a"
 dependencies = [
  "iced",
 ]
@@ -3747,7 +3747,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-app"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "app-json-settings",
  "dirs",
@@ -3774,7 +3774,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-bench"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "orbok-cache",
  "orbok-core",
@@ -3792,7 +3792,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-cache"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "localcache",
  "orbok-core",
@@ -3807,7 +3807,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-core"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "serde",
  "thiserror 2.0.18",
@@ -3817,7 +3817,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-db"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "orbok-core",
  "orbok-models",
@@ -3831,7 +3831,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-embed"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "candle-core",
  "candle-nn",
@@ -3846,7 +3846,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-extract"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "lopdf",
  "orbok-core",
@@ -3863,7 +3863,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-fs"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "orbok-core",
  "orbok-db",
@@ -3874,7 +3874,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-models"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "orbok-core",
  "serde",
@@ -3883,7 +3883,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-search"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "orbok-core",
  "orbok-db",
@@ -3895,7 +3895,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-ui"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "iced",
  "iced_test",
@@ -3908,7 +3908,7 @@ dependencies = [
 
 [[package]]
 name = "orbok-workers"
-version = "0.9.14"
+version = "0.10.0"
 dependencies = [
  "dirs",
  "orbok-bench",
@@ -4214,9 +4214,9 @@ dependencies = [
 
 [[package]]
 name = "pulp"
-version = "0.22.2"
+version = "0.22.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e205bb30d5b916c55e584c22201771bcf2bad9aabd5d4127f38387140c38632"
+checksum = "046aa45b989642ec2e4717c8e72d677b13edd831a4d3b6cf37d9a3e54912496a"
 dependencies = [
  "bytemuck",
  "cfg-if",
@@ -4231,9 +4231,9 @@ dependencies = [
 
 [[package]]
 name = "pulp-wasm-simd-flag"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40e24eee682d89fb193496edf918a7f407d30175b2e785fe057e4392dfd182e0"
+checksum = "1d8f70e07b9c3962945a74e59ca1c511bba65b6419468acc217c457d93f3c740"
 
 [[package]]
 name = "quick-error"
@@ -5155,34 +5155,42 @@ dependencies = [
 
 [[package]]
 name = "snora"
-version = "0.18.3"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2a3262a23a08a14054a5dda8e58eb7bb0e343626c86d747bc4f4dc48d2cc041"
+checksum = "1f47d50efb07f533144ef4824121a31f7a02c56539eb5ab83cafdcef69836450"
 dependencies = [
  "iced",
  "lucide-icons",
  "snora-core",
+ "snora-design",
  "snora-widgets",
 ]
 
 [[package]]
 name = "snora-core"
-version = "0.18.3"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf29f6a507fa588ea68407e288e45cd0204971f76e31b4be303fe1f8bb157ebf"
+checksum = "b814c3b433fb45f9803ab83ee0baebfaa7813fcf0aca54a5e1251289ea565bee"
 dependencies = [
  "lucide-icons",
 ]
 
 [[package]]
-name = "snora-widgets"
-version = "0.18.3"
+name = "snora-design"
+version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3b9ae83307d4fd6030ed4e5ab662279ff65cc5c5e1adcf1d05d071633b0a856"
+checksum = "e7625de0d4efb19af03074a6d0bd39768997da8c0550ba4b5dc0d7198637ac67"
+
+[[package]]
+name = "snora-widgets"
+version = "0.25.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "80d5a64cc6c03a010954efc9df0f99faf30a68aefc57731a48a5a0527d5c52c8"
 dependencies = [
  "iced",
  "lucide-icons",
  "snora-core",
+ "snora-design",
 ]
 
 [[package]]
@@ -5797,9 +5805,9 @@ dependencies = [
 
 [[package]]
 name = "tract-core"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "422015c415e86e73ecf4cafcacb68e98ed3b72a6d8df410398fe1208db61df5e"
+checksum = "827a323c1d8716e45a5de43338bd6ca831187a1ed4ce04e32cd23edfcde2f7c3"
 dependencies = [
  "anyhow",
  "anymap3",
@@ -5827,9 +5835,9 @@ dependencies = [
 
 [[package]]
 name = "tract-data"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72bb8d458786c307552cdefd5066b0eb74377be784dee40ae2d7f95fab989b26"
+checksum = "bf3d10a802ba47e3e156f27207bca4381cd98aaab4db35233545e0da6696bdcb"
 dependencies = [
  "anyhow",
  "downcast-rs 2.0.2",
@@ -5854,9 +5862,9 @@ dependencies = [
 
 [[package]]
 name = "tract-extra"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "845805f6e805c657278552ecee8d9def14321f9e55287757fab2e254bca5eaa3"
+checksum = "05f80fc45329d9ceb4c3bc0d5bd2433c708017a510bdb9fb44ac9f217d9d461e"
 dependencies = [
  "tract-nnef",
  "tract-pulse",
@@ -5864,9 +5872,9 @@ dependencies = [
 
 [[package]]
 name = "tract-hir"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb7798e15db131c94a7f4b028292e6bc79cc179282db9a94bd720f8f27801b4a"
+checksum = "9dcba33caa0bb0074e7292338bb24fd7ed46cf8b538121d9911dd5834d27a885"
 dependencies = [
  "derive-new",
  "log",
@@ -5875,9 +5883,9 @@ dependencies = [
 
 [[package]]
 name = "tract-linalg"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ae79096246037bd70a2ae4e6296390573537e41e65af4cdd948fc9445f665ac"
+checksum = "2da1ca8d70f7985f4066bf75d4bc8b7abb8119b4e5f3e4e5284d800efc65d180"
 dependencies = [
  "byteorder",
  "cc",
@@ -5899,9 +5907,9 @@ dependencies = [
 
 [[package]]
 name = "tract-nnef"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50f462e640678851fcf50b0ae2421e5a08a036c0abb3d06e0858262c46aab58f"
+checksum = "2e33866a921fa6103cca686040017f839082c616e853920d02842316a6a1f422"
 dependencies = [
  "byteorder",
  "erased-serde",
@@ -5921,9 +5929,9 @@ dependencies = [
 
 [[package]]
 name = "tract-onnx"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a021a92e720b596047a3772f18c5878c310629c251aa996be546531d6d338212"
+checksum = "f48a9c61e4408b9ca0a772ce277c00b69c978d6e0426e230f71af2b7bdfe15a3"
 dependencies = [
  "bytes",
  "derive-new",
@@ -5942,9 +5950,9 @@ dependencies = [
 
 [[package]]
 name = "tract-onnx-opl"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd7ed40ba5ab96b512dbe3aecc50b156e8759ddba018a99d2bd1ed8c3c518f32"
+checksum = "638c48ce1b59321561827f655f850fb289a67dcb75c4f3039fd43ba7eea1c56a"
 dependencies = [
  "dyn-eq",
  "getrandom 0.4.3",
@@ -5958,9 +5966,9 @@ dependencies = [
 
 [[package]]
 name = "tract-pulse"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e460dadde3d22f6726e18efac6b26ec661df9c7bca5766a1e76c4bd5dcd7022"
+checksum = "06cf33fb022cc7b6ab56763f8ff191a331a1730c14e98b136ef2ab4dec20b6ae"
 dependencies = [
  "downcast-rs 2.0.2",
  "dyn-eq",
@@ -5974,9 +5982,9 @@ dependencies = [
 
 [[package]]
 name = "tract-pulse-opl"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c0414347d7b855b4476855150a4171529d5d3e28261b6de1d6ac6bb12fd70215"
+checksum = "51f32522c975dd9767eaf46cc6d1502392dc380f6b540ecfab2e8e7ef4bb47a4"
 dependencies = [
  "downcast-rs 2.0.2",
  "dyn-eq",
@@ -5986,9 +5994,9 @@ dependencies = [
 
 [[package]]
 name = "tract-transformers"
-version = "0.23.2"
+version = "0.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "563374b490441196bdc7b4e33f16b2827a92aed6e5be0067ab9a2da56e7ead5f"
+checksum = "c42df3110c190d4108f1d2777dcf877d729e569c94fd2fbfbf40f50c34ae7b7a"
 dependencies = [
  "float-ord",
  "rayon",
@@ -6399,9 +6407,9 @@ dependencies = [
 
 [[package]]
 name = "wayland-protocols"
-version = "0.32.12"
+version = "0.32.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "563a85523cade2429938e790815fd7319062103b9f4a2dc806e9b53b95982d8f"
+checksum = "23d0c813de3daa2ed6520af85a3bd49b0e722a3078506899aa9686fea58dc4b6"
 dependencies = [
  "bitflags 2.13.0",
  "wayland-backend",

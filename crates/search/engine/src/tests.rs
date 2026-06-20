@@ -91,9 +91,14 @@ fn index_is_contentless() {
     // Retrieving column values from a contentless table yields NULL (or
     // errors); either way the text must not come back.
     let got: Option<String> = conn
-        .query_row("SELECT normalized_text FROM chunk_fts LIMIT 1", [], |r| r.get(0))
+        .query_row("SELECT normalized_text FROM chunk_fts LIMIT 1", [], |r| {
+            r.get(0)
+        })
         .unwrap_or(None);
-    assert!(got.is_none(), "contentless index must not return stored text");
+    assert!(
+        got.is_none(),
+        "contentless index must not return stored text"
+    );
 }
 
 // Replace-on-reindex: the old token set stops matching.
@@ -125,9 +130,15 @@ fn delete_removes_from_retrieval() {
 // RFC-015 §13: FTS5 operators in user input are neutralized.
 #[test]
 fn query_syntax_is_neutralized() {
-    assert_eq!(build_match_expression("a OR b"), Some("\"a\" \"OR\" \"b\"".into()));
+    assert_eq!(
+        build_match_expression("a OR b"),
+        Some("\"a\" \"OR\" \"b\"".into())
+    );
     assert_eq!(build_match_expression("  "), None);
-    assert_eq!(build_match_expression("say \"hi\""), Some("\"say\" \"\"\"hi\"\"\"".into()));
+    assert_eq!(
+        build_match_expression("say \"hi\""),
+        Some("\"say\" \"\"\"hi\"\"\"".into())
+    );
 
     // And operators must not crash or widen retrieval at runtime.
     let catalog = Catalog::open_in_memory().unwrap();
@@ -135,7 +146,12 @@ fn query_syntax_is_neutralized() {
     let c1 = seed_chunk(&catalog, 0);
     engine.index(&[doc(&c1, "plain text")]).unwrap();
     assert!(engine.search("plain OR missing", 10).unwrap().is_empty());
-    assert!(engine.search("title: plain NEAR(x y)", 10).unwrap().is_empty());
+    assert!(
+        engine
+            .search("title: plain NEAR(x y)", 10)
+            .unwrap()
+            .is_empty()
+    );
 }
 
 // Stale chunks are filtered out of results (RFC-007 freshness rule).

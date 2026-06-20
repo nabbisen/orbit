@@ -2,12 +2,12 @@
 //! retrieval through RRF fusion. Degrades gracefully when either source
 //! is unavailable (RFC-009 §21).
 
+use crate::KeywordSearchEngine;
 use crate::multilingual::MultilingualKeywordEngine;
 use crate::rrf::{FusedCandidate, rrf_fuse};
 use crate::service::{MatchBadge, SearchResult};
 use crate::snippet::{chunk_record_for, load_snippet};
 use crate::vector::ExactVectorSearch;
-use crate::KeywordSearchEngine;
 use orbok_core::OrbokResult;
 use orbok_db::Catalog;
 use orbok_models::{CrossEncoderReranker, EmbeddingModel, RerankCandidate, l2_normalize};
@@ -38,10 +38,30 @@ struct Limits {
 impl Limits {
     fn for_mode(mode: SearchMode) -> Self {
         match mode {
-            SearchMode::Auto => Limits { keyword_k: 100, vector_k: 100, fusion_n: 50, rerank: true },
-            SearchMode::Exact => Limits { keyword_k: 100, vector_k: 0, fusion_n: 50, rerank: false },
-            SearchMode::Conceptual => Limits { keyword_k: 0, vector_k: 100, fusion_n: 50, rerank: true },
-            SearchMode::Fast => Limits { keyword_k: 50, vector_k: 50, fusion_n: 20, rerank: false },
+            SearchMode::Auto => Limits {
+                keyword_k: 100,
+                vector_k: 100,
+                fusion_n: 50,
+                rerank: true,
+            },
+            SearchMode::Exact => Limits {
+                keyword_k: 100,
+                vector_k: 0,
+                fusion_n: 50,
+                rerank: false,
+            },
+            SearchMode::Conceptual => Limits {
+                keyword_k: 0,
+                vector_k: 100,
+                fusion_n: 50,
+                rerank: true,
+            },
+            SearchMode::Fast => Limits {
+                keyword_k: 50,
+                vector_k: 50,
+                fusion_n: 20,
+                rerank: false,
+            },
         }
     }
 }
@@ -57,15 +77,15 @@ pub struct HybridSearchService<'a> {
 impl<'a> HybridSearchService<'a> {
     /// Keyword-only mode (no embedding model).
     pub fn keyword_only(catalog: &'a Catalog) -> Self {
-        Self { catalog, embedding_model: None, reranker: None }
+        Self {
+            catalog,
+            embedding_model: None,
+            reranker: None,
+        }
     }
 
     /// Hybrid mode with an embedding model.
-    pub fn with_model(
-        catalog: &'a Catalog,
-        model: &'a dyn EmbeddingModel,
-        model_id: &str,
-    ) -> Self {
+    pub fn with_model(catalog: &'a Catalog, model: &'a dyn EmbeddingModel, model_id: &str) -> Self {
         Self {
             catalog,
             embedding_model: Some((model, model_id.to_string())),
@@ -143,8 +163,7 @@ impl<'a> HybridSearchService<'a> {
     }
 
     fn enrich(&self, candidate: &FusedCandidate) -> OrbokResult<Option<SearchResult>> {
-        let Some((chunk, canonical_path)) =
-            chunk_record_for(self.catalog, &candidate.chunk_id)?
+        let Some((chunk, canonical_path)) = chunk_record_for(self.catalog, &candidate.chunk_id)?
         else {
             return Ok(None);
         };
@@ -156,8 +175,12 @@ impl<'a> HybridSearchService<'a> {
                 .map(|n| n.to_string_lossy().into_owned())
         });
         let mut badges = Vec::new();
-        if candidate.keyword_rank.is_some() { badges.push(MatchBadge::Keyword); }
-        if candidate.vector_rank.is_some() { badges.push(MatchBadge::Semantic); }
+        if candidate.keyword_rank.is_some() {
+            badges.push(MatchBadge::Keyword);
+        }
+        if candidate.vector_rank.is_some() {
+            badges.push(MatchBadge::Semantic);
+        }
         Ok(Some(SearchResult {
             chunk_id: candidate.chunk_id.clone(),
             file_id: candidate.file_id.clone(),
@@ -196,7 +219,9 @@ fn rerank_results(
         }
     }
     results[..to_rerank].sort_by(|a, b| {
-        b.keyword_score.partial_cmp(&a.keyword_score).unwrap_or(std::cmp::Ordering::Equal)
+        b.keyword_score
+            .partial_cmp(&a.keyword_score)
+            .unwrap_or(std::cmp::Ordering::Equal)
     });
     Ok(results)
 }
@@ -204,7 +229,9 @@ fn rerank_results(
 fn short_display_path(path: &str) -> String {
     let p = Path::new(path);
     let parts: Vec<_> = p.components().collect();
-    if parts.len() <= 2 { return path.to_string(); }
+    if parts.len() <= 2 {
+        return path.to_string();
+    }
     let tail: std::path::PathBuf = parts[parts.len() - 2..].iter().collect();
     format!("…/{}", tail.display())
 }

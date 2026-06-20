@@ -4,7 +4,7 @@
 //! Privacy: no text is stored in the catalog. Snippets surface only
 //! when the source file is readable and current.
 
-use orbok_core::{OrbokResult, OrbokError};
+use orbok_core::{OrbokError, OrbokResult};
 use orbok_db::Catalog;
 use orbok_db::repo::ChunkRecord;
 use std::io::{BufRead, BufReader};
@@ -40,9 +40,10 @@ pub fn load_snippet(record: &ChunkRecord, source_path: &str) -> Option<String> {
 }
 
 /// Look up chunk location metadata from the catalog.
-pub fn chunk_record_for(catalog: &Catalog, chunk_id: &orbok_core::ChunkId)
-    -> OrbokResult<Option<(ChunkRecord, String)>>
-{
+pub fn chunk_record_for(
+    catalog: &Catalog,
+    chunk_id: &orbok_core::ChunkId,
+) -> OrbokResult<Option<(ChunkRecord, String)>> {
     let conn = catalog.lock();
     let result = conn.query_row(
         "SELECT c.chunk_id, c.file_id, c.chunk_ordinal, c.heading_path, \

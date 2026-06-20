@@ -1,4 +1,4 @@
-# Dependency Audit — 2026-06-10
+# Dependency Audit — 2026-06-20
 
 Performed manually against crates.io / docs.rs.
 (`cargo-outdated` could not be installed in the build environment due to

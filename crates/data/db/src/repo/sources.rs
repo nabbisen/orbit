@@ -98,7 +98,9 @@ impl<'a> SourceRepository<'a> {
     pub fn get(&self, id: &SourceId) -> OrbokResult<Option<SourceRecord>> {
         let conn = self.catalog.lock();
         let mut stmt = conn
-            .prepare(&format!("SELECT {COLUMNS} FROM sources WHERE source_id = ?1"))
+            .prepare(&format!(
+                "SELECT {COLUMNS} FROM sources WHERE source_id = ?1"
+            ))
             .map_err(db_err)?;
         let mut rows = stmt
             .query_map(params![id.as_str()], row_to_record)
@@ -166,15 +168,19 @@ impl<'a> SourceRepository<'a> {
     /// indexes. Source files on disk are never touched.
     pub fn delete_with_all_data(&self, id: &SourceId) -> OrbokResult<()> {
         let conn = self.catalog.lock();
-        conn.execute("DELETE FROM sources WHERE source_id = ?1", params![id.as_str()])
-            .map_err(db_err)?;
+        conn.execute(
+            "DELETE FROM sources WHERE source_id = ?1",
+            params![id.as_str()],
+        )
+        .map_err(db_err)?;
         Ok(())
     }
 }
 
 fn row_to_record(row: &Row<'_>) -> rusqlite::Result<OrbokResult<SourceRecord>> {
     let parse_patterns = |s: Option<String>| -> Vec<String> {
-        s.and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default()
+        s.and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_default()
     };
     let source_type: String = row.get(1)?;
     let persistence: String = row.get(2)?;

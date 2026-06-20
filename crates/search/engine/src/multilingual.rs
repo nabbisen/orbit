@@ -100,7 +100,11 @@ impl KeywordSearchEngine for MultilingualKeywordEngine<'_> {
         if contains_cjk(&normalized) {
             let trigram_hits = self.search_trigram(&normalized, limit)?;
             merge_candidates(&mut candidates, trigram_hits);
-            candidates.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+            candidates.sort_by(|a, b| {
+                b.score
+                    .partial_cmp(&a.score)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
             candidates.truncate(limit as usize);
             // Re-assign 1-based ranks after merge.
             for (i, c) in candidates.iter_mut().enumerate() {
@@ -139,7 +143,8 @@ impl MultilingualKeywordEngine<'_> {
             .map_err(|e| OrbokError::Database(e.to_string()))?;
         let mut out = Vec::new();
         for (i, row) in rows.enumerate() {
-            let (chunk_id, file_id, score) = row.map_err(|e| OrbokError::Database(e.to_string()))?;
+            let (chunk_id, file_id, score) =
+                row.map_err(|e| OrbokError::Database(e.to_string()))?;
             out.push(KeywordCandidate {
                 chunk_id: ChunkId::from_string(chunk_id),
                 file_id: FileId::from_string(file_id),
@@ -153,8 +158,10 @@ impl MultilingualKeywordEngine<'_> {
 
 /// Merge trigram hits into the candidate list, deduplicating by chunk_id.
 fn merge_candidates(existing: &mut Vec<KeywordCandidate>, new: Vec<KeywordCandidate>) {
-    let existing_ids: std::collections::HashSet<String> =
-        existing.iter().map(|c| c.chunk_id.as_str().to_string()).collect();
+    let existing_ids: std::collections::HashSet<String> = existing
+        .iter()
+        .map(|c| c.chunk_id.as_str().to_string())
+        .collect();
     for c in new {
         if !existing_ids.contains(c.chunk_id.as_str()) {
             existing.push(c);

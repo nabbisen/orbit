@@ -30,3 +30,9 @@ crates/
 3. **The catalog is authoritative**; localcache payloads live in a separate DB (Appendix A §3).
 4. **Cleanup runs only from a validated CleanupPlan** (RFC-001 §14).
 5. **All user-visible strings live in orbok-ui/src/i18n** — backend crates have no display strings (RFC-031).
+6. **orbok-ui uses the Snora Design system** (`snora` `design` feature) for
+   accessible, WCAG-AA-verified surfaces. `AppState.tokens` holds the active
+   `snora::design::Tokens` preset; the high-contrast toggle in Settings swaps
+   between `Tokens::light()` and `Tokens::high_contrast_light()`. The
+   `friendly_notice` view renders via `snora::design::notice::Notice`, with the
+   `UserNotice` domain enum still owning semantics and i18n.

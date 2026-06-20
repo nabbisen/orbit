@@ -42,7 +42,6 @@ impl Locale {
         }
     }
 
-
     /// Detect the preferred locale from the operating system environment.
     /// Checks `LANG` and `LANGUAGE` in that order. Returns `None` if
     /// neither variable is set or contains a recognised language code.
@@ -187,6 +186,10 @@ pub enum MessageKey {
     NoticePreviewsClearedBody,
     NoticeActionTryAgain,
     NoticeActionChooseFolder,
+    SettingsAccessibilityHeading,
+    SettingsHighContrastOn,
+    SettingsHighContrastOff,
+    SettingsHighContrastHint,
     NoticeSensitiveSourceTitle,
     NoticeSensitiveSourceBody,
     NoticeDismiss,

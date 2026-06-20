@@ -24,7 +24,9 @@ fn rejects_path_outside_sources() {
     let catalog = Catalog::open_in_memory().unwrap();
     let guard = guard_for(&catalog, dir.path());
 
-    let err = guard.validate(&outside.path().join("secret.txt")).unwrap_err();
+    let err = guard
+        .validate(&outside.path().join("secret.txt"))
+        .unwrap_err();
     assert!(matches!(err, OrbokError::PathOutsideSources));
 }
 
@@ -79,7 +81,10 @@ fn ignore_policy_blocks_internal_symlink() {
     let guard = guard_for(&catalog, root.path());
 
     let err = guard.validate(&root.path().join("alias.txt")).unwrap_err();
-    assert!(matches!(err, OrbokError::PolicyBlocked("symlink_policy_blocked")));
+    assert!(matches!(
+        err,
+        OrbokError::PolicyBlocked("symlink_policy_blocked")
+    ));
     // The real file is fine.
     assert!(guard.validate(&root.path().join("real.txt")).is_ok());
 }
@@ -122,7 +127,10 @@ fn hidden_file_excluded_by_default() {
     let guard = guard_for(&catalog, root.path());
 
     let err = guard.validate(&root.path().join(".env")).unwrap_err();
-    assert!(matches!(err, OrbokError::PolicyBlocked("hidden_file_excluded")));
+    assert!(matches!(
+        err,
+        OrbokError::PolicyBlocked("hidden_file_excluded")
+    ));
 }
 
 // RFC-003 §8 item 6: file size limit enforced at the boundary.
@@ -153,5 +161,8 @@ fn sensitive_paths_warn() {
     );
     assert!(sensitive_warning(Path::new("/home/user/Documents")).is_none());
     #[cfg(unix)]
-    assert_eq!(sensitive_warning(Path::new("/etc/passwd")), Some("system_directory"));
+    assert_eq!(
+        sensitive_warning(Path::new("/etc/passwd")),
+        Some("system_directory")
+    );
 }

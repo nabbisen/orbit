@@ -1,42 +1,49 @@
 //! v0.9.2 tests: source management backend, startup health population,
 //! hybrid search backend routing, EmbeddingWorker model selection.
 
+use crate::{
+    ChunkAndIndexWorker, EmbeddingWorker, ExtractionWorker, VerifyOutcome, run_pending,
+    verify_embedding_model,
+};
 use orbok_cache::CacheService;
+use orbok_core::ModelId;
 use orbok_core::{
     FileStatus, HiddenFilePolicy, IndexMode, PersistenceMode, SourceType, SymlinkPolicy,
 };
 use orbok_db::Catalog;
-use orbok_db::repo::{
-    FileRepository, NewSource, SourceRepository,
-};
-use crate::{
-    ChunkAndIndexWorker, EmbeddingWorker, ExtractionWorker, run_pending,
-    verify_embedding_model, VerifyOutcome,
-};
-use orbok_core::ModelId;
+use orbok_db::repo::{FileRepository, NewSource, SourceRepository};
 use orbok_models::{EmbeddingModel, MockEmbeddingModel};
 use orbok_search::{HybridSearchService, SearchMode};
 use std::fs;
 
 fn setup(root: &std::path::Path) -> (Catalog, CacheService) {
-    (Catalog::open(root.join("catalog.sqlite3")).unwrap(), CacheService::new(root))
+    (
+        Catalog::open(root.join("catalog.sqlite3")).unwrap(),
+        CacheService::new(root),
+    )
 }
 
 fn seed_source(catalog: &Catalog, root: &std::path::Path) -> orbok_core::SourceId {
-    let r = fs::canonicalize(root).unwrap().to_string_lossy().to_string();
-    SourceRepository::new(catalog).insert(NewSource {
-        source_type: SourceType::Directory,
-        persistence_mode: PersistenceMode::Persistent,
-        display_name: Some("test".into()),
-        original_path: r.clone(),
-        canonical_path: r,
-        index_mode: IndexMode::Balanced,
-        include_patterns: vec![],
-        exclude_patterns: vec![],
-        hidden_file_policy: HiddenFilePolicy::Exclude,
-        symlink_policy: SymlinkPolicy::Ignore,
-        max_file_size_bytes: None,
-    }).unwrap().source_id
+    let r = fs::canonicalize(root)
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+    SourceRepository::new(catalog)
+        .insert(NewSource {
+            source_type: SourceType::Directory,
+            persistence_mode: PersistenceMode::Persistent,
+            display_name: Some("test".into()),
+            original_path: r.clone(),
+            canonical_path: r,
+            index_mode: IndexMode::Balanced,
+            include_patterns: vec![],
+            exclude_patterns: vec![],
+            hidden_file_policy: HiddenFilePolicy::Exclude,
+            symlink_policy: SymlinkPolicy::Ignore,
+            max_file_size_bytes: None,
+        })
+        .unwrap()
+        .source_id
 }
 
 // ── Source management ────────────────────────────────────────────────
@@ -52,10 +59,16 @@ fn count_with_status_reflects_indexed_files() {
     {
         use orbok_fs::{ScanRequest, Scanner};
         use std::sync::atomic::AtomicBool;
-        Scanner::new(&catalog).scan(
-            &ScanRequest { source_id: src_id.clone(), force_hash: false, enqueue_index_jobs: true },
-            &AtomicBool::new(false),
-        ).unwrap();
+        Scanner::new(&catalog)
+            .scan(
+                &ScanRequest {
+                    source_id: src_id.clone(),
+                    force_hash: false,
+                    enqueue_index_jobs: true,
+                },
+                &AtomicBool::new(false),
+            )
+            .unwrap();
     }
     let e = ExtractionWorker::new(&catalog, &cache);
     let c = ChunkAndIndexWorker::new(&catalog, &cache);
@@ -74,8 +87,18 @@ fn count_for_source_with_status_is_scoped() {
     let src_id = seed_source(&catalog, dir.path());
     // No files — both counts are zero.
     let files = FileRepository::new(&catalog);
-    assert_eq!(files.count_for_source_with_status(&src_id, FileStatus::Indexed).unwrap(), 0);
-    assert_eq!(files.count_for_source_with_status(&src_id, FileStatus::Failed).unwrap(), 0);
+    assert_eq!(
+        files
+            .count_for_source_with_status(&src_id, FileStatus::Indexed)
+            .unwrap(),
+        0
+    );
+    assert_eq!(
+        files
+            .count_for_source_with_status(&src_id, FileStatus::Failed)
+            .unwrap(),
+        0
+    );
 }
 
 // SourceCard.source_id is populated when sources are loaded.
@@ -111,22 +134,33 @@ fn embedding_worker_with_model_uses_supplied_model() {
 fn hybrid_search_keyword_only_returns_results() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
-    fs::write(dir.path().join("auth.md"), "# Auth\nRefresh tokens expire daily.\n").unwrap();
+    fs::write(
+        dir.path().join("auth.md"),
+        "# Auth\nRefresh tokens expire daily.\n",
+    )
+    .unwrap();
     let src_id = seed_source(&catalog, dir.path());
     {
         use orbok_fs::{ScanRequest, Scanner};
         use std::sync::atomic::AtomicBool;
-        Scanner::new(&catalog).scan(
-            &ScanRequest { source_id: src_id, force_hash: false, enqueue_index_jobs: true },
-            &AtomicBool::new(false),
-        ).unwrap();
+        Scanner::new(&catalog)
+            .scan(
+                &ScanRequest {
+                    source_id: src_id,
+                    force_hash: false,
+                    enqueue_index_jobs: true,
+                },
+                &AtomicBool::new(false),
+            )
+            .unwrap();
     }
     let e = ExtractionWorker::new(&catalog, &cache);
     let c = ChunkAndIndexWorker::new(&catalog, &cache);
     run_pending(&catalog, &e, &c, None, 50).unwrap();
 
     let results = HybridSearchService::keyword_only(&catalog)
-        .search("tokens", SearchMode::Exact, 10).unwrap();
+        .search("tokens", SearchMode::Exact, 10)
+        .unwrap();
     assert!(!results.is_empty(), "keyword search must find 'tokens'");
 }
 
@@ -135,15 +169,25 @@ fn hybrid_search_keyword_only_returns_results() {
 fn hybrid_search_with_model_uses_vector_path() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
-    fs::write(dir.path().join("auth.md"), "# Auth\nRefresh tokens expire daily.\n").unwrap();
+    fs::write(
+        dir.path().join("auth.md"),
+        "# Auth\nRefresh tokens expire daily.\n",
+    )
+    .unwrap();
     let src_id = seed_source(&catalog, dir.path());
     {
         use orbok_fs::{ScanRequest, Scanner};
         use std::sync::atomic::AtomicBool;
-        Scanner::new(&catalog).scan(
-            &ScanRequest { source_id: src_id, force_hash: false, enqueue_index_jobs: true },
-            &AtomicBool::new(false),
-        ).unwrap();
+        Scanner::new(&catalog)
+            .scan(
+                &ScanRequest {
+                    source_id: src_id,
+                    force_hash: false,
+                    enqueue_index_jobs: true,
+                },
+                &AtomicBool::new(false),
+            )
+            .unwrap();
     }
     let e = ExtractionWorker::new(&catalog, &cache);
     let c = ChunkAndIndexWorker::new(&catalog, &cache);
@@ -187,17 +231,26 @@ fn health_reflects_indexed_count() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
     for i in 0..3 {
-        fs::write(dir.path().join(format!("doc{i}.md")),
-            format!("# Document {i}\nSome content here.\n")).unwrap();
+        fs::write(
+            dir.path().join(format!("doc{i}.md")),
+            format!("# Document {i}\nSome content here.\n"),
+        )
+        .unwrap();
     }
     let src_id = seed_source(&catalog, dir.path());
     {
         use orbok_fs::{ScanRequest, Scanner};
         use std::sync::atomic::AtomicBool;
-        Scanner::new(&catalog).scan(
-            &ScanRequest { source_id: src_id, force_hash: false, enqueue_index_jobs: true },
-            &AtomicBool::new(false),
-        ).unwrap();
+        Scanner::new(&catalog)
+            .scan(
+                &ScanRequest {
+                    source_id: src_id,
+                    force_hash: false,
+                    enqueue_index_jobs: true,
+                },
+                &AtomicBool::new(false),
+            )
+            .unwrap();
     }
     let e = ExtractionWorker::new(&catalog, &cache);
     let c = ChunkAndIndexWorker::new(&catalog, &cache);

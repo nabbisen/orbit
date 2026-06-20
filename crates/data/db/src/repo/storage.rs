@@ -34,7 +34,12 @@ impl<'a> StorageAccountingRepository<'a> {
             "INSERT INTO storage_accounting (category, size_bytes, item_count, updated_at) \
              VALUES (?1, ?2, ?3, ?4) \
              ON CONFLICT(category) DO UPDATE SET size_bytes = ?2, item_count = ?3, updated_at = ?4",
-            params![category.as_str(), size_bytes as i64, item_count as i64, now_iso8601()],
+            params![
+                category.as_str(),
+                size_bytes as i64,
+                item_count as i64,
+                now_iso8601()
+            ],
         )
         .map_err(db_err)?;
         Ok(())

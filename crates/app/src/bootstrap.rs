@@ -10,12 +10,12 @@
 //! 6. build initial `AppState` (wizard active if model missing)
 
 use orbok_core::OrbokResult;
-use orbok_db::{CATALOG_FILE_NAME, Catalog};
 use orbok_db::repo::SettingsRepository;
-use orbok_models::SearchCapability;
+use orbok_db::{CATALOG_FILE_NAME, Catalog};
 use orbok_embed::{create_embedding_model, recommended_config};
-use orbok_search::HybridSearchService;
 use orbok_models::EmbeddingModel;
+use orbok_models::SearchCapability;
+use orbok_search::HybridSearchService;
 use orbok_ui::AppState;
 use orbok_ui::i18n::Locale;
 use orbok_ui::state::{WizardFileCheck, WizardState};
@@ -36,7 +36,11 @@ pub fn data_dir() -> PathBuf {
 
 /// Resolve considering `--portable` flag (RFC-030).
 pub fn data_dir_for_args(portable: bool) -> PathBuf {
-    if portable { PathBuf::from("orbok-data") } else { data_dir() }
+    if portable {
+        PathBuf::from("orbok-data")
+    } else {
+        data_dir()
+    }
 }
 
 /// Open the catalog, creating the data directory if needed.
@@ -56,7 +60,10 @@ pub fn load_initial_state() -> Result<AppState, Box<dyn std::error::Error>> {
     let cache_path = dir.join(orbok_db::CACHE_FILE_NAME);
     let recovery = orbok_workers::run_startup_recovery(&catalog, &cache_path)?;
     if recovery.jobs_reset > 0 {
-        tracing::warn!(reset = recovery.jobs_reset, "reset interrupted jobs on startup");
+        tracing::warn!(
+            reset = recovery.jobs_reset,
+            "reset interrupted jobs on startup"
+        );
     }
 
     // Load persisted OrbokSettings (app-json-settings).
@@ -100,9 +107,10 @@ fn build_capability_and_wizard(
 ) -> (SearchCapability, Option<WizardState>) {
     match outcome {
         VerifyOutcome::Ready => (SearchCapability::Hybrid, None),
-        VerifyOutcome::NotConfigured => {
-            (SearchCapability::KeywordOnly, Some(WizardState::NotConfigured))
-        }
+        VerifyOutcome::NotConfigured => (
+            SearchCapability::KeywordOnly,
+            Some(WizardState::NotConfigured),
+        ),
         VerifyOutcome::FilesInvalid { model_dir, issues } => {
             let checks: Vec<WizardFileCheck> = orbok_workers::model_verifier::REQUIRED_MODEL_FILES
                 .iter()
@@ -115,7 +123,10 @@ fn build_capability_and_wizard(
                     }
                 })
                 .collect();
-            let wizard = WizardState::FileMissing { previous_dir: model_dir, checks };
+            let wizard = WizardState::FileMissing {
+                previous_dir: model_dir,
+                checks,
+            };
             (SearchCapability::KeywordOnly, Some(wizard))
         }
     }
@@ -138,24 +149,27 @@ pub(crate) fn run_search(
             Ok(model) => {
                 // Real model available — use hybrid search.
                 let model_ref: &dyn EmbeddingModel = model.as_ref();
-                let service = HybridSearchService::with_model(
-                    catalog,
-                    model_ref,
-                    &config.model_name,
-                );
+                let service =
+                    HybridSearchService::with_model(catalog, model_ref, &config.model_name);
                 service.search(query, orbok_search::SearchMode::Auto, limit)?
             }
             Err(_) => {
                 // Model configured but backend not compiled in (e.g. no --features tract).
                 // Fall back to keyword-only.
-                HybridSearchService::keyword_only(catalog)
-                    .search(query, orbok_search::SearchMode::Auto, limit)?
+                HybridSearchService::keyword_only(catalog).search(
+                    query,
+                    orbok_search::SearchMode::Auto,
+                    limit,
+                )?
             }
         }
     } else {
         // No model configured — keyword-only.
-        HybridSearchService::keyword_only(catalog)
-            .search(query, orbok_search::SearchMode::Auto, limit)?
+        HybridSearchService::keyword_only(catalog).search(
+            query,
+            orbok_search::SearchMode::Auto,
+            limit,
+        )?
     };
     Ok(results
         .into_iter()
@@ -267,15 +281,18 @@ pub fn add_source(
         tracing::warn!(path = %canonical, warning = w, "sensitive source added");
     }
 
-    Ok((orbok_ui::state::SourceCard {
-        display_name,
-        display_path: canonical,
-        indexed: 0,
-        stale: 0,
-        failed: 0,
-        active: true,
-        source_id: src.source_id.as_str().to_string(),
-    }, sensitive))
+    Ok((
+        orbok_ui::state::SourceCard {
+            display_name,
+            display_path: canonical,
+            indexed: 0,
+            stale: 0,
+            failed: 0,
+            active: true,
+            source_id: src.source_id.as_str().to_string(),
+        },
+        sensitive,
+    ))
 }
 
 /// Scan a source synchronously and return the updated index health.
@@ -329,29 +346,43 @@ pub fn remove_source(
 
 /// Query index health from the catalog for the sidebar summary.
 pub fn get_health(catalog: &Catalog) -> orbok_ui::state::IndexHealth {
-    use orbok_db::repo::{FileRepository, IndexJobRepository};
     use orbok_core::FileStatus;
+    use orbok_db::repo::{FileRepository, IndexJobRepository};
     let files = FileRepository::new(catalog);
     let indexed = files.count_with_status(FileStatus::Indexed).unwrap_or(0);
     let stale = files.count_with_status(FileStatus::Stale).unwrap_or(0);
     let failed = files.count_with_status(FileStatus::Failed).unwrap_or(0);
-    let queued = IndexJobRepository::new(catalog).list_queued(u32::MAX).unwrap_or_default().len() as u64;
-    orbok_ui::state::IndexHealth { indexed, stale, failed, queued }
+    let queued = IndexJobRepository::new(catalog)
+        .list_queued(u32::MAX)
+        .unwrap_or_default()
+        .len() as u64;
+    orbok_ui::state::IndexHealth {
+        indexed,
+        stale,
+        failed,
+        queued,
+    }
 }
 
 /// Load all registered sources for the Sources view.
 pub fn get_sources(catalog: &Catalog) -> Vec<orbok_ui::state::SourceCard> {
-    use orbok_db::repo::{FileRepository, SourceRepository};
     use orbok_core::FileStatus;
+    use orbok_db::repo::{FileRepository, SourceRepository};
     SourceRepository::new(catalog)
         .list()
         .unwrap_or_default()
         .into_iter()
         .map(|src| {
             let files = FileRepository::new(catalog);
-            let indexed = files.count_for_source_with_status(&src.source_id, FileStatus::Indexed).unwrap_or(0);
-            let stale = files.count_for_source_with_status(&src.source_id, FileStatus::Stale).unwrap_or(0);
-            let failed = files.count_for_source_with_status(&src.source_id, FileStatus::Failed).unwrap_or(0);
+            let indexed = files
+                .count_for_source_with_status(&src.source_id, FileStatus::Indexed)
+                .unwrap_or(0);
+            let stale = files
+                .count_for_source_with_status(&src.source_id, FileStatus::Stale)
+                .unwrap_or(0);
+            let failed = files
+                .count_for_source_with_status(&src.source_id, FileStatus::Failed)
+                .unwrap_or(0);
             orbok_ui::state::SourceCard {
                 display_name: src.display_name.unwrap_or_else(|| "source".into()),
                 display_path: src.canonical_path,

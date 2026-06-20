@@ -11,9 +11,9 @@
 
 use crate::i18n::{Locale, MessageKey, tr};
 use crate::state::{AppState, Message, WizardFileCheck, WizardState};
-use snora::lucide;
 use iced::widget::{button, column, container, progress_bar, row, text, text_input};
 use iced::{Element, Length};
+use snora::lucide;
 
 fn icon_text<'a>(glyph: char, size: f32) -> iced::widget::Text<'a> {
     iced::widget::text(glyph.to_string())
@@ -24,11 +24,20 @@ fn icon_text<'a>(glyph: char, size: f32) -> iced::widget::Text<'a> {
 /// Dispatch to the correct wizard page.
 pub fn wizard_view(state: &AppState) -> Element<'_, Message> {
     let locale = state.locale;
-    match state.wizard.as_ref().expect("wizard_view called without active wizard") {
+    match state
+        .wizard
+        .as_ref()
+        .expect("wizard_view called without active wizard")
+    {
         WizardState::NotConfigured => page_setup(locale, state, None),
-        WizardState::FileMissing { previous_dir, checks } => {
-            page_setup(locale, state, Some((previous_dir.as_str(), checks.as_slice())))
-        }
+        WizardState::FileMissing {
+            previous_dir,
+            checks,
+        } => page_setup(
+            locale,
+            state,
+            Some((previous_dir.as_str(), checks.as_slice())),
+        ),
         WizardState::Downloading {
             current_file,
             bytes,
@@ -36,10 +45,19 @@ pub fn wizard_view(state: &AppState) -> Element<'_, Message> {
             files_done,
             files_total,
             ..
-        } => page_downloading(locale, current_file, *bytes, *total, *files_done, *files_total),
-        WizardState::Checked { model_dir, checks, all_ok } => {
-            page_checked(locale, state, model_dir, checks, *all_ok)
-        }
+        } => page_downloading(
+            locale,
+            current_file,
+            *bytes,
+            *total,
+            *files_done,
+            *files_total,
+        ),
+        WizardState::Checked {
+            model_dir,
+            checks,
+            all_ok,
+        } => page_checked(locale, state, model_dir, checks, *all_ok),
         WizardState::Ready { model_dir } => page_ready(locale, model_dir),
     }
 }
@@ -52,10 +70,8 @@ fn page_setup<'a>(
     missing: Option<(&'a str, &'a [WizardFileCheck])>,
 ) -> Element<'a, Message> {
     let mut col = column![
-        text(tr(locale, MessageKey::WizardTitleNotConfigured))
-            .size(22),
-        text(tr(locale, MessageKey::WizardBodyNotConfigured))
-            .size(13),
+        text(tr(locale, MessageKey::WizardTitleNotConfigured)).size(22),
+        text(tr(locale, MessageKey::WizardBodyNotConfigured)).size(13),
     ]
     .spacing(8);
 
@@ -67,8 +83,7 @@ fn page_setup<'a>(
                 text(tr(locale, MessageKey::WizardDownloadAction)).size(14),
             ]
             .spacing(6),
-            text("multilingual-e5-small · Apache 2.0 · ~93 MB · 100+ languages")
-                .size(11),
+            text("multilingual-e5-small · Apache 2.0 · ~93 MB · 100+ languages").size(11),
             button(
                 row![
                     icon_text(char::from(lucide::Download), 13.0),
@@ -87,15 +102,17 @@ fn page_setup<'a>(
     col = col.push(text("— or —").size(11));
 
     // ── Secondary action: locate existing files ───────────────────────
-    col = col.push(
-        text(tr(locale, MessageKey::WizardBodyFileMissing)).size(12),
-    );
+    col = col.push(text(tr(locale, MessageKey::WizardBodyFileMissing)).size(12));
 
     // Show previous path hint when files were missing.
     if let Some((prev_dir, checks)) = missing {
         col = col.push(text(prev_dir).size(11));
         for fc in checks {
-            let (icon, note) = if fc.found { ("✓", "") } else { ("✗", "  ← missing") };
+            let (icon, note) = if fc.found {
+                ("✓", "")
+            } else {
+                ("✗", "  ← missing")
+            };
             col = col.push(text(format!("{icon}  {}{note}", fc.relative_path)).size(11));
         }
     }
@@ -155,11 +172,7 @@ fn page_downloading<'a>(
     };
 
     let bytes_label = if let Some(t) = total {
-        format!(
-            "{} / {}",
-            human_bytes(bytes),
-            human_bytes(t),
-        )
+        format!("{} / {}", human_bytes(bytes), human_bytes(t),)
     } else {
         human_bytes(bytes)
     };
@@ -176,8 +189,7 @@ fn page_downloading<'a>(
             text(tr(locale, MessageKey::WizardDownloadProgress)).size(20),
         ]
         .spacing(6),
-        text("multilingual-e5-small · Apache 2.0")
-            .size(11),
+        text("multilingual-e5-small · Apache 2.0").size(11),
         text(overall_label).size(12),
         text(format!("↓  {current_file}")).size(13),
         progress_bar(0.0..=1.0, frac),
@@ -208,11 +220,16 @@ fn page_checked<'a>(
     .spacing(8);
 
     for fc in checks {
-        let (icon, style) = if fc.found { ("✓", "") } else { ("✗", "  ← missing") };
-        let size_info = fc.size_mb.map(|m| format!("  ({m} MB)")).unwrap_or_default();
-        col = col.push(
-            text(format!("{icon}  {}{size_info}{style}", fc.relative_path)).size(12),
-        );
+        let (icon, style) = if fc.found {
+            ("✓", "")
+        } else {
+            ("✗", "  ← missing")
+        };
+        let size_info = fc
+            .size_mb
+            .map(|m| format!("  ({m} MB)"))
+            .unwrap_or_default();
+        col = col.push(text(format!("{icon}  {}{size_info}{style}", fc.relative_path)).size(12));
     }
 
     if all_ok {
@@ -256,7 +273,8 @@ fn page_checked<'a>(
             button(text("← Back").size(12)).on_press(Message::WizardBack),
             button(text(tr(locale, MessageKey::WizardActionSkip)).size(12))
                 .on_press(Message::WizardSkip),
-        ].spacing(8),
+        ]
+        .spacing(8),
     );
 
     container(col.spacing(10))

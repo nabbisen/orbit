@@ -8,8 +8,8 @@
 //! - ~93 MB total (ONNX weights + tokenizer)
 //! - Supports 100+ languages including Japanese
 
-use futures::channel::mpsc::Sender;
 use futures::SinkExt as _;
+use futures::channel::mpsc::Sender;
 use orbok_ui::state::Message;
 use std::path::PathBuf;
 use tokio::io::AsyncWriteExt as _;
@@ -125,10 +125,7 @@ async fn download_file(
         .map_err(|e| format!("Request failed for {display_name}: {e}"))?;
 
     if !resp.status().is_success() {
-        return Err(format!(
-            "HTTP {} for {display_name}",
-            resp.status()
-        ));
+        return Err(format!("HTTP {} for {display_name}", resp.status()));
     }
 
     let total_bytes = resp.content_length();
@@ -142,8 +139,7 @@ async fn download_file(
     use futures::StreamExt as _;
 
     while let Some(chunk_result) = stream.next().await {
-        let chunk =
-            chunk_result.map_err(|e| format!("Download error for {display_name}: {e}"))?;
+        let chunk = chunk_result.map_err(|e| format!("Download error for {display_name}: {e}"))?;
         file.write_all(&chunk)
             .await
             .map_err(|e| format!("Write error for {display_name}: {e}"))?;

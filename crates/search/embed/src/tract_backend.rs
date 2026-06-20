@@ -52,24 +52,35 @@ impl TractEmbeddingModel {
 }
 
 impl EmbeddingModel for TractEmbeddingModel {
-    fn name(&self) -> &str { &self.name }
-    fn version(&self) -> &str { &self.version }
-    fn dimension(&self) -> u32 { self.dimension }
+    fn name(&self) -> &str {
+        &self.name
+    }
+    fn version(&self) -> &str {
+        &self.version
+    }
+    fn dimension(&self) -> u32 {
+        self.dimension
+    }
 
     fn embed_batch(&self, texts: &[&str]) -> OrbokResult<Vec<Vec<f32>>> {
         // Placeholder tokenization: this produces incorrect semantic
         // vectors but correct shapes. Replace with `tokenizers` crate
         // integration once tokenizer.json path is configured.
-        texts.iter().map(|text| {
-            let char_hashes: Vec<f32> = text.chars().take(self.dimension as usize)
-                .enumerate()
-                .map(|(i, c)| ((c as u32 + i as u32) % 256) as f32 / 255.0)
-                .collect();
-            let mut v: Vec<f32> = (0..self.dimension as usize)
-                .map(|i| char_hashes.get(i).copied().unwrap_or(0.0))
-                .collect();
-            l2_normalize(&mut v);
-            Ok(v)
-        }).collect()
+        texts
+            .iter()
+            .map(|text| {
+                let char_hashes: Vec<f32> = text
+                    .chars()
+                    .take(self.dimension as usize)
+                    .enumerate()
+                    .map(|(i, c)| ((c as u32 + i as u32) % 256) as f32 / 255.0)
+                    .collect();
+                let mut v: Vec<f32> = (0..self.dimension as usize)
+                    .map(|i| char_hashes.get(i).copied().unwrap_or(0.0))
+                    .collect();
+                l2_normalize(&mut v);
+                Ok(v)
+            })
+            .collect()
     }
 }

@@ -30,7 +30,11 @@ pub struct CleanupService<'a> {
 
 impl<'a> CleanupService<'a> {
     pub fn new(catalog: &'a Catalog, cache: &'a CacheService, cache_db_path: &'a Path) -> Self {
-        Self { catalog, cache, cache_db_path }
+        Self {
+            catalog,
+            cache,
+            cache_db_path,
+        }
     }
 
     /// Safe cleanup: validates the plan cannot touch persistent data, then
@@ -85,11 +89,7 @@ impl<'a> CleanupService<'a> {
     fn run_cache_side(&self, plan: &CleanupPlan) -> OrbokResult<u64> {
         use orbok_cache::{EngineOptions, OrbokCacheNamespace};
 
-        let size_before = self
-            .cache_db_path
-            .metadata()
-            .map(|m| m.len())
-            .unwrap_or(0);
+        let size_before = self.cache_db_path.metadata().map(|m| m.len()).unwrap_or(0);
 
         match plan.action {
             CleanupAction::ClearSnippetCache | CleanupAction::ClearExpiredSearchCache => {
@@ -99,12 +99,12 @@ impl<'a> CleanupService<'a> {
                     &OrbokCacheNamespace::PreviewCache,
                     EngineOptions::default(),
                 )?;
-                engine.cleanup_expired().map_err(|e| {
-                    orbok_core::OrbokError::Cache(e.to_string())
-                })?;
-                engine.shrink_database().map_err(|e| {
-                    orbok_core::OrbokError::Cache(e.to_string())
-                })?;
+                engine
+                    .cleanup_expired()
+                    .map_err(|e| orbok_core::OrbokError::Cache(e.to_string()))?;
+                engine
+                    .shrink_database()
+                    .map_err(|e| orbok_core::OrbokError::Cache(e.to_string()))?;
             }
             CleanupAction::ClearTemporaryExtraction
             | CleanupAction::RemoveTemporarySourceIndexes => {
@@ -114,12 +114,12 @@ impl<'a> CleanupService<'a> {
                     &OrbokCacheNamespace::ExtractSegments,
                     EngineOptions::default(),
                 )?;
-                engine.purge_stale_versions().map_err(|e| {
-                    orbok_core::OrbokError::Cache(e.to_string())
-                })?;
-                engine.cleanup_missing_files().map_err(|e| {
-                    orbok_core::OrbokError::Cache(e.to_string())
-                })?;
+                engine
+                    .purge_stale_versions()
+                    .map_err(|e| orbok_core::OrbokError::Cache(e.to_string()))?;
+                engine
+                    .cleanup_missing_files()
+                    .map_err(|e| orbok_core::OrbokError::Cache(e.to_string()))?;
             }
             CleanupAction::RemoveReplacedStaleIndexes => {
                 // Clean up chunk and embedding bundle caches.
@@ -132,19 +132,15 @@ impl<'a> CleanupService<'a> {
                         &ns,
                         EngineOptions::default(),
                     )?;
-                    engine.cleanup_missing_files().map_err(|e| {
-                        orbok_core::OrbokError::Cache(e.to_string())
-                    })?;
+                    engine
+                        .cleanup_missing_files()
+                        .map_err(|e| orbok_core::OrbokError::Cache(e.to_string()))?;
                 }
             }
             _ => {}
         }
 
-        let size_after = self
-            .cache_db_path
-            .metadata()
-            .map(|m| m.len())
-            .unwrap_or(0);
+        let size_after = self.cache_db_path.metadata().map(|m| m.len()).unwrap_or(0);
         Ok(size_before.saturating_sub(size_after))
     }
 
@@ -156,11 +152,9 @@ impl<'a> CleanupService<'a> {
             OrbokCacheNamespace::ChunkBundle,
             OrbokCacheNamespace::PreviewCache,
         ] {
-            let engine = self.cache.engine::<Vec<u8>>(
-                self.catalog,
-                &ns,
-                EngineOptions::default(),
-            )?;
+            let engine =
+                self.cache
+                    .engine::<Vec<u8>>(self.catalog, &ns, EngineOptions::default())?;
             let _ = engine.purge_stale_versions();
             let _ = engine.cleanup_expired();
             let _ = engine.shrink_database();

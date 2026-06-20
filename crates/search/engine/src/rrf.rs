@@ -59,7 +59,11 @@ pub fn rrf_fuse(
     }
 
     let mut fused: Vec<FusedCandidate> = scores.into_values().collect();
-    fused.sort_by(|a, b| b.rrf_score.partial_cmp(&a.rrf_score).unwrap_or(std::cmp::Ordering::Equal));
+    fused.sort_by(|a, b| {
+        b.rrf_score
+            .partial_cmp(&a.rrf_score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     fused.truncate(limit);
     fused
 }

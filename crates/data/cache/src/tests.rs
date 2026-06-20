@@ -3,10 +3,10 @@
 //! that cannot touch the catalog, engine registration, usage stats.
 
 use crate::{CacheService, EngineOptions, OrbokCacheNamespace};
+use orbok_core::SourceId;
 use orbok_core::{CleanupAction, CleanupPlan, DataClass};
 use orbok_db::{CACHE_FILE_NAME, CATALOG_FILE_NAME, Catalog};
 use orbok_fs::ValidatedPath;
-use orbok_core::SourceId;
 use serde::{Deserialize, Serialize};
 use std::fs;
 
@@ -38,9 +38,13 @@ fn payloads_live_in_separate_database() {
             EngineOptions::default(),
         )
         .unwrap();
-    CacheService::put(&engine, &validated(&file), &Segments {
-        lines: vec!["hello".into()],
-    })
+    CacheService::put(
+        &engine,
+        &validated(&file),
+        &Segments {
+            lines: vec!["hello".into()],
+        },
+    )
     .unwrap();
 
     assert!(dir.path().join(CACHE_FILE_NAME).exists());
@@ -70,10 +74,15 @@ fn get_fresh_misses_after_source_change() {
     let file = dir.path().join("doc.md");
     fs::write(&file, "v1").unwrap();
     let path = validated(&file);
-    let payload = Segments { lines: vec!["v1".into()] };
+    let payload = Segments {
+        lines: vec!["v1".into()],
+    };
     CacheService::put(&engine, &path, &payload).unwrap();
 
-    assert_eq!(CacheService::get_fresh(&engine, &path).unwrap(), Some(payload));
+    assert_eq!(
+        CacheService::get_fresh(&engine, &path).unwrap(),
+        Some(payload)
+    );
 
     // Change the file: full-hash verification must reject the entry.
     fs::write(&file, "v2 with different size").unwrap();
@@ -148,9 +157,13 @@ fn usage_reports_entries_and_bytes() {
 
     let file = dir.path().join("doc.md");
     fs::write(&file, "data").unwrap();
-    CacheService::put(&engine, &validated(&file), &Segments {
-        lines: vec!["data".into()],
-    })
+    CacheService::put(
+        &engine,
+        &validated(&file),
+        &Segments {
+            lines: vec!["data".into()],
+        },
+    )
     .unwrap();
 
     let usage = service
@@ -183,7 +196,9 @@ fn same_size_immediate_overwrite_is_detected() {
     let file = dir.path().join("doc.md");
     fs::write(&file, "AAAA").unwrap();
     let path = validated(&file);
-    let payload = Segments { lines: vec!["AAAA".into()] };
+    let payload = Segments {
+        lines: vec!["AAAA".into()],
+    };
     CacheService::put(&engine, &path, &payload).unwrap();
 
     // Overwrite within the same instant: identical length, new content.

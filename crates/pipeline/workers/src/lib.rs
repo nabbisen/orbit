@@ -15,9 +15,9 @@
 //! records with the error category.
 
 mod chunk_and_index;
+pub mod cleanup_service;
 mod embedding;
 mod extract;
-pub mod cleanup_service;
 pub mod model_verifier;
 pub mod recovery;
 pub mod storage;
@@ -26,16 +26,20 @@ pub mod storage;
 mod tests;
 
 pub use chunk_and_index::ChunkAndIndexWorker;
+pub use cleanup_service::{CleanupService, FullCleanupOutcome};
 pub use embedding::EmbeddingWorker;
 pub use extract::ExtractionWorker;
-pub use cleanup_service::{CleanupService, FullCleanupOutcome};
-pub use model_verifier::{FileIssue, FileIssueKind, VerifyOutcome, verify_embedding_model, verify_outcome_summary};
-pub use recovery::{IntegrityReport, RecoveryReport, check_catalog_integrity, run_startup_recovery};
+pub use model_verifier::{
+    FileIssue, FileIssueKind, VerifyOutcome, verify_embedding_model, verify_outcome_summary,
+};
+pub use recovery::{
+    IntegrityReport, RecoveryReport, check_catalog_integrity, run_startup_recovery,
+};
 pub use storage::update_storage_accounting;
 
 use orbok_core::OrbokResult;
-use orbok_db::Catalog;
 use orbok_core::{JobStatus, JobType};
+use orbok_db::Catalog;
 use orbok_db::repo::IndexJobRepository;
 use tracing::warn;
 

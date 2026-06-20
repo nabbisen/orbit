@@ -6,9 +6,9 @@
 //! module so state logic stays UI-framework-agnostic.
 
 use crate::i18n::Locale;
+use crate::notice::UserNotice;
 use orbok_models::SearchCapability;
 use orbok_search::SearchMode;
-use crate::notice::UserNotice;
 
 /// Top-level navigation group for the two-level sidebar + tab layout.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -58,7 +58,6 @@ impl ViewId {
     }
 }
 
-
 /// Sidebar index-health summary.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct IndexHealth {
@@ -92,7 +91,6 @@ pub struct SearchResultDisplay {
     pub badges: Vec<String>,
 }
 
-
 /// One required file and its check result shown in the wizard.
 #[derive(Debug, Clone, PartialEq)]
 pub struct WizardFileCheck {
@@ -107,9 +105,16 @@ pub enum WizardState {
     /// First launch or model never configured.
     NotConfigured,
     /// Was configured, but files are gone.
-    FileMissing { previous_dir: String, checks: Vec<WizardFileCheck> },
+    FileMissing {
+        previous_dir: String,
+        checks: Vec<WizardFileCheck>,
+    },
     /// User submitted a path; file checks complete.
-    Checked { model_dir: String, checks: Vec<WizardFileCheck>, all_ok: bool },
+    Checked {
+        model_dir: String,
+        checks: Vec<WizardFileCheck>,
+        all_ok: bool,
+    },
     /// All files verified — ready to proceed.
     Ready { model_dir: String },
     /// HuggingFace download in progress.
@@ -152,6 +157,11 @@ pub struct AppState {
     pub notice: Option<UserNotice>,
     /// Awaiting user confirmation before running reset catalog.
     pub confirm_reset: bool,
+    /// Snora Design tokens, selected by `high_contrast`. Drives notice colors
+    /// and (incrementally) other design-system surfaces.
+    pub tokens: snora::design::Tokens,
+    /// When true, use the high-contrast token preset (accessibility).
+    pub high_contrast: bool,
 }
 
 impl Default for AppState {
@@ -176,6 +186,8 @@ impl Default for AppState {
             show_advanced: false,
             notice: None,
             confirm_reset: false,
+            tokens: snora::design::Tokens::light(),
+            high_contrast: false,
         }
     }
 }
@@ -186,6 +198,7 @@ pub enum Message {
     Switch(ViewId),
     SwitchGroup(NavGroup),
     ToggleAdvanced,
+    ToggleHighContrast,
     ShowNotice(UserNotice),
     ClearNotice,
     // Storage cleanup
@@ -194,7 +207,7 @@ pub enum Message {
     AskResetCatalog,
     ConfirmResetCatalog,
     CancelResetCatalog,
-    CleanupDone,        // backend notifies completion
+    CleanupDone, // backend notifies completion
     // Wizard navigation
     WizardBack,
     QueryChanged(String),
@@ -210,18 +223,24 @@ pub enum Message {
     // Startup wizard
     WizardPathChanged(String),
     WizardValidate,
-    WizardChecked { model_dir: String, checks: Vec<WizardFileCheck>, all_ok: bool },
+    WizardChecked {
+        model_dir: String,
+        checks: Vec<WizardFileCheck>,
+        all_ok: bool,
+    },
     WizardAccept,
     WizardSkip,
     // Source management
     SourcePathChanged(String),
     RequestAddSource,
     SourceAdded(SourceCard),
-    SourceRemoved(String),   // source_id
+    SourceRemoved(String), // source_id
     ScanCompleted(IndexHealth),
     // Download
     DownloadModel,
-    DownloadStarted { dest_dir: String },
+    DownloadStarted {
+        dest_dir: String,
+    },
     DownloadFileProgress {
         file: String,
         bytes: u64,
@@ -229,7 +248,9 @@ pub enum Message {
         files_done: u32,
         files_total: u32,
     },
-    DownloadAllComplete { dest_dir: String },
+    DownloadAllComplete {
+        dest_dir: String,
+    },
     DownloadFailed(String),
     // Startup population
     HealthUpdated(IndexHealth),
@@ -242,6 +263,14 @@ impl AppState {
             Message::Switch(view) => self.active_view = *view,
             Message::SwitchGroup(group) => self.active_view = ViewId::group_default(*group),
             Message::ToggleAdvanced => self.show_advanced = !self.show_advanced,
+            Message::ToggleHighContrast => {
+                self.high_contrast = !self.high_contrast;
+                self.tokens = if self.high_contrast {
+                    snora::design::Tokens::high_contrast_light()
+                } else {
+                    snora::design::Tokens::light()
+                };
+            }
             Message::AskResetCatalog => self.confirm_reset = true,
             Message::CancelResetCatalog => self.confirm_reset = false,
             Message::ConfirmResetCatalog => {
@@ -293,9 +322,15 @@ impl AppState {
             Message::StorageDataReady(rows) => self.storage_rows = rows.clone(),
             Message::WizardPathChanged(p) => self.wizard_path_input = p.clone(),
             Message::WizardValidate => {} // handled in orbok-app update
-            Message::WizardChecked { model_dir, checks, all_ok } => {
+            Message::WizardChecked {
+                model_dir,
+                checks,
+                all_ok,
+            } => {
                 self.wizard = Some(if *all_ok {
-                    WizardState::Ready { model_dir: model_dir.clone() }
+                    WizardState::Ready {
+                        model_dir: model_dir.clone(),
+                    }
                 } else {
                     WizardState::Checked {
                         model_dir: model_dir.clone(),
@@ -330,9 +365,21 @@ impl AppState {
                     files_total: 2,
                 });
             }
-            Message::DownloadFileProgress { file, bytes, total, files_done, files_total } => {
-                if let Some(WizardState::Downloading { current_file, bytes: b, total: t, files_done: fd, files_total: ft, .. }) =
-                    &mut self.wizard
+            Message::DownloadFileProgress {
+                file,
+                bytes,
+                total,
+                files_done,
+                files_total,
+            } => {
+                if let Some(WizardState::Downloading {
+                    current_file,
+                    bytes: b,
+                    total: t,
+                    files_done: fd,
+                    files_total: ft,
+                    ..
+                }) = &mut self.wizard
                 {
                     *current_file = file.clone();
                     *b = *bytes;
@@ -343,11 +390,13 @@ impl AppState {
             }
             Message::DownloadAllComplete { dest_dir } => {
                 // Switch directly to wizard-accepted flow.
-                self.wizard = Some(WizardState::Ready { model_dir: dest_dir.clone() });
+                self.wizard = Some(WizardState::Ready {
+                    model_dir: dest_dir.clone(),
+                });
             }
             Message::DownloadFailed(_reason) => {
                 // Return to NotConfigured so the user can try again.
-self.wizard = Some(WizardState::NotConfigured);
+                self.wizard = Some(WizardState::NotConfigured);
             }
             Message::SourcePathChanged(p) => self.source_path_input = p.clone(),
             Message::RequestAddSource => {} // handled in orbok-app

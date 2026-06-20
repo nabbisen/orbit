@@ -24,7 +24,11 @@ const SENSITIVE_COMPONENTS: &[&str] = &[
 const SYSTEM_PREFIXES: &[&str] = &["/etc", "/usr", "/bin", "/sbin", "/boot", "/proc", "/sys"];
 
 #[cfg(not(unix))]
-const SYSTEM_PREFIXES: &[&str] = &["C:\\Windows", "C:\\Program Files", "C:\\Program Files (x86)"];
+const SYSTEM_PREFIXES: &[&str] = &[
+    "C:\\Windows",
+    "C:\\Program Files",
+    "C:\\Program Files (x86)",
+];
 
 /// Returns a warning reason when `path` looks like a sensitive location.
 /// `None` means no warning is needed.
