@@ -141,3 +141,109 @@ fn timestamps_are_iso8601_utc() {
     assert!(t.ends_with('Z'), "expected UTC Z suffix: {t}");
     assert!(t.contains('T'));
 }
+
+// ── RFC-039: Privacy mode tests ───────────────────────────────────────
+
+use crate::privacy::{DiagnosticsPolicy, LocalDataCategory, PrivacyMode, PrivacySettings};
+
+#[test]
+fn default_privacy_mode_is_standard() {
+    assert_eq!(PrivacySettings::default().mode, PrivacyMode::Standard);
+}
+
+#[test]
+fn strict_mode_disables_recent_searches() {
+    assert!(!PrivacyMode::Strict.allows_recent_searches());
+    assert!(PrivacyMode::Standard.allows_recent_searches());
+}
+
+#[test]
+fn strict_mode_disables_snippet_persistence() {
+    assert!(!PrivacyMode::Strict.allows_snippet_persistence());
+    assert!(PrivacyMode::Standard.allows_snippet_persistence());
+}
+
+#[test]
+fn strict_settings_applied_forces_off_searches() {
+    let settings = PrivacySettings {
+        mode: PrivacyMode::Strict,
+        remember_recent_searches: true, // attempted override
+        ..PrivacySettings::default()
+    }
+    .with_mode_applied();
+    assert!(!settings.effective_recent_searches());
+}
+
+#[test]
+fn standard_settings_respects_user_choice() {
+    let settings = PrivacySettings {
+        mode: PrivacyMode::Standard,
+        remember_recent_searches: false, // user turned it off
+        ..PrivacySettings::default()
+    };
+    assert!(!settings.effective_recent_searches());
+}
+
+#[test]
+fn privacy_mode_roundtrip() {
+    for mode in [
+        PrivacyMode::Standard,
+        PrivacyMode::Strict,
+        PrivacyMode::Portable,
+        PrivacyMode::Diagnostics,
+    ] {
+        assert_eq!(PrivacyMode::from_str(mode.as_str()), mode);
+    }
+}
+
+#[test]
+fn local_data_category_labels_avoid_technical_terms() {
+    let forbidden = [
+        "cache", "catalog", "vector", "fts", "sqlite", "blob", "index",
+    ];
+    for cat in [
+        LocalDataCategory::KeywordIndex,
+        LocalDataCategory::Embeddings,
+        LocalDataCategory::Snippets,
+        LocalDataCategory::RecentSearches,
+        LocalDataCategory::ModelFiles,
+        LocalDataCategory::Settings,
+    ] {
+        let label = cat.user_label().to_lowercase();
+        for term in &forbidden {
+            assert!(
+                !label.contains(term),
+                "label '{}' contains forbidden term '{term}'",
+                cat.user_label()
+            );
+        }
+    }
+}
+
+#[test]
+fn diagnostics_policy_strict_disables_sensitive_paths() {
+    let settings = PrivacySettings {
+        mode: PrivacyMode::Strict,
+        diagnostics_include_paths: true, // attempted override
+        ..PrivacySettings::default()
+    };
+    let policy = DiagnosticsPolicy::from_privacy(&settings);
+    assert!(
+        !policy.include_raw_paths,
+        "strict must prevent raw path inclusion"
+    );
+    assert!(
+        !policy.allows_sensitive_optins(),
+        "strict must hide sensitive opt-ins"
+    );
+}
+
+#[test]
+fn diagnostics_policy_standard_allows_opt_ins() {
+    let settings = PrivacySettings {
+        mode: PrivacyMode::Standard,
+        ..PrivacySettings::default()
+    };
+    let policy = DiagnosticsPolicy::from_privacy(&settings);
+    assert!(policy.allows_sensitive_optins());
+}

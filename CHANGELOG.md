@@ -11,6 +11,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.19.0] — 2026-06-21 — Phase 3: Model Readiness, Privacy Modes, Safe Diagnostics (RFC-043, RFC-039, RFC-040)
+
+### Added
+
+**RFC-043: Model Download Readiness and Bounded Concurrency.**
+
+- `crates/search/models/src/readiness.rs` — `LocalFileStatus` (5 variants with
+  `user_label`, `needs_work`), `FileReadiness`, `ModelReadiness` (4 variants),
+  `ModelReadinessReport` (`files_needing_work`, `ready_count`, `total_count`),
+  `check_model_readiness` — pure filesystem check, no network access, called at
+  startup / before wizard / before download / after download / on retry.
+- `crates/search/models/src/download_plan.rs` — `DownloadAction` (Skip /
+  Download / Replace / Retry), `ModelFilePlan` with `.part` temp-file paths
+  (RFC-043 §9.1 atomic write pattern), `DownloadPlan`, `build_download_plan`
+  mapping readiness → action; `DEFAULT_MODEL_DOWNLOAD_CONCURRENCY = 2`
+  (RFC-043 §11.1 bounded concurrency); progress types (`FileDownloadStatus`,
+  `FileDownloadProgress`, `OverallDownloadProgress`);
+  `FriendlyDownloadProblem` with 7 variants — all messages end with a period,
+  avoid technical terms (RFC-043 §20).
+- 10 RFC-043 i18n keys (en + ja): readiness states, download progress copy,
+  failure messages — plain-language, no HTTP/TCP/DNS/URL terms.
+
+**RFC-039: Privacy Modes and Local Data Visibility.**
+
+- `crates/core/src/privacy.rs` — `PrivacyMode` (Standard / Strict / Portable /
+  Diagnostics with `as_str`/`from_str` roundtrip, `allows_recent_searches`,
+  `allows_snippet_persistence`, `allows_diagnostics_sensitive_optins`);
+  `PrivacySettings` with `with_mode_applied` enforcing strict overrides and
+  `effective_recent_searches` / `effective_snippet_persistence` helpers;
+  `LocalDataCategory` (12 variants with plain-language `user_label` — no
+  "cache/catalog/vector/fts"); `DiagnosticsPolicy` with `from_privacy` and
+  `allows_sensitive_optins`.
+- `OrbokSettings` extended with `privacy_mode`, `remember_recent_searches`,
+  `persist_snippets`, `clear_temporary_previews_on_exit`.
+- 19 RFC-039 i18n keys (en + ja): privacy mode descriptions, strict confirmation
+  dialog, toggle labels — no technical terms, `orbok` throughout.
+- `Message` variants: `SetPrivacyMode`, `PrivacySettingChanged`,
+  `ClearTemporaryPreviews`.
+
+**RFC-040: Safe Diagnostics and Redacted Support Bundle.**
+
+- `crates/app/src/diagnostics.rs` — `DiagnosticsManifest` (records exactly what
+  was included, defaults `redacted: true`), `DiagnosticsSectionKind` (11
+  sections, each with a stable `filename`), `redact_text` engine (home
+  directory, absolute paths → `<folder>/filename`, URL query strings → `?<redacted query>`),
+  `collect_app_info`, `collect_platform_info`, `bundle_preview_text`.
+  Never uploaded automatically; manual export only.
+- `UserNotice` extended with `DiagnosticsFileCreated` (Info tone) and
+  `DiagnosticsFileFailed` (Danger tone + retry action).
+- `Message` variants: `DiagnosticsCreateBundle`, `DiagnosticsBundleCreated`,
+  `DiagnosticsBundleFailed`, `DiagnosticsOptInChanged`.
+- 13 RFC-040 i18n keys (en + ja): bundle preview, opt-in labels, result notices.
+
+### Tests
+
+- `orbok-models/src/rfc043_tests/rfc043_readiness.rs` — 8 tests: missing dir →
+  NeedsDownload, complete valid files → Ready, `.part` → Partial, empty file →
+  Invalid, ready count, label compliance, `needs_work` correctness.
+- `orbok-models/src/rfc043_tests/rfc043_download_plan.rs` — 9 tests: skip ready,
+  download missing, retry partial, replace invalid, concurrency ≤ 2, temp path
+  `.part` suffix, friendly message technical-term compliance and punctuation.
+- `orbok-core/src/tests.rs` extended — 10 RFC-039 tests: default mode, strict
+  disables searches/snippets, strict `with_mode_applied` forces overrides,
+  standard respects user choice, `PrivacyMode` roundtrip, `LocalDataCategory`
+  label compliance, `DiagnosticsPolicy` strict restrictions.
+
+**351 tests / 0 failures / 0 warnings.**
+
+---
+
 ## [0.18.0] — 2026-06-21 — Phase 2: Search UX, Source Lifecycle, Result Trust (RFC-041, RFC-037, RFC-038)
 
 ### Added

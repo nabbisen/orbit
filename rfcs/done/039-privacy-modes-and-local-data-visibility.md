@@ -4,7 +4,7 @@
 **Former project name:** orbit  
 **RFC:** 039  
 **Title:** Privacy Modes and Local Data Visibility  
-**Status:** Proposed
+**Status:** Implemented (v0.19.0)
 **Target milestone:** Privacy UX / local-first trust  
 **Date:** 2026-06-18  
 **Related RFCs:** RFC-001 Local Data Classification and Lifecycle, RFC-011 Storage Dashboard and Cleanup UX, RFC-042 Search History and Reopen Recent Searches, RFC-043 Model Download Readiness Check and Bounded Concurrency, RFC-040 Safe Diagnostics and Redacted Support Bundle  

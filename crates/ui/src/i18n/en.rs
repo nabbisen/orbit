@@ -218,5 +218,68 @@ pub fn message(key: MessageKey) -> &'static str {
         TrustSomePagesDetail => "Some pages could not be prepared.",
         TrustSizeLimitDetail => "Only part of this large file was prepared.",
         TrustCannotOpenDetail => "orbok cannot open this file.",
+        // RFC-043: Model download readiness
+        ModelCheckingFiles => "Checking search helper...",
+        ModelAlreadyReady => "Better search is ready.",
+        ModelNeedsDownload => {
+            "Some search helper files are needed. orbok will download only what is missing."
+        }
+        ModelDownloadingBetterSearch => "Downloading better search",
+        ModelFilesStayLocal => "Your files stay on this computer.",
+        ModelDownloadFailed => {
+            "Download did not finish. Please check your connection and try again."
+        }
+        ModelDownloadRetry => "Try again",
+        ModelRepairingFiles => {
+            "Some search helper files need to be repaired. orbok will download only what is needed."
+        }
+        ModelBasicSearchAvailable => "Basic search is ready. Search by meaning can be added later.",
+        ModelDownloadingWhatNeeded => "Downloading what is needed...",
+        // RFC-039: Privacy modes
+        PrivacyTitle => "Privacy",
+        PrivacyLocalOnlyStatement => "Documents are processed on this computer only.",
+        PrivacyModeStandard => "Standard",
+        PrivacyModeStrict => "Strict",
+        PrivacyModePortable => "Portable",
+        PrivacyModeStrictDescription => "Strict privacy reduces what orbok remembers.",
+        PrivacyModePortableDescription => "orbok stores app data next to this copy of the app.",
+        PrivacyRememberSearches => "Remember recent searches",
+        PrivacyRememberSearchesHint => "Recent searches are saved on this computer only.",
+        PrivacySearchesDisabledStrict => {
+            "Recent searches are not saved while Strict privacy is on."
+        }
+        PrivacyTemporaryPreviews => "Temporary previews",
+        PrivacyTemporaryPreviewsHint => {
+            "Temporary previews help results open faster. You can clear them anytime."
+        }
+        PrivacyClearPreviews => "Clear temporary previews",
+        PrivacyEnableStrictConfirm => "Turn on Strict privacy?",
+        PrivacyEnableStrictBody => {
+            "orbok will stop saving recent searches and reduce temporary previews. You can also clear data already saved."
+        }
+        PrivacyTurnOn => "Turn on",
+        PrivacyTurnOnAndClear => "Turn on and clear",
+        PrivacyFilesNotDeleted => "Your files will not be deleted.",
+        PrivacyModelDownloadNote => {
+            "orbok downloads the search helper, but your documents are not uploaded."
+        }
+        // RFC-040: Diagnostics
+        DiagnosticsTitle => "Diagnostics",
+        DiagnosticsIntro => {
+            "Create a support file if something is not working. The file does not include your documents or search words by default."
+        }
+        DiagnosticsCreateFile => "Create support file",
+        DiagnosticsPreviewTitle => "Create support file",
+        DiagnosticsIncludedLabel => "Included",
+        DiagnosticsExcludedLabel => "Not included",
+        DiagnosticsOptInFolderNames => "Include folder names",
+        DiagnosticsOptInFolderNamesHint => "This may reveal which folders you use.",
+        DiagnosticsOptInSearchWords => "Include recent search words",
+        DiagnosticsOptInSearchWordsHint => "This may reveal what you were looking for.",
+        DiagnosticsFileCreated => "Support file created.",
+        DiagnosticsShowFile => "Show file",
+        DiagnosticsCreateFailed => {
+            "Support file was not created. Please choose another location or try again."
+        }
     }
 }

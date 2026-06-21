@@ -57,6 +57,19 @@ pub struct OrbokSettings {
 
     /// Pause background indexing when on battery power.
     pub pause_on_battery: bool,
+
+    /// Privacy mode (RFC-039 §5). One of: "standard" | "strict" | "portable".
+    pub privacy_mode: String,
+
+    /// Whether to persist recent search queries (RFC-039 §10).
+    /// Forced off in Strict mode.
+    pub remember_recent_searches: bool,
+
+    /// Whether to cache result snippets across sessions (RFC-039 §11).
+    pub persist_snippets: bool,
+
+    /// Whether to clear temporary previews on app exit (RFC-039 §11).
+    pub clear_temporary_previews_on_exit: bool,
 }
 
 impl Default for OrbokSettings {
@@ -72,6 +85,10 @@ impl Default for OrbokSettings {
             rerank_enabled: false,
             background_indexing: true,
             pause_on_battery: true,
+            privacy_mode: "standard".into(),
+            remember_recent_searches: true,
+            persist_snippets: true,
+            clear_temporary_previews_on_exit: false,
         }
     }
 }

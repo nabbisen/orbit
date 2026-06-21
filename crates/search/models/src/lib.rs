@@ -8,6 +8,18 @@
 //! only network operation orbok may ever perform, it is explicit, and
 //! it never involves document contents.
 
+pub mod download_plan;
+pub mod readiness;
+
+pub use download_plan::{
+    DEFAULT_MODEL_DOWNLOAD_CONCURRENCY, DownloadAction, DownloadPlan, FileDownloadProgress,
+    FileDownloadStatus, FriendlyDownloadProblem, ModelFilePlan, OverallDownloadProgress,
+    build_download_plan,
+};
+pub use readiness::{
+    FileReadiness, LocalFileStatus, ModelReadiness, ModelReadinessReport, check_model_readiness,
+};
+
 use serde::{Deserialize, Serialize};
 
 /// Model roles (catalog `models.role`).
@@ -517,3 +529,6 @@ mod quantization_tests {
         }
     }
 }
+
+#[cfg(test)]
+mod rfc043_tests;

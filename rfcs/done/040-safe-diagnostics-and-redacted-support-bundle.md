@@ -4,7 +4,7 @@
 **Former project name:** orbit  
 **RFC:** 040  
 **Title:** Safe Diagnostics and Redacted Support Bundle  
-**Status:** Proposed
+**Status:** Implemented (v0.19.0)
 **Target milestone:** Supportability / privacy-safe debugging  
 **Date:** 2026-06-18  
 **Related RFCs:** RFC-018 Crash Recovery, Diagnostics, and Repair Tools, RFC-044 `orbok-extract` Production Hardening and Boundary Cleanup, RFC-039 Privacy Modes and Local Data Visibility  

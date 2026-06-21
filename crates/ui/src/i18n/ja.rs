@@ -224,5 +224,66 @@ pub fn message(key: MessageKey) -> &'static str {
         TrustSomePagesDetail => "一部のページを準備できませんでした。",
         TrustSizeLimitDetail => "この大きなファイルの一部のみが準備されました。",
         TrustCannotOpenDetail => "orbokはこのファイルを開けません。",
+        // RFC-043: Model download readiness
+        ModelCheckingFiles => "検索ヘルパーを確認中...",
+        ModelAlreadyReady => "より良い検索が使えます。",
+        ModelNeedsDownload => {
+            "検索ヘルパーファイルが必要です。orbokは不足しているものだけをダウンロードします。"
+        }
+        ModelDownloadingBetterSearch => "より良い検索をダウンロード中",
+        ModelFilesStayLocal => "ファイルはこのコンピューターに保存されます。",
+        ModelDownloadFailed => {
+            "ダウンロードが完了しませんでした。接続を確認してもう一度お試しください。"
+        }
+        ModelDownloadRetry => "もう一度試す",
+        ModelRepairingFiles => {
+            "一部の検索ヘルパーファイルを修復する必要があります。orbokは必要なものだけをダウンロードします。"
+        }
+        ModelBasicSearchAvailable => "基本検索は使えます。意味による検索は後で追加できます。",
+        ModelDownloadingWhatNeeded => "必要なものをダウンロード中...",
+        // RFC-039: Privacy modes
+        PrivacyTitle => "プライバシー",
+        PrivacyLocalOnlyStatement => "ドキュメントはこのコンピューターでのみ処理されます。",
+        PrivacyModeStandard => "標準",
+        PrivacyModeStrict => "厳格",
+        PrivacyModePortable => "ポータブル",
+        PrivacyModeStrictDescription => "厳格プライバシーはorbokが記憶する内容を減らします。",
+        PrivacyModePortableDescription => "orbokはアプリのコピーの隣にデータを保存します。",
+        PrivacyRememberSearches => "最近の検索を記憶する",
+        PrivacyRememberSearchesHint => "最近の検索はこのコンピューターにのみ保存されます。",
+        PrivacySearchesDisabledStrict => "厳格プライバシーが有効な間は最近の検索は保存されません。",
+        PrivacyTemporaryPreviews => "一時プレビュー",
+        PrivacyTemporaryPreviewsHint => {
+            "一時プレビューにより結果が速く開きます。いつでも削除できます。"
+        }
+        PrivacyClearPreviews => "一時プレビューを消去",
+        PrivacyEnableStrictConfirm => "厳格プライバシーを有効にしますか？",
+        PrivacyEnableStrictBody => {
+            "orbokは最近の検索の保存を停止し、一時プレビューを減らします。保存済みのデータも消去できます。"
+        }
+        PrivacyTurnOn => "有効にする",
+        PrivacyTurnOnAndClear => "有効にして消去",
+        PrivacyFilesNotDeleted => "あなたのファイルは削除されません。",
+        PrivacyModelDownloadNote => {
+            "orbokは検索ヘルパーをダウンロードしますが、あなたのドキュメントはアップロードされません。"
+        }
+        // RFC-040: Diagnostics
+        DiagnosticsTitle => "診断",
+        DiagnosticsIntro => {
+            "何か問題がある場合はサポートファイルを作成してください。デフォルトではドキュメントや検索ワードは含まれません。"
+        }
+        DiagnosticsCreateFile => "サポートファイルを作成",
+        DiagnosticsPreviewTitle => "サポートファイルを作成",
+        DiagnosticsIncludedLabel => "含まれる内容",
+        DiagnosticsExcludedLabel => "含まれない内容",
+        DiagnosticsOptInFolderNames => "フォルダ名を含める",
+        DiagnosticsOptInFolderNamesHint => "使用しているフォルダが明らかになる可能性があります。",
+        DiagnosticsOptInSearchWords => "最近の検索ワードを含める",
+        DiagnosticsOptInSearchWordsHint => "何を検索していたかが明らかになる可能性があります。",
+        DiagnosticsFileCreated => "サポートファイルが作成されました。",
+        DiagnosticsShowFile => "ファイルを表示",
+        DiagnosticsCreateFailed => {
+            "サポートファイルを作成できませんでした。別の場所を選ぶか、もう一度お試しください。"
+        }
     }
 }

@@ -12,6 +12,7 @@
 pub mod data_class;
 pub mod error;
 pub mod id;
+pub mod privacy;
 pub mod status;
 pub mod timeutil;
 pub mod versions;
@@ -24,6 +25,7 @@ pub use error::{ErrorCategory, OrbokError, OrbokResult};
 pub use id::{
     ChunkId, EmbeddingId, EventId, ExtractionId, FileId, JobId, ModelId, QueryId, SourceId,
 };
+pub use privacy::{DiagnosticsPolicy, LocalDataCategory, PrivacyMode, PrivacySettings};
 pub use status::{
     FileStatus, HiddenFilePolicy, IndexMode, JobStatus, JobType, PersistenceMode, SourceStatus,
     SourceType, SymlinkPolicy,

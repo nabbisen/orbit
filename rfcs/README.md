@@ -1,6 +1,6 @@
 # orbok RFC Index
 
-Managed by RFC-000. Last updated: 2026-06-21 (v0.18.0).
+Managed by RFC-000. Last updated: 2026-06-21 (v0.19.0).
 
 The folder an RFC lives in is the source of truth for its state
 (`done/` = Implemented, `proposed/` = under review, `archive/` =
@@ -49,7 +49,10 @@ Withdrawn/Superseded). Each RFC's `Status` field mirrors its folder.
 | 036 | [Resource-Aware Indexing Scheduler and Backpressure](done/036-resource-aware-indexing-scheduler-and-backpressure.md) | v0.17.0 |
 | 037 | [Source Lifecycle, Refresh Policy, and Change Detection UX](done/037-source-lifecycle-refresh-policy-and-change-detection-ux.md) | v0.18.0 |
 | 038 | [Result Freshness, Trust Badges, and Recovery Actions](done/038-result-freshness-trust-badges-and-recovery-actions.md) | v0.18.0 |
+| 039 | [Privacy Modes and Local Data Visibility](done/039-privacy-modes-and-local-data-visibility.md) | v0.19.0 |
+| 040 | [Safe Diagnostics and Redacted Support Bundle](done/040-safe-diagnostics-and-redacted-support-bundle.md) | v0.19.0 |
 | 041 | [Search, Narrow Results, and Browse Around](done/041-search-narrow-and-browse-around.md) | v0.18.0 |
+| 043 | [Model Download Readiness and Bounded Concurrency](done/043-model-download-readiness-and-concurrency.md) | v0.19.0 |
 | 044 | [orbok-extract Production Hardening](done/044-orbok-extract-production-hardening.md) | v0.16.0 |
 
 ## Proposed
@@ -64,15 +67,12 @@ foundation track is listed first for readability.
 | ID | Title | Notes |
 |---|---|---|
 | 042 | [Search History and Reopen Recent Searches](proposed/042-search-history-and-reopen.md) | Recent searches, no result tabs. Reuses `search_queries`; privacy defers to 039. |
-| 043 | [Model Download Readiness and Bounded Concurrency](proposed/043-model-download-readiness-and-concurrency.md) | Readiness check, atomic/partial-file safety, `max_concurrent=2`, backoff. Refs 012/029/021. |
 | 045 | [Search-in-Folder Flow and Friendly Folder Management](proposed/045-search-in-folder-flow-and-friendly-folder-management.md) | Search-first folder picker, remembered/recent folders, drag-and-drop. Extends 041; refs 036/037/038/039. |
 
 ### Stabilization (037–040)
 
 | ID | Title | Notes |
 |---|---|---|
-| 039 | [Privacy Modes and Local Data Visibility](proposed/039-privacy-modes-and-local-data-visibility.md) | Standard / Strict / Portable / Diagnostics modes. Refs 042, 043, 040. |
-| 040 | [Safe Diagnostics and Redacted Support Bundle](proposed/040-safe-diagnostics-and-redacted-support-bundle.md) | Redacted-by-default export; no doc contents / search text / raw paths. Refs 044, 039. |
 
 Developer handoffs for 032–045 live in [`handoffs/`](handoffs/).
 

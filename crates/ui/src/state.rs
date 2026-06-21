@@ -301,6 +301,27 @@ pub enum Message {
     // Startup population
     HealthUpdated(IndexHealth),
     SourcesLoaded(Vec<SourceCard>),
+    // RFC-043: model readiness
+    ModelReadinessChecked {
+        ready: bool,
+        needs_download: bool,
+        needs_repair: bool,
+    },
+    // RFC-039: privacy mode
+    SetPrivacyMode(String),
+    PrivacySettingChanged {
+        key: String,
+        value: bool,
+    },
+    ClearTemporaryPreviews,
+    // RFC-040: diagnostics
+    DiagnosticsCreateBundle,
+    DiagnosticsBundleCreated(String),
+    DiagnosticsBundleFailed,
+    DiagnosticsOptInChanged {
+        key: String,
+        value: bool,
+    },
 }
 
 impl AppState {
@@ -510,6 +531,21 @@ impl AppState {
                 // Update per-source counts from the fresh health data.
             }
             Message::SourcesLoaded(cards) => self.sources = cards.clone(),
+            // RFC-043: model readiness
+            Message::ModelReadinessChecked { .. } => {} // handled by orbok-app
+            // RFC-039: privacy
+            Message::SetPrivacyMode(_) => {} // handled by orbok-app
+            Message::PrivacySettingChanged { .. } => {} // handled by orbok-app
+            Message::ClearTemporaryPreviews => {} // handled by orbok-app
+            // RFC-040: diagnostics
+            Message::DiagnosticsCreateBundle => {} // handled by orbok-app
+            Message::DiagnosticsBundleCreated(_) => {
+                self.notice = Some(UserNotice::DiagnosticsFileCreated);
+            }
+            Message::DiagnosticsBundleFailed => {
+                self.notice = Some(UserNotice::DiagnosticsFileFailed);
+            }
+            Message::DiagnosticsOptInChanged { .. } => {} // handled by orbok-app
         }
     }
 }

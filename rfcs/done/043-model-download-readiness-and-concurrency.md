@@ -4,7 +4,7 @@
 **Former project name:** orbit  
 **RFC:** 043  
 **Title:** Model Download Readiness Check and Bounded Concurrency  
-**Status:** Proposed
+**Status:** Implemented (v0.19.0)
 **Target milestone:** Setup Wizard / Model Management / Download Reliability  
 **Date:** 2026-06-18  
 **Related RFCs:** RFC-012 Model Registry and Installation Workflow, RFC-029 Model Download Integrity and Trust Policy, RFC-042 Search History and Reopen Recent Searches  

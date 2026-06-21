@@ -1,0 +1,226 @@
+//! Download plan: maps readiness → actions (RFC-043 §10).
+//!
+//! A `DownloadPlan` tells the download worker exactly which files to
+//! fetch, which to skip, and what concurrency limit to apply. It is
+//! always derived from a fresh `ModelReadinessReport`; nothing is
+//! downloaded without a plan.
+
+use crate::readiness::{LocalFileStatus, ModelReadinessReport};
+use std::path::PathBuf;
+
+// ── Constants ─────────────────────────────────────────────────────────
+
+/// Maximum concurrent file downloads (RFC-043 §11.1).
+pub const DEFAULT_MODEL_DOWNLOAD_CONCURRENCY: usize = 2;
+pub const MAX_MODEL_DOWNLOAD_CONCURRENCY: usize = 2;
+
+// ── Download action ───────────────────────────────────────────────────
+
+/// What to do with one model file (RFC-043 §10.3).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DownloadAction {
+    /// File is already valid — skip.
+    Skip,
+    /// File is missing — download fresh.
+    Download,
+    /// File is invalid — replace (delete and re-download).
+    Replace,
+    /// File is partial — restart the download.
+    Retry,
+}
+
+impl DownloadAction {
+    /// Whether this action requires network activity.
+    pub fn requires_download(&self) -> bool {
+        !matches!(self, DownloadAction::Skip)
+    }
+}
+
+// ── Per-file plan ─────────────────────────────────────────────────────
+
+/// Plan for one required model file (RFC-043 §10.2).
+#[derive(Debug, Clone)]
+pub struct ModelFilePlan {
+    pub logical_name: &'static str,
+    pub relative_path: &'static str,
+    pub remote_url: &'static str,
+    pub local_status: LocalFileStatus,
+    pub action: DownloadAction,
+    /// Temporary path used during download (RFC-043 §9.1).
+    pub temp_path_suffix: &'static str,
+}
+
+impl ModelFilePlan {
+    /// Full path for the temporary `.part` file.
+    pub fn temp_path(&self, model_dir: &std::path::Path) -> PathBuf {
+        model_dir.join(format!("{}.part", self.relative_path))
+    }
+
+    /// Full final path for the completed validated file.
+    pub fn final_path(&self, model_dir: &std::path::Path) -> PathBuf {
+        model_dir.join(self.relative_path)
+    }
+}
+
+// ── Download plan ─────────────────────────────────────────────────────
+
+/// Complete download plan for a model (RFC-043 §10.1).
+#[derive(Debug, Clone)]
+pub struct DownloadPlan {
+    /// Maximum concurrent file downloads (RFC-043 §11).
+    pub max_concurrent: usize,
+    pub files: Vec<ModelFilePlan>,
+}
+
+impl DownloadPlan {
+    /// Files that actually require download work.
+    pub fn files_to_download(&self) -> Vec<&ModelFilePlan> {
+        self.files
+            .iter()
+            .filter(|f| f.action.requires_download())
+            .collect()
+    }
+
+    /// Files that will be skipped.
+    pub fn files_to_skip(&self) -> Vec<&ModelFilePlan> {
+        self.files
+            .iter()
+            .filter(|f| f.action == DownloadAction::Skip)
+            .collect()
+    }
+
+    /// Whether anything actually needs downloading.
+    pub fn has_work(&self) -> bool {
+        self.files.iter().any(|f| f.action.requires_download())
+    }
+}
+
+// ── File URLs (current recommended model) ────────────────────────────
+
+const TOKENIZER_URL: &str =
+    "https://huggingface.co/intfloat/multilingual-e5-small/resolve/main/tokenizer.json";
+const MODEL_URL: &str =
+    "https://huggingface.co/intfloat/multilingual-e5-small/resolve/main/onnx/model.onnx";
+
+// ── Plan builder ──────────────────────────────────────────────────────
+
+/// Build a download plan from a fresh readiness report (RFC-043 §10.4).
+///
+/// Called after every `check_model_readiness`. The plan is always
+/// derived from the current on-disk state; nothing is assumed from
+/// a previous session.
+pub fn build_download_plan(report: &ModelReadinessReport) -> DownloadPlan {
+    let urls: std::collections::HashMap<&str, &str> = [
+        ("tokenizer.json", TOKENIZER_URL),
+        ("onnx/model.onnx", MODEL_URL),
+    ]
+    .into_iter()
+    .collect();
+
+    let files = report
+        .files
+        .iter()
+        .map(|f| {
+            let action = plan_action(&f.status);
+            ModelFilePlan {
+                logical_name: f.logical_name,
+                relative_path: f.relative_path,
+                remote_url: urls.get(f.relative_path).copied().unwrap_or(""),
+                local_status: f.status.clone(),
+                action,
+                temp_path_suffix: ".part",
+            }
+        })
+        .collect();
+
+    DownloadPlan {
+        max_concurrent: DEFAULT_MODEL_DOWNLOAD_CONCURRENCY,
+        files,
+    }
+}
+
+fn plan_action(status: &LocalFileStatus) -> DownloadAction {
+    match status {
+        LocalFileStatus::Ready => DownloadAction::Skip,
+        LocalFileStatus::Missing => DownloadAction::Download,
+        LocalFileStatus::Partial => DownloadAction::Retry,
+        LocalFileStatus::Invalid => DownloadAction::Replace,
+        LocalFileStatus::CannotCheck => DownloadAction::Skip, // surface via friendly problem
+    }
+}
+
+// ── Download progress types ───────────────────────────────────────────
+
+/// Per-file download status (RFC-043 §13.1).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FileDownloadStatus {
+    Pending,
+    Checking,
+    Downloading,
+    Validating,
+    Complete,
+    Failed,
+    Skipped,
+}
+
+/// Per-file download progress (RFC-043 §13.1).
+#[derive(Debug, Clone)]
+pub struct FileDownloadProgress {
+    pub relative_path: &'static str,
+    pub downloaded_bytes: u64,
+    pub total_bytes: Option<u64>,
+    pub status: FileDownloadStatus,
+}
+
+/// Overall combined progress (RFC-043 §13.2).
+#[derive(Debug, Clone)]
+pub enum OverallDownloadProgress {
+    Known {
+        downloaded_bytes: u64,
+        total_bytes: u64,
+    },
+    Step {
+        completed_files: usize,
+        total_files: usize,
+    },
+    Indeterminate,
+}
+
+/// Friendly download problem — safe to show to users (RFC-043 §16.4).
+#[derive(Debug, Clone)]
+pub enum FriendlyDownloadProblem {
+    NetworkUnavailable,
+    ServerBusy,
+    NotEnoughSpace,
+    CannotWriteFiles,
+    CannotCheckFiles,
+    ValidationFailed,
+    Unexpected,
+}
+
+impl FriendlyDownloadProblem {
+    /// User-facing copy (RFC-043 §20, avoiding technical terms).
+    pub fn user_message(&self) -> &'static str {
+        match self {
+            FriendlyDownloadProblem::NetworkUnavailable => {
+                "Download did not finish. Please check your connection and try again."
+            }
+            FriendlyDownloadProblem::ServerBusy => {
+                "The download is taking longer than expected. Please try again later."
+            }
+            FriendlyDownloadProblem::NotEnoughSpace => {
+                "More space is needed to finish the download."
+            }
+            FriendlyDownloadProblem::CannotWriteFiles => {
+                "orbok could not save the search helper files here. Please choose another location or check folder permissions."
+            }
+            FriendlyDownloadProblem::CannotCheckFiles => {
+                "orbok could not check the search helper files. Please choose the folder again."
+            }
+            FriendlyDownloadProblem::ValidationFailed => {
+                "Some downloaded files could not be used. orbok can download them again."
+            }
+            FriendlyDownloadProblem::Unexpected => "Download did not finish. Please try again.",
+        }
+    }
+}

@@ -22,6 +22,9 @@ pub enum UserNotice {
     FolderAdded,
     SearchReady,
     PreviewsCleared,
+    DiagnosticsFileCreated,
+    // ── RFC-040: diagnostics problem ──────────────────────────────────
+    DiagnosticsFileFailed,
 }
 
 impl UserNotice {
@@ -35,6 +38,7 @@ impl UserNotice {
                 | Self::FolderCouldNotBeAdded
                 | Self::SearchDidNotFinish
                 | Self::FilesMovedOrMissing
+                | Self::DiagnosticsFileFailed
         )
     }
 
@@ -45,15 +49,16 @@ impl UserNotice {
         use snora::design::Tone;
         match self {
             // Hard failures the user must notice.
-            Self::DownloadDidNotFinish | Self::FolderCouldNotBeAdded | Self::SearchDidNotFinish => {
-                Tone::Danger
-            }
+            Self::DownloadDidNotFinish
+            | Self::FolderCouldNotBeAdded
+            | Self::SearchDidNotFinish
+            | Self::DiagnosticsFileFailed => Tone::Danger,
             // Cautions: action succeeded but the user should be aware.
             Self::FilesMovedOrMissing | Self::SensitiveSourceAdded => Tone::Warning,
             // Positive confirmations.
             Self::FolderAdded | Self::SearchReady => Tone::Success,
             // Neutral/informational.
-            Self::PreviewsCleared => Tone::Info,
+            Self::PreviewsCleared | Self::DiagnosticsFileCreated => Tone::Info,
         }
     }
 
@@ -67,6 +72,8 @@ impl UserNotice {
             Self::FolderAdded => MessageKey::NoticeFolderAddedTitle,
             Self::SearchReady => MessageKey::NoticeSearchReadyTitle,
             Self::PreviewsCleared => MessageKey::NoticePreviewsClearedTitle,
+            Self::DiagnosticsFileCreated => MessageKey::DiagnosticsFileCreated,
+            Self::DiagnosticsFileFailed => MessageKey::DiagnosticsCreateFailed,
         };
         tr(locale, key)
     }
@@ -81,6 +88,8 @@ impl UserNotice {
             Self::FolderAdded => MessageKey::NoticeFolderAddedBody,
             Self::SearchReady => MessageKey::NoticeSearchReadyBody,
             Self::PreviewsCleared => MessageKey::NoticePreviewsClearedBody,
+            Self::DiagnosticsFileCreated => MessageKey::DiagnosticsFileCreated,
+            Self::DiagnosticsFileFailed => MessageKey::DiagnosticsCreateFailed,
         };
         tr(locale, key)
     }
@@ -95,7 +104,11 @@ impl UserNotice {
             Self::FolderCouldNotBeAdded => MessageKey::NoticeActionChooseFolder,
             Self::FilesMovedOrMissing => MessageKey::NoticeActionChooseFolder,
             Self::SensitiveSourceAdded => return None, // informational only
-            Self::FolderAdded | Self::SearchReady | Self::PreviewsCleared => return None,
+            Self::FolderAdded
+            | Self::SearchReady
+            | Self::PreviewsCleared
+            | Self::DiagnosticsFileCreated => return None,
+            Self::DiagnosticsFileFailed => MessageKey::DiagnosticsCreateFile,
         };
         Some(tr(locale, key))
     }

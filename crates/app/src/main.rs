@@ -9,6 +9,7 @@
 //! 6. launch main GUI
 
 mod bootstrap;
+mod diagnostics;
 mod download;
 mod settings;
 
