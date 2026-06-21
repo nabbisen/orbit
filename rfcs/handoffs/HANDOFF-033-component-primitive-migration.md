@@ -1,6 +1,6 @@
 # HANDOFF-033 — Component Primitive Migration
 
-**RFC:** `rfcs/proposed/033-component-primitive-migration.md`
+**RFC:** `rfcs/done/033-component-primitive-migration.md`
 **Owner crate(s):** `orbok-ui`
 **Prereqs:** HANDOFF-032 merged (tokens threaded). **Blocks:** 034.
 **Release:** current version — do **not** bump.

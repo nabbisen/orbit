@@ -1,8 +1,8 @@
 # Developer Handoffs
 
 This directory holds **developer handoffs**: implementation-ready companions to
-the RFCs in `rfcs/proposed/`. The RFC answers *what and why* (requirement /
-external design); the handoff answers *how* (internal / program design), so an
+the RFCs in `rfcs/`. The RFC answers *what and why* (requirement / external
+design); the handoff answers *how* (internal / program design), so an
 implementer can go straight to coding per the project workflow:
 
 > Requirement (RFC) → External Design → **Internal/Program Design (handoff)** →
@@ -10,7 +10,9 @@ implementer can go straight to coding per the project workflow:
 
 ## Convention
 
-- One handoff per RFC, named `HANDOFF-0NN-<slug>.md`.
+- One handoff per RFC, named `HANDOFF-0NN-<slug>.md`. Larger RFCs may add
+  companion files (e.g. a task/PR plan, a QA checklist, or a separate external
+  design) sharing the same `0NN` number.
 - Each handoff is self-contained: exact crates/files touched, function
   signatures, an ordered task list, the test plan, and a definition-of-done
   checklist.
@@ -18,11 +20,11 @@ implementer can go straight to coding per the project workflow:
   release version; no version number is created without explicit instruction.
 - Handoffs respect the **boundary rules**: `orbok-ui` does no filesystem or
   database access (RFC-027); platform I/O (OS theme / locale / reduce-motion
-  probing, settings persistence) lives in `orbok-app`.
+  probing, settings persistence, folder picker, downloads) lives in `orbok-app`.
 - Every change keeps the build **warning-free** (including `--tests`) and the
   full suite green before the step is considered done.
 
-## The design-system program (RFC-032 → 035)
+## Design-system program (RFC-032 → 035) — implemented
 
 | RFC | Handoff | Theme |
 |-----|---------|-------|
@@ -31,9 +33,35 @@ implementer can go straight to coding per the project workflow:
 | 034 | HANDOFF-034 | Accessibility conformance (WCAG 2.1 AA) |
 | 035 | HANDOFF-035 | Inclusive design (text scale, reduced motion, CVD-safe, i18n formatting) |
 
-**Sequencing is strict:** 032 is a hard prerequisite for 033/034/035 because it
-threads tokens everywhere; 033 must precede 034 (accessibility rides on the
-accessible primitives); 035 can begin once 032 lands and overlaps 033/034 on the
-Settings surface. A natural release boundary is "032+033 land together"
-(foundation + components are the visible payoff), then "034+035" as the
-accessibility/inclusivity release.
+Shipped across v0.12.0–v0.14.0; the RFCs now live in `rfcs/done/`.
+
+## Stabilization program (RFC-036 → 040) — proposed
+
+| RFC | Handoff | Theme |
+|-----|---------|-------|
+| 036 | HANDOFF-036 | Resource-aware indexing scheduler and backpressure |
+| 037 | HANDOFF-037 | Source lifecycle, refresh policy, change-detection UX |
+| 038 | HANDOFF-038 | Result freshness, trust badges, recovery actions |
+| 039 | HANDOFF-039 | Privacy modes and local data visibility |
+| 040 | HANDOFF-040 | Safe diagnostics and redacted support bundle |
+
+## Foundation & Search-UX program (RFC-041 → 045) — proposed
+
+| RFC | Handoff | Theme |
+|-----|---------|-------|
+| 041 | HANDOFF-041 | Search, narrow results, and browse around |
+| 042 | HANDOFF-042 (+ `RFC-042-search-history-external-design.md`) | Search history and reopen recent searches |
+| 043 | HANDOFF-043 | Model download readiness and bounded concurrency |
+| 044 | HANDOFF-044 | orbok-extract production hardening and boundary cleanup |
+| 045 | HANDOFF-045-implementation, -task-breakdown-pr-plan, -acceptance-qa-checklist | Search-in-folder flow and friendly folder management |
+
+**Numbering vs. dependency order:** the 041–045 foundation RFCs were authored
+before the 036–040 stabilization RFCs but received later numbers (032–035 were
+already taken by the design-system program). Dependencies flow from cross-
+references, not numeric order — 036–040 reference 041–045, which is expected
+under RFC-000.
+
+## Upstream requests
+
+- `snora-request-contrast-facade-v0.25.1.md` — request that produced the
+  `snora::design::contrast` facade used by RFC-034 (delivered in snora 0.25.1).

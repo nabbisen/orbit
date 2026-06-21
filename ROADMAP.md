@@ -1,5 +1,59 @@
 # orbok Implementation Roadmap
 
+## Current Status (2026-06-21)
+
+Shipped: **v0.14.0**. RFCs **000–035 implemented** (see [`rfcs/README.md`](rfcs/README.md)).
+The design-system program (RFC-032–035: design tokens, component primitives,
+WCAG 2.1 AA accessibility, inclusive design) completed across v0.12.0–v0.14.0.
+Stack: snora 0.25 / iced 0.14, localcache 0.20.0 + rusqlite 0.40.
+
+## Forward Plan — Proposed Programs (RFC-036–045)
+
+Ten RFCs are under review in `rfcs/proposed/`, in two tracks. Numbering is
+creation order, not dependency order (RFC-000): 036–040 reference 041–045.
+
+**Foundation & Search UX (041–045)**
+
+- 041 Search, Narrow Results, Browse Around — progressive narrowing + browse-around; extends RFC-013.
+- 042 Search History and Reopen Recent Searches — recent searches; privacy via 039.
+- 043 Model Download Readiness and Bounded Concurrency — readiness/atomic/backoff; refs 012/029.
+- 044 orbok-extract Production Hardening — resource limits, panic isolation, warnings; refs 005/028.
+- 045 Search-in-Folder Flow and Friendly Folder Management — search-first folder picker; accepted; extends 041.
+
+**Stabilization (036–040)**
+
+- 036 Resource-Aware Indexing Scheduler and Backpressure.
+- 037 Source Lifecycle, Refresh Policy, and Change Detection UX.
+- 038 Result Freshness, Trust Badges, and Recovery Actions.
+- 039 Privacy Modes and Local Data Visibility.
+- 040 Safe Diagnostics and Redacted Support Bundle.
+
+### Recommended implementation order
+
+Dependency-ordered into phases (each phase is a candidate release boundary):
+
+1. **Robustness core** — 044 (extract hardening) → 036 (scheduler/backpressure).
+2. **Search foundation** — 041 (search/narrow/browse) → 037 (source refresh) → 038 (result trust).
+3. **Setup & privacy** — 043 (model download readiness) → 039 (privacy modes) → 040 (diagnostics).
+4. **Search UX completion** — 045 (search-in-folder) → 042 (search history).
+
+Exact prerequisites are in each RFC's *Related RFCs* line. 045 is already
+accepted (self-reviewed) and is ready to implement once 041 lands.
+
+### v1.0.0 gate (unchanged — awaiting owner confirmation)
+
+1. recall@5 ≥ 0.75 with a real embedding model on a user corpus.
+2. p99 ≤ 200 ms in release mode on a 1,000-document corpus.
+3. Manual QA checklist signed off on Linux, Windows, and macOS.
+
+v1.0.0 is not released without explicit project-owner confirmation.
+
+---
+
+> The sections below are historical milestone tracking (v0.1–v0.9 RC), retained
+> as a record. Current planning lives in the two sections above and in
+> [`rfcs/README.md`](rfcs/README.md).
+
 ## Milestone Status
 
 | M | Name | v0.1 | v0.2 |

@@ -1,6 +1,6 @@
 # HANDOFF-034 — Accessibility Conformance (WCAG 2.1 AA)
 
-**RFC:** `rfcs/proposed/034-accessibility-conformance.md`
+**RFC:** `rfcs/done/034-accessibility-conformance.md`
 **Owner crate(s):** `orbok-ui` (keyboard map, labels, contrast guard),
 `orbok-app` (shortcut subscription wiring), `docs/`
 **Prereqs:** HANDOFF-032 (token contrast) + HANDOFF-033 (accessible primitives).

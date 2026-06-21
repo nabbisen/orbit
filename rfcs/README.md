@@ -1,12 +1,16 @@
 # orbok RFC Index
 
-Managed by RFC-000. Last updated: 2026-06-07.
+Managed by RFC-000. Last updated: 2026-06-21.
+
+The folder an RFC lives in is the source of truth for its state
+(`done/` = Implemented, `proposed/` = under review, `archive/` =
+Withdrawn/Superseded). Each RFC's `Status` field mirrors its folder.
 
 ## Implemented
 
 | ID | Title | Release |
 |---|---|---|
-| 000 | [— RFC lifecycle policy](done/000-rfc-lifecycle-policy.md) | v1.4.0 |
+| 000 | [RFC lifecycle policy](done/000-rfc-lifecycle-policy.md) | v0.6.0 |
 | 001 | [Local Data Classification and Lifecycle](done/001-local-data-classification-and-lifecycle.md) | v0.1.0 |
 | 002 | [SQLite Catalog Schema and Migration Policy](done/002-sqlite-catalog-schema-and-migration-policy.md) | v0.1.0 |
 | 003 | [Source Registration and File Access Boundary](done/003-source-registration-and-file-access-boundary.md) | v0.1.0 |
@@ -27,19 +31,52 @@ Managed by RFC-000. Last updated: 2026-06-07.
 | 018 | [Crash Recovery, Diagnostics, and Repair Tools](done/018-crash-recovery-diagnostics-and-repair-tools.md) | v0.5.0 |
 | 019 | [Test Matrix and Release Readiness](done/019-test-matrix-and-release-readiness.md) | v0.6.0 |
 | 020 | [Documentation and User Guidance Structure](done/020-documentation-and-user-guidance-structure.md) | v0.6.0 |
+| 021 | [Default Embedding Model Selection](done/021-default-embedding-model-selection.md) | v0.7.0 |
+| 022 | [PDF Extraction Backend Selection](done/022-pdf-extraction-backend-selection.md) | v0.7.0 |
+| 023 | [Vector ANN Indexing](done/023-vector-ann-indexing.md) | v0.8.0 |
+| 024 | [Vector Quantization](done/024-vector-quantization.md) | v0.8.0 |
+| 025 | [OCR Pipeline](done/025-ocr-pipeline.md) | v0.8.0 |
 | 027 | [GUI Framework Finalization](done/027-gui-framework-finalization.md) | v0.1.0 |
+| 028 | [Plugin Extractor Architecture](done/028-plugin-extractor-architecture.md) | v0.8.0 |
+| 029 | [Model Download Integrity and Trust Policy](done/029-model-download-integrity-and-trust-policy.md) | v0.7.0 |
+| 030 | [Portable Mode](done/030-portable-mode.md) | v0.8.0 |
 | 031 | [GUI Internationalization (i18n)](done/031-gui-internationalization.md) | v0.1.0 |
+| 032 | [Design Token Foundation and Theming](done/032-design-token-foundation-and-theming.md) | v0.12.0 |
+| 033 | [Component Primitive Migration](done/033-component-primitive-migration.md) | v0.12.0 |
+| 034 | [Accessibility Conformance (WCAG 2.1 AA)](done/034-accessibility-conformance.md) | v0.13.0 |
+| 035 | [Inclusive Design](done/035-inclusive-design.md) | v0.14.0 |
 
-## Proposed / Deferred
+## Proposed
+
+Two parallel programs are under review. **Numbering is creation order, not
+dependency order** (RFC-000): the 041–045 search/foundation RFCs are referenced
+by the 036–040 stabilization RFCs even though they carry higher numbers, so the
+foundation track is listed first for readability.
+
+### Foundation & Search UX (041–045)
 
 | ID | Title | Notes |
 |---|---|---|
-| 032 | [Design Token Foundation and Theming](proposed/032-design-token-foundation-and-theming.md) | Snora Design tokens as single styling source; themes (incl. dark, high-contrast). Foundation for 033–035. |
-| 033 | [Component Primitive Migration](proposed/033-component-primitive-migration.md) | snora as sole gateway for UI primitives (button/card/chip/progress). Depends on 032. |
-| 034 | [Accessibility Conformance](proposed/034-accessibility-conformance.md) | WCAG 2.1 AA: contrast guard, keyboard map, focus, labels, target size. Depends on 032–033. |
-| 035 | [Inclusive Design](proposed/035-inclusive-design.md) | Text scale, reduced motion, CVD-safe status, locale-aware formatting, RTL readiness. Depends on 032. |
+| 041 | [Search, Narrow Results, and Browse Around](proposed/041-search-narrow-and-browse-around.md) | Progressive narrow-after-results + browse-around (nearby/similar). Extends RFC-013. |
+| 042 | [Search History and Reopen Recent Searches](proposed/042-search-history-and-reopen.md) | Recent searches, no result tabs. Reuses `search_queries`; privacy defers to 039. |
+| 043 | [Model Download Readiness and Bounded Concurrency](proposed/043-model-download-readiness-and-concurrency.md) | Readiness check, atomic/partial-file safety, `max_concurrent=2`, backoff. Refs 012/029/021. |
+| 044 | [orbok-extract Production Hardening](proposed/044-orbok-extract-production-hardening.md) | Resource limits, panic isolation, structured warnings, boundary cleanup. Refs 005/028. |
+| 045 | [Search-in-Folder Flow and Friendly Folder Management](proposed/045-search-in-folder-flow-and-friendly-folder-management.md) | Search-first folder picker, remembered/recent folders, drag-and-drop. Extends 041; refs 036/037/038/039. |
 
-Developer handoffs for 032–035 live in [`handoffs/`](handoffs/).
+### Stabilization (036–040)
+
+| ID | Title | Notes |
+|---|---|---|
+| 036 | [Resource-Aware Indexing Scheduler and Backpressure](proposed/036-resource-aware-indexing-scheduler-and-backpressure.md) | Foreground priority, bounded queues, weak-machine responsiveness. Refs 044. |
+| 037 | [Source Lifecycle, Refresh Policy, and Change Detection UX](proposed/037-source-lifecycle-refresh-policy-and-change-detection-ux.md) | Scan/refresh states, debounced change storms, watchers deferred. Refs 041, 036. |
+| 038 | [Result Freshness, Trust Badges, and Recovery Actions](proposed/038-result-freshness-trust-badges-and-recovery-actions.md) | Ready / Needs update / Not found / Preparing; plain-text badges. Refs 041, 044, 037. |
+| 039 | [Privacy Modes and Local Data Visibility](proposed/039-privacy-modes-and-local-data-visibility.md) | Standard / Strict / Portable / Diagnostics modes. Refs 042, 043, 040. |
+| 040 | [Safe Diagnostics and Redacted Support Bundle](proposed/040-safe-diagnostics-and-redacted-support-bundle.md) | Redacted-by-default export; no doc contents / search text / raw paths. Refs 044, 039. |
+
+Developer handoffs for 032–045 live in [`handoffs/`](handoffs/).
 
 ## Archive
-*(empty)*
+
+| ID | Title | Reason |
+|---|---|---|
+| 026 | [Encrypted Local Indexes](archive/026-encrypted-local-indexes.md) | Withdrawn — key-management design needs a dedicated security audit; deferred to post-v1.0.0. |

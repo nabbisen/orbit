@@ -11,6 +11,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.15.0] — 2026-06-21 — RFC pipeline: 036–045 merged; planning baseline
+
+### Docs / Planning
+
+- **RFC pipeline updated (RFC-036–045).** Merged ten proposed RFCs into
+  `rfcs/proposed/`: the stabilization track (036–040 — scheduler, source
+  lifecycle, result trust, privacy modes, diagnostics) and the foundation /
+  search-UX track (041–045 — search-narrow-browse, search history,
+  model-download readiness, orbok-extract hardening, search-in-folder flow).
+  041–044 are the renumbered former-032–035 lineage (those numbers were already
+  taken by the design-system program); 036–040 cross-references were repointed
+  to 041–044 accordingly. RFC-045 arrived accepted (self-reviewed).
+- **Design-system RFCs 032–035 transitioned to `rfcs/done/`** with `Implemented`
+  status and release tags (v0.12.0–v0.14.0), matching what shipped; inbound
+  handoff path references updated `proposed/` → `done/`.
+- **`rfcs/README.md` index rebuilt** to list all 46 RFCs (35 done, 10 proposed,
+  1 archived); RFC-000 integrity invariants pass. RFC-000's release tag
+  corrected from the policy template's `v1.4.0` to `v0.6.0`.
+- **`ROADMAP.md`** gains a current-status + forward-plan section with a
+  recommended implementation order; developer handoffs added for 041–045 and
+  the handoffs README updated to cover all three programs (design-system,
+  stabilization, foundation/search-UX).
+
+---
+
 ## [0.14.0] — 2026-06-21 — RFC-035: Inclusive Design
 
 ### Changed

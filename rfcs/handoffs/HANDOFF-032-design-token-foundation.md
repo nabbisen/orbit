@@ -1,6 +1,6 @@
 # HANDOFF-032 — Design Token Foundation and Theming
 
-**RFC:** `rfcs/proposed/032-design-token-foundation-and-theming.md`
+**RFC:** `rfcs/done/032-design-token-foundation-and-theming.md`
 **Owner crate(s):** `orbok-ui` (primary), `orbok-app` (persistence + OS probe)
 **Prereqs:** none (this is the foundation). **Blocks:** 033, 034, 035.
 **Release:** current version — do **not** bump.

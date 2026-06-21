@@ -1,6 +1,6 @@
 # HANDOFF-035 — Inclusive Design
 
-**RFC:** `rfcs/proposed/035-inclusive-design.md`
+**RFC:** `rfcs/done/035-inclusive-design.md`
 **Owner crate(s):** `orbok-ui` (preferences + Settings surface + formatting),
 `orbok-app` (OS probes + persistence)
 **Prereqs:** HANDOFF-032 (tokens/themes). Overlaps 033/034 on Settings + badges.
