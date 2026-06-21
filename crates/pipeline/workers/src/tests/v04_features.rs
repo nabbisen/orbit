@@ -12,7 +12,7 @@ use orbok_db::Catalog;
 use orbok_db::repo::{
     FileRepository, IndexJobRepository, NewFile, NewSource, ObservedMetadata, SourceRepository,
 };
-use orbok_models::{MockEmbeddingModel, MockReranker};
+use orbok_models::MockReranker;
 use orbok_search::{HybridSearchService, SearchMode, contains_cjk, normalize_query};
 use std::fs;
 
@@ -250,7 +250,7 @@ fn search_results_carry_keyword_badge() {
 fn search_view_handles_no_snippet() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
-    let fid = seed(&catalog, &cache, dir.path(), "temp.md", "content\n");
+    let _fid = seed(&catalog, &cache, dir.path(), "temp.md", "content\n");
 
     // Delete source file from disk after indexing.
     fs::remove_file(dir.path().join("temp.md")).unwrap();

@@ -3,13 +3,9 @@
 
 use crate::{ChunkAndIndexWorker, ExtractionWorker, run_pending};
 use orbok_cache::CacheService;
-use orbok_core::{
-    FileStatus, HiddenFilePolicy, IndexMode, JobType, PersistenceMode, SourceType, SymlinkPolicy,
-};
+use orbok_core::{HiddenFilePolicy, IndexMode, PersistenceMode, SourceType, SymlinkPolicy};
 use orbok_db::Catalog;
-use orbok_db::repo::{
-    FileRepository, IndexJobRepository, NewFile, NewSource, ObservedMetadata, SourceRepository,
-};
+use orbok_db::repo::{IndexJobRepository, NewSource, SourceRepository};
 use orbok_extract::{
     ExtractorRegistry,
     types::{DocumentExtractor, LocationQuality, SegmentKind},
@@ -63,7 +59,6 @@ fn minimal_docx(content: &str) -> Vec<u8> {
 // DOCX extraction: paragraphs extracted, location quality is Approximate.
 #[test]
 fn docx_extractor_produces_paragraph_segments() {
-    use orbok_extract::types::DocumentExtractor;
     let docx_bytes = minimal_docx("Authentication tokens expire after 24 hours.");
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("test.docx");

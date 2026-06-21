@@ -1,17 +1,13 @@
 //! v0.5 tests: RFC-012 (model registry), RFC-015 (security),
 //! RFC-018 (crash recovery), plus benchmark smoke test.
 
-use crate::{
-    ChunkAndIndexWorker, ExtractionWorker, check_catalog_integrity, run_pending,
-    run_startup_recovery,
-};
+use crate::{check_catalog_integrity, run_startup_recovery};
 use orbok_cache::CacheService;
 use orbok_core::{
-    FileStatus, HiddenFilePolicy, IndexMode, JobStatus, JobType, PersistenceMode, SourceType,
-    SymlinkPolicy,
+    HiddenFilePolicy, IndexMode, JobStatus, JobType, PersistenceMode, SourceType, SymlinkPolicy,
 };
 use orbok_db::Catalog;
-use orbok_db::repo::{FileRepository, IndexJobRepository, NewFile, NewSource, ObservedMetadata};
+use orbok_db::repo::{IndexJobRepository, NewSource};
 use orbok_db::repo::{ModelRepository, ModelRole, ModelStatus, NewModel, SourceRepository};
 use orbok_search::snippet::html_escape;
 use std::fs;
@@ -113,7 +109,7 @@ fn embedding_model_change_marks_embeddings_stale() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, _) = setup(dir.path());
     // Seed a mock model and an embedding (using direct SQL for speed).
-    let now = "2026-01-01T00:00:00Z";
+    let _now = "2026-01-01T00:00:00Z";
     {
         let conn = catalog.lock();
         conn.execute_batch("
@@ -224,7 +220,7 @@ fn path_guard_rejects_outside_sources() {
 #[test]
 fn interrupted_running_jobs_reset_to_queued() {
     let dir = tempfile::tempdir().unwrap();
-    let (catalog, cache) = setup(dir.path());
+    let (catalog, _cache) = setup(dir.path());
     let root = std::fs::canonicalize(dir.path())
         .unwrap()
         .to_string_lossy()

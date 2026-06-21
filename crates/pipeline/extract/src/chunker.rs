@@ -175,11 +175,11 @@ fn append_paragraph_chunks(output: &ExtractOutput, chunks: &mut Vec<ExtractedChu
     let mut buf_end = 0u32;
     let mut buf_kind = LocationKind::Unknown;
 
-    let mut flush = |buf: &mut String,
-                     start: u32,
-                     end: u32,
-                     kind: LocationKind,
-                     chunks: &mut Vec<ExtractedChunk>| {
+    let flush = |buf: &mut String,
+                 start: u32,
+                 end: u32,
+                 kind: LocationKind,
+                 chunks: &mut Vec<ExtractedChunk>| {
         let text = buf.trim().to_string();
         if text.is_empty() {
             buf.clear();

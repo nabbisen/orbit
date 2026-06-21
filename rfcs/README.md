@@ -46,6 +46,7 @@ Withdrawn/Superseded). Each RFC's `Status` field mirrors its folder.
 | 034 | [Accessibility Conformance (WCAG 2.1 AA)](done/034-accessibility-conformance.md) | v0.13.0 |
 | 035 | [Inclusive Design](done/035-inclusive-design.md) | v0.14.0 |
 
+| 036 | [Resource-Aware Indexing Scheduler and Backpressure](done/036-resource-aware-indexing-scheduler-and-backpressure.md) | v0.17.0 |
 | 044 | [orbok-extract Production Hardening](done/044-orbok-extract-production-hardening.md) | v0.16.0 |
 
 ## Proposed
@@ -64,11 +65,10 @@ foundation track is listed first for readability.
 | 043 | [Model Download Readiness and Bounded Concurrency](proposed/043-model-download-readiness-and-concurrency.md) | Readiness check, atomic/partial-file safety, `max_concurrent=2`, backoff. Refs 012/029/021. |
 | 045 | [Search-in-Folder Flow and Friendly Folder Management](proposed/045-search-in-folder-flow-and-friendly-folder-management.md) | Search-first folder picker, remembered/recent folders, drag-and-drop. Extends 041; refs 036/037/038/039. |
 
-### Stabilization (036–040)
+### Stabilization (037–040)
 
 | ID | Title | Notes |
 |---|---|---|
-| 036 | [Resource-Aware Indexing Scheduler and Backpressure](proposed/036-resource-aware-indexing-scheduler-and-backpressure.md) | Foreground priority, bounded queues, weak-machine responsiveness. Refs 044. |
 | 037 | [Source Lifecycle, Refresh Policy, and Change Detection UX](proposed/037-source-lifecycle-refresh-policy-and-change-detection-ux.md) | Scan/refresh states, debounced change storms, watchers deferred. Refs 041, 036. |
 | 038 | [Result Freshness, Trust Badges, and Recovery Actions](proposed/038-result-freshness-trust-badges-and-recovery-actions.md) | Ready / Needs update / Not found / Preparing; plain-text badges. Refs 041, 044, 037. |
 | 039 | [Privacy Modes and Local Data Visibility](proposed/039-privacy-modes-and-local-data-visibility.md) | Standard / Strict / Portable / Diagnostics modes. Refs 042, 043, 040. |

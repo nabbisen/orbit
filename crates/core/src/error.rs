@@ -105,6 +105,9 @@ pub enum OrbokError {
 
     #[error("operation canceled")]
     Canceled,
+
+    #[error("queue {queue} is full — backpressure active")]
+    BackpressureActive { queue: String },
 }
 
 /// Convenience result alias.

@@ -1,13 +1,11 @@
 //! v0.6 tests: M10 CleanupService end-to-end, M12 backend config,
 //! RFC-019 release gate validation, RFC-020 documentation smoke test.
 
-use crate::{
-    ChunkAndIndexWorker, CleanupService, ExtractionWorker, check_catalog_integrity, run_pending,
-};
+use crate::{ChunkAndIndexWorker, CleanupService, ExtractionWorker, run_pending};
 use orbok_cache::CacheService;
 use orbok_core::{
-    CleanupAction, CleanupPlan, FileStatus, HiddenFilePolicy, IndexMode, JobStatus, JobType,
-    PersistenceMode, SourceType, SymlinkPolicy,
+    CleanupAction, CleanupPlan, FileStatus, HiddenFilePolicy, IndexMode, JobType, PersistenceMode,
+    SourceType, SymlinkPolicy,
 };
 use orbok_db::Catalog;
 use orbok_db::repo::{

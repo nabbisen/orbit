@@ -3,9 +3,9 @@
 //! markdown structure (heading paths, fences), encoding failures,
 //! unsupported types, and Japanese text passthrough.
 
+use crate::ExtractorRegistry;
 use crate::normalize::normalize_document;
 use crate::types::{LocationKind, LocationQuality, SegmentKind};
-use crate::{DocumentExtractor, ExtractorRegistry};
 use orbok_core::{ErrorCategory, OrbokError, SourceId};
 use orbok_fs::ValidatedPath;
 use std::fs;

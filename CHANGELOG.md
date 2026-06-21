@@ -11,6 +11,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.17.0] — 2026-06-21 — RFC-036: Resource-Aware Indexing Scheduler and Backpressure
+
+### Added
+
+**RFC-036: Resource-Aware Indexing Scheduler and Backpressure.**
+
+- **`Scheduler`** (`crates/pipeline/workers/src/scheduler/scheduler.rs`):
+  production dispatch engine. `tick()` pops the next job respecting
+  `ResourceMode`; `enqueue()` routes jobs to bounded queues with
+  backpressure; `complete()`/`fail()` update catalog state and retry
+  within `MAX_JOB_ATTEMPTS` (3); `pause()`/`resume()` persist job state
+  to the catalog; `cancel_source()` removes all queued work for a removed
+  folder; `drain_events()` returns `SchedulerEvent`s for the UI layer.
+
+- **`WorkPriority`** (5 levels: `UserBlocking` → `Maintenance`): derived
+  `Ord` so higher-priority jobs dispatch first; FIFO within equal priority.
+  `JobKind::GenerateEmbedding` defaults to `LowBackground`;
+  `JobKind::Cleanup`/`Repair` default to `Maintenance`.
+
+- **`BoundedQueue` / `QueueSet`**: six typed bounded queues (scan, extract,
+  chunk, keyword, embedding, maintenance) with capacity enforcement and
+  backpressure events. `pop_next(ResourceMode::UserActive)` skips the
+  embedding queue so search is never delayed (RFC-036 §9.2).
+
+- **`ResourceMode`** (`Normal` / `UserActive` / `LowImpact` / `Paused`):
+  `notify_user_active()` / `notify_user_idle()` transition modes and emit
+  `SchedulerEvent`s; no duplicate events on repeated calls.
+
+- **`SchedulerEvent`** channel: `JobQueued`, `JobStarted`, `JobCompleted`,
+  `JobFailed`, `JobCancelled`, `QueueBackpressureApplied/Released`,
+  `UserActivityDetected`, `ResourceModeChanged`, `PartialReadinessChanged`.
+
+- **`SchedulerConfig`** (`SchedulerLimits` + `QueueCapacity`): conservative
+  defaults (1 worker per queue; caps: scan 10k, extract 1k, embedding 2k).
+
+- **DB migration 0003** (`0003_scheduler.sql`): adds `attempt_count`,
+  `last_error_kind`, `paused_at` to `index_jobs`. Baseline updated to
+  include `paused` and `waiting_for_dependency` in the `status` CHECK
+  constraint.
+
+- **`JobStatus::Paused` / `WaitingForDependency`**: new variants in
+  `orbok-core::status` with stable catalog strings.
+
+- **`OrbokError::BackpressureActive`**: typed error for full-queue rejections.
+
+- **`IndexJobRepository::enqueue_with_priority`** / **`increment_attempt`** /
+  **`count_indexed_files`**: new repo methods for RFC-036 persistence.
+
+- **17 RFC-036 acceptance tests** in
+  `crates/pipeline/workers/src/tests/rfc036_scheduler.rs`: priority
+  ordering, FIFO within equal priority, capacity enforcement, embedding
+  skip in `UserActive` mode, resource mode transitions, event emission,
+  no-duplicate-event invariant, source cancellation across queues,
+  `WorkPriority` `Ord` correctness, `JobKind` defaults, queue clear.
+
+### Fixed
+
+- `scripts/package.sh`: archive named `orbok-vX.Y.Z.tar.gz` (v prefix),
+  writes via tmp file to avoid self-inclusion (was already fixed in v0.15.0
+  but noted here for completeness).
+- `chunker.rs`: removed needless `mut` on `flush` closure.
+- DB baseline: `index_jobs.status` CHECK now includes all RFC-036 statuses.
+
+**261 tests / 0 failures / 0 warnings in RFC-036 files.**
+
+---
+
 ## [0.16.0] — 2026-06-21 — RFC-044: orbok-extract Production Hardening
 
 ### Changed

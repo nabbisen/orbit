@@ -13,6 +13,10 @@
 //! Failure isolation: one file's failure never stops the whole run
 //! (RFC-004 §16, RFC-005 §13). Workers update the relevant catalog
 //! records with the error category.
+//!
+//! RFC-036 adds the resource-aware `Scheduler` with bounded queues,
+//! priority dispatch, backpressure, pause/resume/cancel, and crash
+//! recovery.
 
 mod chunk_adapter;
 mod chunk_and_index;
@@ -21,6 +25,7 @@ mod embedding;
 mod extract;
 pub mod model_verifier;
 pub mod recovery;
+pub mod scheduler;
 pub mod storage;
 
 #[cfg(test)]
@@ -36,6 +41,10 @@ pub use model_verifier::{
 pub use recovery::{
     IntegrityReport, RecoveryReport, check_catalog_integrity, run_startup_recovery,
 };
+pub use scheduler::{
+    IndexJob, JobKind, JobState, QueueCapacity, QueueKind, ResourceMode, Scheduler,
+    SchedulerConfig, SchedulerEvent, SchedulerLimits, WorkPriority,
+};
 pub use storage::update_storage_accounting;
 
 use orbok_core::OrbokResult;
@@ -46,6 +55,10 @@ use tracing::warn;
 
 /// Run all queued jobs until the queue is empty or `limit` jobs have
 /// been processed. Returns the number of jobs that succeeded.
+///
+/// This is the legacy synchronous dispatch loop, retained for tests
+/// and simple callers. Production code should use `Scheduler::tick()`
+/// for resource-aware dispatch (RFC-036).
 pub fn run_pending(
     catalog: &Catalog,
     extract_worker: &ExtractionWorker<'_>,

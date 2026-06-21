@@ -14,4 +14,5 @@ mod v08_features;
 
 mod v09_rc;
 
+mod rfc036_scheduler;
 mod v092_features;

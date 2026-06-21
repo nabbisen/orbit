@@ -489,7 +489,7 @@ mod quantization_tests {
     // RFC-024 AC: Quality loss measured (cosine sim error < 0.02 for normalised vectors).
     #[test]
     fn quantization_quality_loss_is_small() {
-        let mut v: Vec<f32> = (0..384).map(|i| ((i as f32 * 0.017).sin())).collect();
+        let mut v: Vec<f32> = (0..384).map(|i| (i as f32 * 0.017).sin()).collect();
         l2_normalize(&mut v);
         let q = quantize_to_i8(&v);
         let original_self_sim = cosine_similarity(&v, &v);

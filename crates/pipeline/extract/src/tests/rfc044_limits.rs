@@ -3,10 +3,8 @@
 //!
 //! Test plan follows RFC-044 §20.
 
-use crate::types::{
-    DocumentExtractor, ExtractContext, ExtractLimits, ExtractWarning, ExtractedChunk, LocationKind,
-};
-use crate::{ExtractorRegistry, chunk};
+use crate::ExtractorRegistry;
+use crate::types::{ExtractContext, ExtractLimits, ExtractWarning};
 use orbok_core::{ErrorCategory, OrbokError, SourceId};
 use orbok_fs::ValidatedPath;
 use std::fs;

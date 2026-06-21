@@ -128,7 +128,7 @@ catalog_enum!(
 );
 
 catalog_enum!(
-    /// `index_jobs.status` (RFC-002 §7.9).
+    /// `index_jobs.status` (RFC-002 §7.9; RFC-036 adds Paused/WaitingForDependency).
     JobStatus,
     "index_jobs.status",
     {
@@ -138,6 +138,8 @@ catalog_enum!(
         Failed => "failed",
         Canceled => "canceled",
         Blocked => "blocked",
+        Paused => "paused",
+        WaitingForDependency => "waiting_for_dependency",
     }
 );
 

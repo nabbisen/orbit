@@ -3,15 +3,10 @@
 ```sh
 # Requires Rust 1.85+ (install via rustup.rs)
 
-# Run all backend tests (non-GUI crates)
-cargo test -p orbok-core -p orbok-db -p orbok-fs -p orbok-cache \
-           -p orbok-extract -p orbok-models -p orbok-search \
-           -p orbok-workers -p orbok-embed
+# Run the full test suite
+cargo test --workspace --lib
 
-# Run GUI + smoke tests
-cargo test -p orbok-ui
-
-# Run the GUI (default-members = ["crates/app"] so no -p needed)
+# Run the GUI
 cargo run
 
 # Portable mode (data in ./orbok-data/ instead of platform app-data dir)
@@ -30,9 +25,27 @@ Tests validate design specifications (RFC acceptance criteria), not
 merely the written code. Each crate's `tests.rs` cites the RFC
 section it targets.
 
+Test organisation mirrors the module structure:
+
+- Inline tests live in `src/tests.rs`.
+- If `tests.rs` exceeds ~300 ELOC, contents move into submodules
+  under `src/tests/`.
+- The same line-count rules apply inside `tests/`.
+
+## Module Style
+
+orbok uses Rust 2018+ module layout throughout:
+
+- A `foo.rs` file and a `foo/` subdirectory may coexist.
+- `mod.rs` is never used. Place the module router in `foo.rs` and
+  submodule files inside `foo/`.
+
 ## Packaging
 
 ```sh
-bash scripts/package.sh 1.0.0
-# Produces orbok-1.0.0.tar.gz and orbok-1.0.0.tar.gz.sha256
+bash scripts/package.sh 0.17.0
+# Produces dist/orbok-v0.17.0.tar.gz and dist/orbok-v0.17.0.tar.gz.sha256
 ```
+
+The archive is flat (no parent directory). Files unpack directly into
+the extraction destination.

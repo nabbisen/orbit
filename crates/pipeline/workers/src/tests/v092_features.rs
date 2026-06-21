@@ -1,10 +1,7 @@
 //! v0.9.2 tests: source management backend, startup health population,
 //! hybrid search backend routing, EmbeddingWorker model selection.
 
-use crate::{
-    ChunkAndIndexWorker, EmbeddingWorker, ExtractionWorker, VerifyOutcome, run_pending,
-    verify_embedding_model,
-};
+use crate::{ChunkAndIndexWorker, EmbeddingWorker, ExtractionWorker, run_pending};
 use orbok_cache::CacheService;
 use orbok_core::ModelId;
 use orbok_core::{
@@ -12,7 +9,7 @@ use orbok_core::{
 };
 use orbok_db::Catalog;
 use orbok_db::repo::{FileRepository, NewSource, SourceRepository};
-use orbok_models::{EmbeddingModel, MockEmbeddingModel};
+use orbok_models::MockEmbeddingModel;
 use orbok_search::{HybridSearchService, SearchMode};
 use std::fs;
 
@@ -83,7 +80,7 @@ fn count_with_status_reflects_indexed_files() {
 #[test]
 fn count_for_source_with_status_is_scoped() {
     let dir = tempfile::tempdir().unwrap();
-    let (catalog, cache) = setup(dir.path());
+    let (catalog, _cache) = setup(dir.path());
     let src_id = seed_source(&catalog, dir.path());
     // No files — both counts are zero.
     let files = FileRepository::new(&catalog);
@@ -205,7 +202,7 @@ fn hybrid_search_with_model_uses_vector_path() {
 #[test]
 fn hybrid_search_falls_back_to_keyword_when_no_model_configured() {
     use orbok_embed::{create_embedding_model, recommended_config};
-    use orbok_models::InferenceBackend;
+
     // ONNX model not configured — create_embedding_model returns Err.
     let config = recommended_config("/nonexistent/model.onnx");
     let is_err = create_embedding_model(&config).is_err();

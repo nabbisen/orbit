@@ -88,7 +88,7 @@ fn extract_chunk_index_and_search_roundtrip() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
     let content = "# Authentication\n\nRefresh tokens expire after 24 hours.\n\nError code ERR-4042 occurs when the token is missing.";
-    let (_, file_id) = seed_md_file(&catalog, dir.path(), "auth.md", content);
+    let (_, _file_id) = seed_md_file(&catalog, dir.path(), "auth.md", content);
 
     let extract = ExtractionWorker::new(&catalog, &cache);
     let chunk = ChunkAndIndexWorker::new(&catalog, &cache);

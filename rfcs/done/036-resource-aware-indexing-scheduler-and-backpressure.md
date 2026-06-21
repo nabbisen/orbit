@@ -4,7 +4,7 @@
 **Former project name:** orbit  
 **RFC:** 036  
 **Title:** Resource-Aware Indexing Scheduler and Backpressure  
-**Status:** Proposed
+**Status:** Implemented (v0.17.0)
 **Target milestone:** Indexing stability / weak-machine responsiveness  
 **Date:** 2026-06-18  
 **Related RFCs:** RFC-004 File Scanner and Change Detection, RFC-005 Document Extraction Pipeline, RFC-006 Adaptive Chunking and Location Metadata, RFC-008 Embedding Model and Vector Storage, RFC-044 `orbok-extract` Production Hardening and Boundary Cleanup  

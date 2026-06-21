@@ -122,4 +122,63 @@ impl<'a> IndexJobRepository<'a> {
         }
         Ok(out)
     }
+
+    /// Enqueue a job with an explicit priority (RFC-036 §8).
+    pub fn enqueue_with_priority(
+        &self,
+        job_type: JobType,
+        source_id: Option<&SourceId>,
+        file_id: Option<&FileId>,
+        priority: i64,
+    ) -> OrbokResult<JobId> {
+        let id = JobId::generate();
+        let now = now_iso8601();
+        let conn = self.catalog.lock();
+        conn.execute(
+            "INSERT INTO index_jobs \
+             (job_id, source_id, file_id, job_type, status, priority, \
+              attempt_count, created_at, updated_at) \
+             VALUES (?1,?2,?3,?4,'queued',?5,0,?6,?6)",
+            params![
+                id.as_str(),
+                source_id.map(|s| s.as_str()),
+                file_id.map(|f| f.as_str()),
+                job_type.as_str(),
+                priority,
+                now,
+            ],
+        )
+        .map_err(db_err)?;
+        Ok(id)
+    }
+
+    /// Record a failed attempt and its error kind (RFC-036 §11).
+    pub fn increment_attempt(&self, id: &JobId, error_kind: &str) -> OrbokResult<()> {
+        let now = now_iso8601();
+        let conn = self.catalog.lock();
+        conn.execute(
+            "UPDATE index_jobs \
+             SET attempt_count = attempt_count + 1, \
+                 last_error_kind = ?2, \
+                 updated_at = ?3 \
+             WHERE job_id = ?1",
+            params![id.as_str(), error_kind, now],
+        )
+        .map_err(db_err)?;
+        Ok(())
+    }
+
+    /// Count of files with `file_status = 'indexed'` (for partial
+    /// readiness reporting, RFC-036 §14.2).
+    pub fn count_indexed_files(&self) -> OrbokResult<u64> {
+        let conn = self.catalog.lock();
+        let n: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM files WHERE file_status = 'indexed'",
+                [],
+                |r| r.get(0),
+            )
+            .map_err(db_err)?;
+        Ok(n as u64)
+    }
 }

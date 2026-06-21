@@ -9,8 +9,8 @@ use orbok_core::{
 };
 use orbok_db::Catalog;
 use orbok_db::repo::{
-    EmbeddingRepository, FileRepository, IndexJobRepository, ModelRepository, ModelRole, NewFile,
-    NewSource, ObservedMetadata, SourceRepository,
+    EmbeddingRepository, FileRepository, IndexJobRepository, NewFile, NewSource, ObservedMetadata,
+    SourceRepository,
 };
 use orbok_models::{
     MockEmbeddingModel, cosine_similarity, dequantize_from_i8, i8_blob_to_vec, i8_vec_to_blob,
@@ -109,8 +109,8 @@ fn exact_scan_baseline_is_fast_enough() {
             &format!("auth token rotation ERR-{i:04}\n"),
         );
     }
-    let mid = seed_mock_model(&catalog);
-    let model = MockEmbeddingModel;
+    let _mid = seed_mock_model(&catalog);
+    let _model = MockEmbeddingModel;
     for file in FileRepository::new(&catalog)
         .count_by_status(&SourceRepository::new(&catalog).list().unwrap()[0].source_id)
         .unwrap_or_default()
@@ -121,7 +121,7 @@ fn exact_scan_baseline_is_fast_enough() {
     }
     // Just verify search completes quickly.
     let start = Instant::now();
-    let results = HybridSearchService::keyword_only(&catalog)
+    let _results = HybridSearchService::keyword_only(&catalog)
         .search("auth token", SearchMode::Auto, 10)
         .unwrap();
     let elapsed_ms = start.elapsed().as_millis();
@@ -140,7 +140,7 @@ fn fp32_and_int8_coexist_in_catalog() {
     let dir = tempfile::tempdir().unwrap();
     let (catalog, cache) = setup(dir.path());
     seed_indexed(&catalog, &cache, dir.path(), "doc.md", "content here\n");
-    let mid = seed_mock_model(&catalog);
+    let _mid = seed_mock_model(&catalog);
 
     EmbeddingWorker::with_mock(&catalog, &cache)
         .run(
@@ -164,7 +164,7 @@ fn fp32_and_int8_coexist_in_catalog() {
 fn int8_quantized_vector_round_trips_in_catalog() {
     let catalog = Catalog::open_in_memory().unwrap();
     // Seed the required FK chain.
-    let now = "t";
+    let _now = "t";
     catalog.lock().execute_batch("
         INSERT INTO sources (source_id, source_type, persistence_mode, original_path, canonical_path,
           status, index_mode, hidden_file_policy, symlink_policy, created_at, updated_at)

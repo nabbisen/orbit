@@ -8,7 +8,7 @@ use orbok_embed::{RECOMMENDED_MODEL_DIMENSION, create_embedding_model, recommend
 use orbok_extract::ExtractorRegistry;
 use orbok_extract::types::{DocumentExtractor, LocationQuality};
 use orbok_fs::ValidatedPath;
-use orbok_models::{EmbeddingModel, EmbeddingModelConfig, InferenceBackend, MockEmbeddingModel};
+use orbok_models::{EmbeddingModelConfig, InferenceBackend};
 
 use std::fs;
 use std::path::PathBuf;
@@ -34,7 +34,6 @@ fn mock_backend_embeds_without_model_files() {
 }
 
 // RFC-021 AC: ONNX backend returns informative error when not compiled.
-#[cfg(not(feature = "tract"))]
 #[test]
 fn onnx_backend_returns_feature_error_when_not_compiled() {
     let config = EmbeddingModelConfig {
