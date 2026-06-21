@@ -45,6 +45,7 @@ fn failures_surface_notice_success_clears_it() {
         snippet: None,
         keyword_rank: 1,
         badges: vec![],
+        trust: Default::default(),
     }]));
     assert!(
         state.notice.is_none(),

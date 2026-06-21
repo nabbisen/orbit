@@ -5,10 +5,14 @@
 //! render them; `update` mutates them. No iced types appear in this
 //! module so state logic stays UI-framework-agnostic.
 
+pub mod search;
+
+pub use search::{ResultTrustDisplay, ResultsStatus, SearchUiState};
+
 use crate::i18n::Locale;
 use crate::notice::UserNotice;
 use orbok_models::SearchCapability;
-use orbok_search::SearchMode;
+use orbok_search::{ResultRecoveryAction, SearchMode};
 
 /// Top-level navigation group for the two-level sidebar + tab layout.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -89,6 +93,8 @@ pub struct SearchResultDisplay {
     pub snippet: Option<String>,
     pub keyword_rank: u32,
     pub badges: Vec<String>,
+    /// Trust state and recovery actions for this result (RFC-038).
+    pub trust: ResultTrustDisplay,
 }
 
 /// One required file and its check result shown in the wizard.
@@ -140,6 +146,8 @@ pub struct AppState {
     pub search_results: Vec<SearchResultDisplay>,
     pub search_running: bool,
     pub selected_result: Option<usize>,
+    /// RFC-041: progressive search/filter UI state.
+    pub search_ui: SearchUiState,
     pub storage_rows: Vec<(String, u64, u64)>,
     pub health: IndexHealth,
     pub sources: Vec<SourceCard>,
@@ -183,6 +191,7 @@ impl Default for AppState {
             search_results: Vec::new(),
             search_running: false,
             selected_result: None,
+            search_ui: SearchUiState::default(),
             storage_rows: Vec::new(),
             health: IndexHealth::default(),
             sources: Vec::new(),
@@ -231,6 +240,20 @@ pub enum Message {
     SelectResult(usize),
     OpenSourceFile(String),
     SetSearchMode(SearchMode),
+    // RFC-041: filter / narrow / browse-around messages
+    ApplySuggestedFilter(usize),
+    RemoveFilter(usize),
+    ClearFilters,
+    OpenMoreWays,
+    CloseMoreWays,
+    SearchInResultFolder(usize),
+    ShowNearbyFiles(usize),
+    ShowSimilarFiles(usize),
+    // RFC-038: result trust recovery actions
+    TrustRecoveryAction {
+        result_idx: usize,
+        action: ResultRecoveryAction,
+    },
     PersistLocale(Locale),
     SetLocale(Locale),
     // RFC-034: keyboard navigation messages
@@ -316,7 +339,10 @@ impl AppState {
             }
             Message::ShowNotice(n) => self.notice = Some(n.clone()),
             Message::ClearNotice => self.notice = None,
-            Message::QueryChanged(query) => self.query = query.clone(),
+            Message::QueryChanged(query) => {
+                self.query = query.clone();
+                self.search_ui.text = query.clone();
+            }
             Message::SubmitSearch => {
                 let trimmed = self.query.trim();
                 if !trimmed.is_empty() {
@@ -324,18 +350,43 @@ impl AppState {
                     self.search_running = true;
                     self.search_results.clear();
                     self.selected_result = None;
+                    self.search_ui.results_status = ResultsStatus::Searching;
                 }
             }
             Message::SearchResultsReady(results) => {
+                let count = results.len();
                 self.search_results = results.clone();
                 self.search_running = false;
                 self.selected_result = None;
                 self.notice = None;
+                self.search_ui.results_status = if count == 0 {
+                    if self.search_ui.has_active_filters() {
+                        ResultsStatus::EmptyAfterFiltering
+                    } else {
+                        ResultsStatus::EmptyAfterSearch
+                    }
+                } else {
+                    ResultsStatus::Ready { total_count: count }
+                };
             }
             Message::SearchError(_) => {
                 self.search_running = false;
+                self.search_ui.results_status = ResultsStatus::Problem {
+                    friendly_message: "Search did not finish. Please try again.".into(),
+                };
                 self.notice = Some(UserNotice::SearchDidNotFinish);
             }
+            // RFC-041: filter operations
+            Message::ApplySuggestedFilter(i) => self.search_ui.apply_suggested(*i),
+            Message::RemoveFilter(i) => self.search_ui.remove_filter(*i),
+            Message::ClearFilters => self.search_ui.clear_filters(),
+            Message::OpenMoreWays => self.search_ui.more_panel_open = true,
+            Message::CloseMoreWays => self.search_ui.more_panel_open = false,
+            Message::SearchInResultFolder(_idx) => {} // handled by orbok-app
+            Message::ShowNearbyFiles(_idx) => {}      // handled by orbok-app
+            Message::ShowSimilarFiles(_idx) => {}     // handled by orbok-app
+            // RFC-038: trust recovery actions
+            Message::TrustRecoveryAction { .. } => {} // handled by orbok-app
             Message::SelectResult(idx) => self.selected_result = Some(*idx),
             Message::OpenSourceFile(_) => {} // handled by orbok-app
             Message::SetSearchMode(mode) => self.search_mode = *mode,

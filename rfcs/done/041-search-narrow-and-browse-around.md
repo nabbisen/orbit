@@ -4,7 +4,7 @@
 **Former project name:** orbit  
 **RFC:** 041  
 **Title:** Search, Narrow Results, and Browse Around  
-**Status:** Proposed
+**Status:** Implemented (v0.18.0)
 **Target milestone:** Search UX / Filter UX refinement  
 **Date:** 2026-06-18  
 **Source basis:** `orbit-search-filter-external-design-v0.1.md`, `orbit-filter-ui-design-addendum.md`  

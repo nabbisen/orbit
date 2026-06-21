@@ -16,6 +16,7 @@ pub mod path_guard;
 pub mod policy;
 pub mod scanner;
 pub mod sensitive;
+pub mod source_lifecycle;
 
 #[cfg(test)]
 mod tests;

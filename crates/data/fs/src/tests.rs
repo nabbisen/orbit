@@ -4,4 +4,5 @@
 
 mod common;
 mod path_guard;
+mod rfc037_lifecycle;
 mod scanner;

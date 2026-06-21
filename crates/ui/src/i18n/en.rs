@@ -148,5 +148,75 @@ pub fn message(key: MessageKey) -> &'static str {
         NoticeDismiss => "Dismiss",
         Cancel => "Cancel",
         Confirm => "Confirm",
+        // RFC-041: Search, Narrow Results, Browse Around
+        SearchNarrowResults => "Narrow results",
+        SearchNarrowedBy => "Narrowed by",
+        SearchMoreWays => "More ways to narrow",
+        SearchClearFilters => "Clear",
+        SearchNoResultsFiltered => "No results with these choices",
+        SearchNoResultsFilteredBody => "Try removing one.",
+        SearchInThisFolder => "Search in this folder",
+        SearchShowNearby => "Show nearby files",
+        SearchShowSimilar => "Show similar files",
+        SearchResultsUpdating => "Updating results...",
+        SearchPreparingFolder => "Preparing \"{folder}\" for search",
+        SearchPartialReadiness => "{ready} files ready. You can search now.",
+        // RFC-041 filter labels
+        FilterKind => "Kind",
+        FilterChanged => "Changed",
+        FilterSearchIn => "Search in",
+        FilterReadyStatus => "Ready status",
+        FilterKindPdfs => "PDFs",
+        FilterKindNotes => "Notes",
+        FilterKindCode => "Code",
+        FilterKindDocuments => "Documents",
+        FilterKindSpreadsheets => "Spreadsheets",
+        FilterChangedToday => "Today",
+        FilterChangedThisWeek => "This week",
+        FilterChangedThisMonth => "This month",
+        FilterChangedAnyTime => "Any time",
+        FilterAllFolders => "All folders",
+        // RFC-037: Source lifecycle
+        SourceStateReady => "Ready",
+        SourceStatePreparing => "Preparing",
+        SourceStateNeedsUpdate => "Needs update",
+        SourceStatePaused => "Paused",
+        SourceStateFolderNotFound => "Folder not found",
+        SourceStateCannotOpen => "Cannot open",
+        SourceStateRemoved => "Removed",
+        SourceActionCheckAgain => "Check again",
+        SourceActionPrepareAgain => "Prepare again",
+        SourceActionChooseFolderAgain => "Choose folder again",
+        SourceActionRemoveFromOrbok => "Remove from orbok",
+        SourceFolderNotFoundDetail => {
+            "This can happen if a drive is disconnected or the folder was moved."
+        }
+        SourceFilesNotDeletedNotice => {
+            "Your files were not deleted. orbok just cannot find this folder right now."
+        }
+        SourceManyFilesChanged => "Many files changed. orbok will prepare them gradually.",
+        SourcePausePreparation => "Pause preparing",
+        SourceResumePreparation => "Resume preparing",
+        // RFC-038: Result trust badges and recovery
+        TrustNeedsUpdate => "Needs update",
+        TrustFileNotFound => "File not found",
+        TrustStillBeingPrepared => "Still being prepared",
+        TrustPartlyPrepared => "Partly prepared",
+        TrustCannotOpen => "Cannot open",
+        TrustActionPrepareAgain => "Prepare again",
+        TrustActionCheckFolder => "Check folder",
+        TrustActionRemoveFromResults => "Remove from results",
+        TrustActionOpenAnyway => "Open file anyway",
+        TrustActionShowInFolder => "Show in folder",
+        TrustActionViewDetails => "View details",
+        TrustFileChangedDetail => "This file changed after orbok prepared it.",
+        TrustFileNotFoundDetail => {
+            "orbok cannot find this file. It may have been moved, deleted, or the drive may be disconnected."
+        }
+        TrustPartlyPreparedDetail => "Only part of this file was prepared.",
+        TrustScannedPdfDetail => "This PDF may contain images instead of selectable text.",
+        TrustSomePagesDetail => "Some pages could not be prepared.",
+        TrustSizeLimitDetail => "Only part of this large file was prepared.",
+        TrustCannotOpenDetail => "orbok cannot open this file.",
     }
 }

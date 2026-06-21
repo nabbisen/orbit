@@ -11,6 +11,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.18.0] — 2026-06-21 — Phase 2: Search UX, Source Lifecycle, Result Trust (RFC-041, RFC-037, RFC-038)
+
+### Added
+
+**RFC-041: Search, Narrow Results, and Browse Around.**
+
+- `crates/search/engine/src/filter.rs` — complete filter model: `ActiveFilter`,
+  `KindFilter`, `ChangedFilter`, `ReadyFilter`, `SearchStyle`, `LanguageFilter`,
+  `SuggestedFilter`, `extension_matches_kind`, `is_already_active`.
+- `crates/ui/src/state/search.rs` — `SearchUiState` with `apply_suggested`,
+  `remove_filter`, `clear_filters`; `ResultsStatus` (7 variants covering the
+  full results lifecycle); `ResultTrustDisplay`.
+- `SearchResultDisplay.trust` field added (RFC-038 integration).
+- `AppState.search_ui: SearchUiState` added; `Message` extended with
+  `ApplySuggestedFilter`, `RemoveFilter`, `ClearFilters`, `OpenMoreWays`,
+  `CloseMoreWays`, `SearchInResultFolder`, `ShowNearbyFiles`, `ShowSimilarFiles`,
+  `TrustRecoveryAction`.
+- `update()` now syncs `query` ↔ `search_ui.text`, advances `results_status`
+  through Searching → Ready / EmptyAfterSearch / EmptyAfterFiltering, and
+  handles all new filter messages.
+- `components::filter_chip` — narrowing chip with `×` active state.
+- `components::result_trust_badge` — plain-text trust badge, returns `None`
+  for Ready results to keep them uncluttered.
+- 67 new i18n keys in `en.rs` and `ja.rs`: filter labels, trust badges,
+  source lifecycle copy, recovery actions — all avoiding forbidden technical terms.
+
+**RFC-037: Source Lifecycle, Refresh Policy, and Change Detection UX.**
+
+- `crates/data/fs/src/source_lifecycle.rs` — `SourceState` (7 variants with
+  `user_label`, `is_searchable`, `can_refresh`, `as_str`), `FileState` (8 variants
+  with `user_label`, `from_catalog_status`), `FileFingerprint` (metadata change
+  detection, no content-hash by default), `SourceCheckResult`, `check_source_path`.
+
+**RFC-038: Result Freshness, Trust Badges, and Recovery Actions.**
+
+- `crates/search/engine/src/result_trust.rs` — `ResultTrustState` (6 variants
+  with `show_badge_by_default`), `ResultWarningSummary` (maps `ExtractWarning`
+  from RFC-044), `ResultRecoveryAction` (6 actions), `SearchResultTrust` with
+  `from_catalog` computing trust from file status + extraction warnings.
+- `orbok-search` gains `orbok-extract` and `serde` as direct dependencies.
+
+### Tests
+
+- `orbok-search/src/tests/rfc041_filter.rs` — 12 tests: add/remove/clear,
+  duplicate prevention, extension matching, label stability, copy compliance.
+- `orbok-search/src/tests/rfc037_source_lifecycle.rs` — 14 tests: state labels,
+  searchability, refresh eligibility, file status mapping, metadata change
+  detection, missing folder, catalog string stability.
+- `orbok-search/src/tests/rfc038_result_trust.rs` — 15 tests: all file status
+  → trust state mappings, extraction warning → PartlyPrepared, badge display
+  rules, recovery action coverage, copy compliance.
+- `orbok-ui/src/tests/rfc041_search_state.rs` — 14 tests: `SearchUiState`
+  operations, `AppState` message handling, results status transitions, copy
+  compliance (forbidden terms, orbok/orbit naming).
+- Existing `orbok-search/src/tests.rs` refactored into `tests/` subdir
+  (Rust 2018+ style) with `rfc007_keyword.rs` as the first submodule.
+
+**328 tests / 0 failures / 0 warnings.**
+
+---
+
 ## [0.17.1] — 2026-06-21 — Crate manifest: readme attribute
 
 ### Changed

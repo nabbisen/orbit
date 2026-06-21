@@ -194,6 +194,7 @@ pub(crate) fn run_search(
             snippet: r.snippet,
             keyword_rank: r.keyword_rank,
             badges: r.badges.iter().map(|b| format!("{b:?}")).collect(),
+            trust: orbok_ui::state::ResultTrustDisplay::default(),
         })
         .collect())
 }

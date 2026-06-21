@@ -157,6 +157,7 @@ fn result_navigation_bounds() {
         snippet: None,
         keyword_rank: 1,
         badges: vec![],
+        trust: Default::default(),
     };
     state.update(&Message::SearchResultsReady(vec![
         make("a.md"),

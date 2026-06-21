@@ -18,10 +18,12 @@
 //! treats a CJK run as a single token, so exact runs match but partial
 //! Japanese terms do not. The keyword strategy RFC owns that gap.
 
+pub mod filter;
 mod fts5;
 pub mod hybrid;
 pub mod multilingual;
 mod query;
+pub mod result_trust;
 pub mod rrf;
 pub mod service;
 pub mod snippet;
@@ -30,10 +32,17 @@ pub mod vector;
 #[cfg(test)]
 mod tests;
 
+pub use filter::{
+    ActiveFilter, ChangedFilter, KindFilter, LanguageFilter, ReadyFilter, SearchStyle,
+    SuggestedFilter,
+};
 pub use fts5::Fts5KeywordEngine;
 pub use hybrid::{HybridSearchService, SearchMode};
 pub use multilingual::{MultilingualKeywordEngine, contains_cjk, normalize_query};
 pub use query::build_match_expression;
+pub use result_trust::{
+    ResultRecoveryAction, ResultTrustState, ResultWarningSummary, SearchResultTrust,
+};
 pub use rrf::{FusedCandidate, rrf_fuse};
 pub use service::{MatchBadge, SearchResult, SearchService};
 pub use vector::ExactVectorSearch;

@@ -4,7 +4,7 @@
 **Former project name:** orbit  
 **RFC:** 038  
 **Title:** Result Freshness, Trust Badges, and Recovery Actions  
-**Status:** Proposed
+**Status:** Implemented (v0.18.0)
 **Target milestone:** Search result trust / UX honesty  
 **Date:** 2026-06-18  
 **Related RFCs:** RFC-041 Search, Narrow Results, and Browse Around, RFC-044 `orbok-extract` Production Hardening and Boundary Cleanup, RFC-037 Source Lifecycle, Refresh Policy, and Change Detection UX  

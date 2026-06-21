@@ -313,3 +313,53 @@ pub fn danger_action<'a>(
         .padding(Padding::from([0.0, 0.0]))
         .into()
 }
+
+// ── Filter chips (RFC-041 §18.2) ──────────────────────────────────────
+
+/// A narrowing chip — either a quick suggestion or an active filter.
+///
+/// When `selected` is true the label shows with " ×" appended and the
+/// chip renders in its active state. Color must not be the only
+/// selected-state indicator (RFC-041 §19; RFC-034 §8).
+pub fn filter_chip<'a>(
+    tokens: &Tokens,
+    label: &str,
+    selected: bool,
+    on_press: Message,
+) -> Element<'a, Message> {
+    let display = if selected {
+        format!("{label} ×")
+    } else {
+        label.to_string()
+    };
+    snora::design::button::primary_maybe(tokens, &display, Some(on_press))
+}
+
+// ── Result trust badge (RFC-038 §6) ───────────────────────────────────
+
+/// A plain-text trust badge shown only when the result is not fully ready.
+///
+/// Returns `None` for `ResultTrustState::Ready` so callers can skip
+/// rendering entirely — keeping clean results uncluttered (RFC-038 §6.1).
+pub fn result_trust_badge<'a>(
+    tokens: &Tokens,
+    sc: crate::theme::TextScale,
+    state: orbok_search::ResultTrustState,
+    locale: crate::i18n::Locale,
+) -> Option<Element<'a, Message>> {
+    use crate::i18n::{MessageKey, tr};
+    use orbok_search::ResultTrustState;
+    let key = match state {
+        ResultTrustState::Ready => return None,
+        ResultTrustState::NeedsUpdate => MessageKey::TrustNeedsUpdate,
+        ResultTrustState::FileNotFound => MessageKey::TrustFileNotFound,
+        ResultTrustState::StillBeingPrepared => MessageKey::TrustStillBeingPrepared,
+        ResultTrustState::PartlyPrepared => MessageKey::TrustPartlyPrepared,
+        ResultTrustState::CannotOpen => MessageKey::TrustCannotOpen,
+    };
+    Some(
+        iced::widget::text(tr(locale, key))
+            .size(crate::theme::meta_s(tokens, sc))
+            .into(),
+    )
+}

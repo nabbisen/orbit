@@ -152,5 +152,77 @@ pub fn message(key: MessageKey) -> &'static str {
         NoticeDismiss => "閉じる",
         Cancel => "キャンセル",
         Confirm => "確認",
+        // RFC-041: Search, Narrow Results, Browse Around
+        SearchNarrowResults => "結果を絞り込む",
+        SearchNarrowedBy => "絞り込み条件",
+        SearchMoreWays => "他の絞り込み方法",
+        SearchClearFilters => "クリア",
+        SearchNoResultsFiltered => "この条件では結果がありません",
+        SearchNoResultsFilteredBody => "条件を一つ外してみてください。",
+        SearchInThisFolder => "このフォルダ内を検索",
+        SearchShowNearby => "近くのファイルを表示",
+        SearchShowSimilar => "類似ファイルを表示",
+        SearchResultsUpdating => "結果を更新中...",
+        SearchPreparingFolder => "「{folder}」の検索準備中",
+        SearchPartialReadiness => "{ready} 件のファイルが準備完了。今すぐ検索できます。",
+        // RFC-041 filter labels
+        FilterKind => "種類",
+        FilterChanged => "変更日",
+        FilterSearchIn => "検索対象",
+        FilterReadyStatus => "準備状態",
+        FilterKindPdfs => "PDF",
+        FilterKindNotes => "メモ",
+        FilterKindCode => "コード",
+        FilterKindDocuments => "ドキュメント",
+        FilterKindSpreadsheets => "スプレッドシート",
+        FilterChangedToday => "今日",
+        FilterChangedThisWeek => "今週",
+        FilterChangedThisMonth => "今月",
+        FilterChangedAnyTime => "すべての期間",
+        FilterAllFolders => "すべてのフォルダ",
+        // RFC-037: Source lifecycle
+        SourceStateReady => "準備完了",
+        SourceStatePreparing => "準備中",
+        SourceStateNeedsUpdate => "更新が必要",
+        SourceStatePaused => "一時停止中",
+        SourceStateFolderNotFound => "フォルダが見つかりません",
+        SourceStateCannotOpen => "開けません",
+        SourceStateRemoved => "削除済み",
+        SourceActionCheckAgain => "再確認",
+        SourceActionPrepareAgain => "再準備",
+        SourceActionChooseFolderAgain => "フォルダを選び直す",
+        SourceActionRemoveFromOrbok => "orbokから削除",
+        SourceFolderNotFoundDetail => {
+            "ドライブが切断されたか、フォルダが移動された可能性があります。"
+        }
+        SourceFilesNotDeletedNotice => {
+            "ファイルは削除されていません。orbokがこのフォルダを見つけられないだけです。"
+        }
+        SourceManyFilesChanged => "多くのファイルが変更されました。orbokが徐々に準備します。",
+        SourcePausePreparation => "準備を一時停止",
+        SourceResumePreparation => "準備を再開",
+        // RFC-038: Result trust badges and recovery
+        TrustNeedsUpdate => "更新が必要",
+        TrustFileNotFound => "ファイルが見つかりません",
+        TrustStillBeingPrepared => "準備中",
+        TrustPartlyPrepared => "一部のみ準備済み",
+        TrustCannotOpen => "開けません",
+        TrustActionPrepareAgain => "再準備",
+        TrustActionCheckFolder => "フォルダを確認",
+        TrustActionRemoveFromResults => "結果から削除",
+        TrustActionOpenAnyway => "そのまま開く",
+        TrustActionShowInFolder => "フォルダで表示",
+        TrustActionViewDetails => "詳細を表示",
+        TrustFileChangedDetail => "このファイルは準備後に変更されました。",
+        TrustFileNotFoundDetail => {
+            "ファイルが見つかりません。移動、削除、またはドライブが切断された可能性があります。"
+        }
+        TrustPartlyPreparedDetail => "このファイルの一部のみが準備されました。",
+        TrustScannedPdfDetail => {
+            "このPDFには選択できないテキストの代わりに画像が含まれている可能性があります。"
+        }
+        TrustSomePagesDetail => "一部のページを準備できませんでした。",
+        TrustSizeLimitDetail => "この大きなファイルの一部のみが準備されました。",
+        TrustCannotOpenDetail => "orbokはこのファイルを開けません。",
     }
 }

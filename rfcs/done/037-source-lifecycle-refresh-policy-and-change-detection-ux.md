@@ -4,7 +4,7 @@
 **Former project name:** orbit  
 **RFC:** 037  
 **Title:** Source Lifecycle, Refresh Policy, and Change Detection UX  
-**Status:** Proposed
+**Status:** Implemented (v0.18.0)
 **Target milestone:** Source management / refresh stability  
 **Date:** 2026-06-18  
 **Related RFCs:** RFC-003 Source Registration and File Access Boundary, RFC-004 File Scanner and Change Detection, RFC-041 Search, Narrow Results, and Browse Around, RFC-036 Resource-Aware Indexing Scheduler and Backpressure  
