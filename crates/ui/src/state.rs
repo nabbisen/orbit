@@ -5,8 +5,10 @@
 //! render them; `update` mutates them. No iced types appear in this
 //! module so state logic stays UI-framework-agnostic.
 
+pub mod location;
 pub mod search;
 
+pub use location::{SearchFolderScope, SearchLocation, SearchLocationState, SearchLocationSummary};
 pub use search::{ResultTrustDisplay, ResultsStatus, SearchUiState};
 
 use crate::i18n::Locale;
@@ -148,6 +150,10 @@ pub struct AppState {
     pub selected_result: Option<usize>,
     /// RFC-041: progressive search/filter UI state.
     pub search_ui: SearchUiState,
+    /// RFC-045: where the current search looks (selected folder, scope,
+    /// recent folders). Defaults to no selected location — the first-run
+    /// "choose a folder when you search" state.
+    pub search_location: SearchLocationState,
     pub storage_rows: Vec<(String, u64, u64)>,
     pub health: IndexHealth,
     pub sources: Vec<SourceCard>,
@@ -192,6 +198,7 @@ impl Default for AppState {
             search_running: false,
             selected_result: None,
             search_ui: SearchUiState::default(),
+            search_location: SearchLocationState::default(),
             storage_rows: Vec::new(),
             health: IndexHealth::default(),
             sources: Vec::new(),
@@ -322,6 +329,28 @@ pub enum Message {
         key: String,
         value: bool,
     },
+    // RFC-045: search-in-folder flow
+    /// User submitted a search but no folder is selected: open the OS folder
+    /// picker. Sets `picker_in_progress = true` to block duplicate dialogs.
+    ChooseFolderRequested,
+    /// The OS folder picker was cancelled — keep query, show no error
+    /// (RFC-045 §8.2).
+    FolderPickerCancelled,
+    /// The OS folder picker returned `path`. The app will create or reuse a
+    /// remembered folder record then dispatch `SearchLocationSelected`.
+    FolderPicked(std::path::PathBuf),
+    /// A search location is now ready (folder created or reused). Carries the
+    /// ready location so `AppState` can store it and resume the pending search.
+    SearchLocationSelected(SearchLocation),
+    /// User clicked ✕ on the folder chip — clears the selected location but
+    /// preserves the typed query (RFC-045 §11.3).
+    SearchLocationCleared,
+    /// User switched between "and subfolders" / "only" for the current
+    /// location (RFC-045 §6.3). Does not create a duplicate source record.
+    SearchScopeChanged(crate::state::location::SearchFolderScope),
+    /// User clicked a recent-folder chip — reuse that remembered folder as
+    /// the current search location (RFC-045 §7.4).
+    RecentFolderSelected(orbok_core::id::SourceId),
 }
 
 impl AppState {
@@ -546,6 +575,55 @@ impl AppState {
                 self.notice = Some(UserNotice::DiagnosticsFileFailed);
             }
             Message::DiagnosticsOptInChanged { .. } => {} // handled by orbok-app
+            // RFC-045: search-in-folder flow
+            Message::ChooseFolderRequested => {
+                // Guard: block duplicate picker dialogs on rapid Search clicks.
+                self.search_location.picker_in_progress = true;
+            }
+            Message::FolderPickerCancelled => {
+                // RFC-045 §8.2: cancel is neutral — no error, query preserved.
+                self.search_location.picker_in_progress = false;
+            }
+            Message::FolderPicked(_) => {
+                // Handled in orbok-app (source create/reuse); result arrives
+                // via SearchLocationSelected. Keep picker_in_progress = true
+                // until the source record is ready.
+            }
+            Message::SearchLocationSelected(location) => {
+                self.search_location.picker_in_progress = false;
+                self.search_location.selected = Some(location.clone());
+                // After a location becomes ready, treat as a fresh search
+                // so results reflect the new scope.
+                if !self.query.trim().is_empty() {
+                    self.search_running = true;
+                    self.search_results.clear();
+                    self.selected_result = None;
+                    self.search_ui.results_status = ResultsStatus::Searching;
+                }
+            }
+            Message::SearchLocationCleared => {
+                // RFC-045 §11.3: clear chip, preserve query.
+                self.search_location.clear();
+            }
+            Message::SearchScopeChanged(scope) => {
+                // RFC-045 §6.3: scope change never duplicates the source record.
+                self.search_location.set_scope(*scope);
+            }
+            Message::RecentFolderSelected(source_id) => {
+                // Find the recent summary and promote it to the selected location.
+                if let Some(summary) = self
+                    .search_location
+                    .recent_locations
+                    .iter()
+                    .find(|s| &s.source_id == source_id)
+                    .cloned()
+                {
+                    self.search_location.selected = Some(SearchLocation::remembered(
+                        summary.source_id,
+                        summary.display_name,
+                    ));
+                }
+            }
         }
     }
 }

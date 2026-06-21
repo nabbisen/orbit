@@ -17,6 +17,7 @@ pub mod a11y;
 pub mod components;
 pub mod i18n;
 pub mod rfc041_search_state;
+pub mod rfc045_location;
 pub mod smoke_views;
 pub mod state;
 
@@ -224,5 +225,11 @@ pub const ALL_KEYS: &[MessageKey] = &[
     MessageKey::DiagnosticsFileCreated,
     MessageKey::DiagnosticsShowFile,
     MessageKey::DiagnosticsCreateFailed,
+    // RFC-045
+    MessageKey::SearchInLabel,
+    MessageKey::SearchChooseFolder,
+    MessageKey::SearchScopeOnly,
+    MessageKey::SearchScopeSubfolders,
+    MessageKey::SearchRecentFoldersLabel,
 ];
 mod rfc041_search;

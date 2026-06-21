@@ -4,7 +4,7 @@
 **Former project name:** orbit  
 **RFC:** 045  
 **Title:** Search-in-Folder Flow and Friendly Folder Management  
-**Status:** Proposed
+**Status:** Implemented (v0.20.0)
 **Target milestone:** Search UX simplification / folder onboarding  
 **Date:** 2026-06-20  
 **Related RFCs:** RFC-041 Search, Narrow Results, and Browse Around; RFC-037 Source Lifecycle, Refresh Policy, and Change Detection UX; RFC-038 Result Freshness, Trust Badges, and Recovery Actions; RFC-039 Privacy Modes and Local Data Visibility  

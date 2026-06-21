@@ -11,6 +11,7 @@
 pub mod en;
 pub mod ja;
 
+use crate::state::location::SearchFolderScope;
 use serde::{Deserialize, Serialize};
 
 /// Supported UI locales. Default English; persisted in the catalog
@@ -314,6 +315,19 @@ pub enum MessageKey {
     DiagnosticsFileCreated,
     DiagnosticsShowFile,
     DiagnosticsCreateFailed,
+    // RFC-045: search-in-folder flow
+    /// Label "Search in" shown before the folder chip.
+    SearchInLabel,
+    /// Placeholder shown when no folder is selected yet.
+    SearchChooseFolder,
+    /// Scope toggle label shown when current scope is FolderAndSubfolders:
+    /// offers to switch to folder-only.
+    SearchScopeOnly,
+    /// Scope toggle label shown when current scope is FolderOnly: offers to
+    /// switch to including subfolders.
+    SearchScopeSubfolders,
+    /// Header for the recent / remembered folder chip row.
+    SearchRecentFoldersLabel,
 }
 
 /// Translate a fixed message. The per-locale functions are exhaustive
@@ -379,5 +393,20 @@ pub fn fmt_query(locale: Locale, query: &str) -> String {
     match locale {
         Locale::En => format!("Query: {query}"),
         Locale::Ja => format!("検索語: {query}"),
+    }
+}
+
+/// Parameterized: the selected search-location chip label (RFC-045 §7.3,
+/// §11.1), e.g. `Documents and subfolders` or `Documents only`. Keeps the
+/// friendly "folder" wording — never "source" or "recursive" (RFC-045
+/// §19.4).
+pub fn search_location_chip(locale: Locale, folder: &str, scope: SearchFolderScope) -> String {
+    match (locale, scope) {
+        (Locale::En, SearchFolderScope::FolderAndSubfolders) => format!("{folder} and subfolders"),
+        (Locale::En, SearchFolderScope::FolderOnly) => format!("{folder} only"),
+        (Locale::Ja, SearchFolderScope::FolderAndSubfolders) => {
+            format!("{folder} とサブフォルダー")
+        }
+        (Locale::Ja, SearchFolderScope::FolderOnly) => format!("{folder} のみ"),
     }
 }

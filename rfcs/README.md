@@ -45,7 +45,6 @@ Withdrawn/Superseded). Each RFC's `Status` field mirrors its folder.
 | 033 | [Component Primitive Migration](done/033-component-primitive-migration.md) | v0.12.0 |
 | 034 | [Accessibility Conformance (WCAG 2.1 AA)](done/034-accessibility-conformance.md) | v0.13.0 |
 | 035 | [Inclusive Design](done/035-inclusive-design.md) | v0.14.0 |
-
 | 036 | [Resource-Aware Indexing Scheduler and Backpressure](done/036-resource-aware-indexing-scheduler-and-backpressure.md) | v0.17.0 |
 | 037 | [Source Lifecycle, Refresh Policy, and Change Detection UX](done/037-source-lifecycle-refresh-policy-and-change-detection-ux.md) | v0.18.0 |
 | 038 | [Result Freshness, Trust Badges, and Recovery Actions](done/038-result-freshness-trust-badges-and-recovery-actions.md) | v0.18.0 |
@@ -54,25 +53,16 @@ Withdrawn/Superseded). Each RFC's `Status` field mirrors its folder.
 | 041 | [Search, Narrow Results, and Browse Around](done/041-search-narrow-and-browse-around.md) | v0.18.0 |
 | 043 | [Model Download Readiness and Bounded Concurrency](done/043-model-download-readiness-and-concurrency.md) | v0.19.0 |
 | 044 | [orbok-extract Production Hardening](done/044-orbok-extract-production-hardening.md) | v0.16.0 |
+| 045 | [Search-in-Folder Flow and Friendly Folder Management](done/045-search-in-folder-flow-and-friendly-folder-management.md) | v0.20.0 |
 
 ## Proposed
 
-Two parallel programs are under review. **Numbering is creation order, not
-dependency order** (RFC-000): the 041–045 search/foundation RFCs are referenced
-by the 036–040 stabilization RFCs even though they carry higher numbers, so the
-foundation track is listed first for readability.
-
-### Foundation & Search UX (041–045)
+One RFC from the Foundation & Search-UX program remains under review.
+**Numbering is creation order, not dependency order** (RFC-000).
 
 | ID | Title | Notes |
 |---|---|---|
 | 042 | [Search History and Reopen Recent Searches](proposed/042-search-history-and-reopen.md) | Recent searches, no result tabs. Reuses `search_queries`; privacy defers to 039. |
-| 045 | [Search-in-Folder Flow and Friendly Folder Management](proposed/045-search-in-folder-flow-and-friendly-folder-management.md) | Search-first folder picker, remembered/recent folders, drag-and-drop. Extends 041; refs 036/037/038/039. |
-
-### Stabilization (037–040)
-
-| ID | Title | Notes |
-|---|---|---|
 
 Developer handoffs for 032–045 live in [`handoffs/`](handoffs/).
 

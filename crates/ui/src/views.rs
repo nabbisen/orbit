@@ -13,15 +13,74 @@ pub use wizard::wizard_view;
 use crate::components::{self, health_cell, job_progress, result_card, source_card};
 use crate::i18n::{
     Locale, MessageKey, files_indexed, fmt_gib, fmt_mib_bucket, fmt_query, fmt_storage_row,
-    search_result_count, source_summary, tr,
+    search_location_chip, search_result_count, source_summary, tr,
 };
-use crate::state::{AppState, Message};
+use crate::state::{AppState, Message, SearchFolderScope};
 use crate::theme::{self, TextScale, Theme};
 use iced::widget::{button, column, container, row, text, text_input};
 use iced::{Element, Length, Padding};
 use orbok_models::SearchCapability;
 use snora::design::Tokens;
+use snora::design::style::color::to_iced_color;
 use snora::lucide;
+
+// ── Search location row ───────────────────────────────────────────────────
+
+/// "Search in: [Folder and subfolders ×] [Change]" row (RFC-045 §7.3, §11).
+///
+/// When no folder is selected, renders a passive prompt ("Choose a folder").
+/// When a folder is selected, renders a removable chip with a scope selector.
+/// The scope toggle is shown only when a folder is selected (progressive
+/// disclosure — RFC §2.3 / "less is more").
+fn search_location_row<'a>(state: &'a AppState) -> Element<'a, Message> {
+    let locale = state.locale;
+    let tokens = &state.tokens;
+    let sc = state.text_scale;
+
+    match &state.search_location.selected {
+        None => {
+            // First-run / no-folder state: passive one-line prompt (RFC-045 §7.1).
+            row![
+                text(tr(locale, MessageKey::SearchInLabel)).size(theme::meta_s(tokens, sc)),
+                text(tr(locale, MessageKey::SearchChooseFolder))
+                    .size(theme::meta_s(tokens, sc))
+                    .color(to_iced_color(tokens.palette.text_secondary)),
+            ]
+            .spacing(tokens.spacing.xs)
+            .into()
+        }
+        Some(location) => {
+            let scope = location.scope();
+            let chip_label = search_location_chip(locale, location.display_name(), scope);
+
+            // Scope toggle: "and subfolders" / "only" (RFC-045 §11.2).
+            let (other_scope, other_label_key) = match scope {
+                SearchFolderScope::FolderAndSubfolders => {
+                    (SearchFolderScope::FolderOnly, MessageKey::SearchScopeOnly)
+                }
+                SearchFolderScope::FolderOnly => (
+                    SearchFolderScope::FolderAndSubfolders,
+                    MessageKey::SearchScopeSubfolders,
+                ),
+            };
+
+            row![
+                text(tr(locale, MessageKey::SearchInLabel)).size(theme::meta_s(tokens, sc)),
+                // Folder chip with ✕ remove — keyboard removable (RFC-045 §20).
+                button(text(format!("{chip_label}  ✕")).size(theme::meta_s(tokens, sc)))
+                    .on_press(Message::SearchLocationCleared),
+                // Scope toggle button.
+                button(
+                    text(format!("↕ {}", tr(locale, other_label_key)))
+                        .size(theme::meta_s(tokens, sc)),
+                )
+                .on_press(Message::SearchScopeChanged(other_scope)),
+            ]
+            .spacing(tokens.spacing.xs)
+            .into()
+        }
+    }
+}
 
 fn friendly_notice<'a>(
     tokens: &'a Tokens,
@@ -80,7 +139,30 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
     let mut content = column![
         heading(tokens, sc, tr(locale, MessageKey::NavSearch)),
         row![container(input).width(Length::Fill), submit].spacing(tokens.spacing.sm),
+        // RFC-045: "Search in" location row.
+        search_location_row(state),
     ];
+
+    // RFC-045 §7.4: recent / remembered folder quick-select chips.
+    // Shown only when there are remembered folders and no folder is already
+    // selected (they disappear once a choice is made — progressive disclosure).
+    if !state.search_location.recent_locations.is_empty()
+        && state.search_location.selected.is_none()
+    {
+        let mut chips = row![
+            text(tr(locale, MessageKey::SearchRecentFoldersLabel))
+                .size(theme::meta_s(tokens, sc))
+                .color(to_iced_color(tokens.palette.text_secondary)),
+        ]
+        .spacing(tokens.spacing.xs);
+        for summary in &state.search_location.recent_locations {
+            chips = chips.push(
+                button(text(&summary.display_name).size(theme::meta_s(tokens, sc)))
+                    .on_press(Message::RecentFolderSelected(summary.source_id.clone())),
+            );
+        }
+        content = content.push(chips);
+    }
 
     if let Some(notice) = &state.notice {
         content = content.push(friendly_notice(tokens, locale, notice));

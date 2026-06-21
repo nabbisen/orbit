@@ -8,7 +8,7 @@ pub fn message(key: MessageKey) -> &'static str {
         AppTitle => "orbok",
         LocalOnlyBadge => "ローカル専用",
         NavSearch => "検索",
-        NavSources => "ソース",
+        NavSources => "フォルダー",
         NavIndexing => "準備",
         NavStorage => "ストレージ",
         NavModels => "モデル",
@@ -26,8 +26,8 @@ pub fn message(key: MessageKey) -> &'static str {
         SearchKeywordOnlyNotice => {
             "セマンティック検索は利用できません。キーワード検索は使用できます。"
         }
-        SourcesTitle => "ソース",
-        SourcesEmptyTitle => "ソースが登録されていません",
+        SourcesTitle => "フォルダー",
+        SourcesEmptyTitle => "フォルダーが追加されていません",
         SourcesEmptyBody => {
             "orbok に検索を許可するフォルダーまたはファイルを追加してください。\
              orbok がコンピューター全体を自動的にスキャンすることはありません。"
@@ -285,5 +285,11 @@ pub fn message(key: MessageKey) -> &'static str {
         DiagnosticsCreateFailed => {
             "サポートファイルを作成できませんでした。別の場所を選ぶか、もう一度お試しください。"
         }
+        // RFC-045: search-in-folder flow
+        SearchInLabel => "検索場所",
+        SearchChooseFolder => "フォルダーを選択",
+        SearchScopeOnly => "このフォルダーのみ",
+        SearchScopeSubfolders => "このフォルダーとサブフォルダー",
+        SearchRecentFoldersLabel => "最近のフォルダー",
     }
 }

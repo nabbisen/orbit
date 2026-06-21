@@ -8,7 +8,7 @@ pub fn message(key: MessageKey) -> &'static str {
         AppTitle => "orbok",
         LocalOnlyBadge => "Local Only",
         NavSearch => "Search",
-        NavSources => "Sources",
+        NavSources => "Folders",
         NavIndexing => "Preparing",
         NavStorage => "Storage",
         NavModels => "Models",
@@ -21,8 +21,8 @@ pub fn message(key: MessageKey) -> &'static str {
         SearchAddSource => "Add Source",
         SearchNoResults => "No results found",
         SearchKeywordOnlyNotice => "Search by meaning is not set up yet. Basic search still works.",
-        SourcesTitle => "Sources",
-        SourcesEmptyTitle => "No sources added",
+        SourcesTitle => "Folders",
+        SourcesEmptyTitle => "No folders added",
         SourcesEmptyBody => {
             "Add folders or files that orbok is allowed to search. \
              orbok will not scan your entire computer automatically."
@@ -281,5 +281,11 @@ pub fn message(key: MessageKey) -> &'static str {
         DiagnosticsCreateFailed => {
             "Support file was not created. Please choose another location or try again."
         }
+        // RFC-045: search-in-folder flow
+        SearchInLabel => "Search in",
+        SearchChooseFolder => "Choose a folder",
+        SearchScopeOnly => "This folder only",
+        SearchScopeSubfolders => "This folder and subfolders",
+        SearchRecentFoldersLabel => "Recent folders",
     }
 }

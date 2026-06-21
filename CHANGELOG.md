@@ -11,6 +11,84 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.20.0] — 2026-06-21 — Search-in-Folder Flow and Friendly Folder Management (RFC-045)
+
+### Added
+
+**RFC-045: Search-in-Folder Flow and Friendly Folder Management.**
+
+- `crates/ui/src/state/location.rs` — new module with:
+  - `SearchFolderScope` (`FolderAndSubfolders` default / `FolderOnly`) with
+    `includes_subfolders` helper; scope is a search-time restriction that never
+    changes folder identity (RFC-045 §6.3).
+  - `SearchLocation::Remembered { source_id, display_name, scope }` — P0
+    variant; always backed by a remembered source record (RFC-045 §6.1, §13).
+    `with_scope` returns a modified copy preserving folder identity.
+    `source_id()` returns `Option<&SourceId>` so a future `Transient` variant
+    (P1) can return `None` without a signature change.
+  - `SearchLocationSummary` — compact entry for recent-folder chips (display
+    name + source id).
+  - `SearchLocationState { selected, recent_locations, picker_in_progress }` —
+    defaults to no selection; `clear()` drops the location without touching the
+    query; `set_scope()` applies the scope-change-in-place pattern.
+  - All types are plain data (no iced imports), mirroring the `search` sibling.
+- `AppState::search_location: SearchLocationState` — new field, default empty.
+- `Message` variants (RFC-045 §17): `ChooseFolderRequested`,
+  `FolderPickerCancelled`, `FolderPicked(PathBuf)`,
+  `SearchLocationSelected(SearchLocation)`, `SearchLocationCleared`,
+  `SearchScopeChanged(SearchFolderScope)`, `RecentFolderSelected(SourceId)`.
+- `AppState::update` handles all seven variants: picker guard, neutral cancel,
+  location commit + auto-search resume on `SearchLocationSelected`, chip clear,
+  scope toggle, recent-chip promotion.
+- `i18n::search_location_chip(locale, folder, scope)` — parameterized function
+  producing "Documents and subfolders" / "Documents only" (En) and
+  "Documents とサブフォルダー" / "Documents のみ" (Ja) — never the word
+  "source" or "recursive" (RFC-045 §19.4).
+- 5 new `MessageKey` variants (en + ja): `SearchInLabel`, `SearchChooseFolder`,
+  `SearchScopeOnly`, `SearchScopeSubfolders`, `SearchRecentFoldersLabel`.
+- `search_location_row` helper in `views.rs` renders the "Search in:" row:
+  - No-selection state: passive `SearchInLabel / SearchChooseFolder` prompt.
+  - Selected state: removable chip (`SearchLocationCleared`) + scope toggle
+    (`SearchScopeChanged`) — progressive disclosure, no control shown until a
+    folder is chosen.
+- Recent-folder quick-select chip row below the location row: shown only when
+  remembered folders exist and no location is selected (disappears on selection).
+- `bootstrap::find_source_by_canonical_path` — reuse an existing source record
+  rather than create a duplicate when the chosen folder path already exists in
+  the catalog (RFC-045 §19.3).
+- `orbok-app` `SubmitSearch` gate: if no location is selected, opens the OS
+  folder picker via `rfd::AsyncFileDialog` as a non-blocking `iced::Task`
+  (RFC-045 §19.0 — picker never called from view rendering). On picker return:
+  reuse-or-create source → `SearchLocationSelected` → kick background scan →
+  resume pending search (RFC-045 §8.1 "as soon as possible").
+- 11 new tests in `tests/rfc045_location.rs` validating: default state (no
+  selection, no recents), default scope (`FolderAndSubfolders`), chip labels in
+  both locales, forbidden vocabulary ("source"/"recursive" absent from labels),
+  scope-change preserves folder identity, clear preserves query text, recent
+  summary fields.
+
+### Changed
+
+- Navigation and Sources view: "Sources" / "ソース" renamed to
+  "Folders" / "フォルダー" (`NavSources`, `SourcesTitle`,
+  `SourcesEmptyTitle`) — friendly user-facing copy throughout (RFC-045 §12,
+  §19.4).
+- `SubmitSearch` in `orbok-app` now gates on `search_location.has_selected()`
+  before running the query; triggers the folder picker on first search when no
+  location is set.
+
+### Documentation
+
+- `rfcs/done/045-…` — RFC-045 status updated to Implemented (v0.20.0); moved
+  from `proposed/` to `done/`.
+- `rfcs/README.md`, `rfcs/handoffs/README.md`, `ROADMAP.md` — RFC-045 reflected
+  as shipped; RFC-042 remains the sole proposed RFC.
+- Doc-sync (v0.19.0 carry-in, no code change): `ROADMAP.md` current-status
+  section, `rfcs/README.md` contiguous Implemented table, `rfcs/handoffs/README.md`
+  program-status labels — all updated to reflect the true v0.19.0 shipped state.
+
+---
+
 ## [0.19.0] — 2026-06-21 — Phase 3: Model Readiness, Privacy Modes, Safe Diagnostics (RFC-043, RFC-039, RFC-040)
 
 ### Added

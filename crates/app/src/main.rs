@@ -185,6 +185,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Message::SubmitSearch => {
                     let query = app.state.query.trim().to_string();
                     if !query.is_empty() {
+                        // RFC-045: if no search location is selected, open the
+                        // folder picker first and store the pending query.
+                        if !app.state.search_location.has_selected() {
+                            app.update(Message::ChooseFolderRequested);
+                            // The actual rfd call is an async Task so it does
+                            // not block the iced event loop (RFC-045 §19.0).
+                            return iced::Task::perform(
+                                async {
+                                    rfd::AsyncFileDialog::new()
+                                        .set_title("Choose folder to search")
+                                        .pick_folder()
+                                        .await
+                                        .map(|h| h.path().to_path_buf())
+                                },
+                                |result| match result {
+                                    Some(path) => Message::FolderPicked(path),
+                                    None => Message::FolderPickerCancelled,
+                                },
+                            );
+                        }
                         if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
                             match bootstrap::run_search(&catalog, &query, 20) {
                                 Ok(results) => {
@@ -200,6 +220,73 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                             }
                         }
                     }
+                }
+                // RFC-045: folder picked — create or reuse the remembered folder.
+                Message::FolderPicked(path) => {
+                    let path_str = path.to_string_lossy().to_string();
+                    if let Ok(catalog) = orbok_db::Catalog::open(&catalog_path) {
+                        // Reuse an existing source if the canonical path already
+                        // exists — never create duplicates (RFC-045 §19.3).
+                        let card = if let Some(existing) =
+                            bootstrap::find_source_by_canonical_path(&catalog, &path_str)
+                        {
+                            existing
+                        } else {
+                            match bootstrap::add_source(&catalog, &path_str) {
+                                Ok((card, sensitive)) => {
+                                    if let Some(warning) = sensitive {
+                                        tracing::warn!("sensitive source: {warning}");
+                                        app.update(Message::ShowNotice(
+                                            orbok_ui::notice::UserNotice::SensitiveSourceAdded,
+                                        ));
+                                    }
+                                    app.update(Message::SourceAdded(card.clone()));
+                                    card
+                                }
+                                Err(e) => {
+                                    tracing::error!("add source from search failed: {e}");
+                                    app.update(Message::FolderPickerCancelled);
+                                    app.update(Message::ShowNotice(
+                                        orbok_ui::notice::UserNotice::FolderCouldNotBeAdded,
+                                    ));
+                                    return iced::Task::none();
+                                }
+                            }
+                        };
+
+                        let source_id = orbok_core::SourceId::from_string(card.source_id.clone());
+                        let display_name = card.display_name.clone();
+
+                        // Promote to selected search location and run the
+                        // pending search — RFC-045 §8.1 "run search as soon
+                        // as possible".
+                        app.update(Message::SearchLocationSelected(
+                            orbok_ui::SearchLocation::remembered(source_id.clone(), display_name),
+                        ));
+
+                        // Begin background preparation and immediately search
+                        // whatever is already indexed (RFC-045 §14, §8.1).
+                        let cache = orbok_cache::CacheService::new(&data_dir);
+                        match bootstrap::scan_and_index_source(&catalog, &cache, source_id.as_str())
+                        {
+                            Ok(health) => app.update(Message::ScanCompleted(health)),
+                            Err(e) => tracing::warn!("initial scan failed: {e}"),
+                        }
+
+                        // Resume the search that triggered the picker.
+                        let query = app.state.last_query.clone().unwrap_or_default();
+                        if !query.is_empty() {
+                            match bootstrap::run_search(&catalog, &query, 20) {
+                                Ok(results) => {
+                                    app.update(Message::SearchResultsReady(results));
+                                }
+                                Err(e) => {
+                                    app.update(Message::SearchError(e.to_string()));
+                                }
+                            }
+                        }
+                    }
+                    return iced::Task::none();
                 }
                 _ => {}
             }

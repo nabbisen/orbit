@@ -395,6 +395,46 @@ pub fn remove_source(
     Ok(())
 }
 
+/// Find an existing source whose canonical path matches `canonical_path`.
+///
+/// Used by the RFC-045 search-in-folder flow to reuse a remembered folder
+/// rather than creating a duplicate source record (RFC-045 §6.1, §19.3).
+/// Returns `None` when no matching source is found.
+pub fn find_source_by_canonical_path(
+    catalog: &Catalog,
+    canonical_path: &str,
+) -> Option<orbok_ui::state::SourceCard> {
+    use orbok_core::FileStatus;
+    use orbok_db::repo::{FileRepository, SourceRepository};
+    SourceRepository::new(catalog)
+        .list()
+        .unwrap_or_default()
+        .into_iter()
+        .find(|src| src.canonical_path == canonical_path)
+        .map(|src| {
+            let files = FileRepository::new(catalog);
+            let indexed = files
+                .count_for_source_with_status(&src.source_id, FileStatus::Indexed)
+                .unwrap_or(0);
+            let stale = files
+                .count_for_source_with_status(&src.source_id, FileStatus::Stale)
+                .unwrap_or(0);
+            let failed = files
+                .count_for_source_with_status(&src.source_id, FileStatus::Failed)
+                .unwrap_or(0);
+            let display_name = src.display_name.unwrap_or_else(|| "folder".to_string());
+            orbok_ui::state::SourceCard {
+                display_name,
+                display_path: src.canonical_path,
+                indexed,
+                stale,
+                failed,
+                active: true,
+                source_id: src.source_id.as_str().to_string(),
+            }
+        })
+}
+
 // ── Startup population ─────────────────────────────────────────────────
 
 /// Query index health from the catalog for the sidebar summary.

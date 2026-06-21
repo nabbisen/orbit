@@ -2,43 +2,25 @@
 
 ## Current Status (2026-06-21)
 
-Shipped: **v0.14.0**. RFCs **000–035 implemented** (see [`rfcs/README.md`](rfcs/README.md)).
-The design-system program (RFC-032–035: design tokens, component primitives,
-WCAG 2.1 AA accessibility, inclusive design) completed across v0.12.0–v0.14.0.
+Shipped: **v0.19.0**. RFCs **000–041, 043, 044 implemented** (see
+[`rfcs/README.md`](rfcs/README.md)). The design-system program (RFC-032–035:
+design tokens, component primitives, WCAG 2.1 AA accessibility, inclusive
+design) completed across v0.12.0–v0.14.0; the stabilization and
+search-foundation programs landed across v0.16.0–v0.19.0:
+
+- v0.16.0 — RFC-044 (orbok-extract production hardening).
+- v0.17.0 — RFC-036 (resource-aware scheduler and backpressure).
+- v0.18.0 — RFC-041 (search / narrow / browse), RFC-037 (source lifecycle), RFC-038 (result trust).
+- v0.19.0 — RFC-043 (model download readiness), RFC-039 (privacy modes), RFC-040 (safe diagnostics).
+- v0.20.0 — RFC-045 (search-in-folder flow and friendly folder management).
+
 Stack: snora 0.25 / iced 0.14, localcache 0.20.0 + rusqlite 0.40.
 
-## Forward Plan — Proposed Programs (RFC-036–045)
+## Forward Plan — Remaining Proposed RFC (042)
 
-Ten RFCs are under review in `rfcs/proposed/`, in two tracks. Numbering is
-creation order, not dependency order (RFC-000): 036–040 reference 041–045.
+One RFC remains under review in `rfcs/proposed/`.
 
-**Foundation & Search UX (041–045)**
-
-- 041 Search, Narrow Results, Browse Around — progressive narrowing + browse-around; extends RFC-013.
-- 042 Search History and Reopen Recent Searches — recent searches; privacy via 039.
-- 043 Model Download Readiness and Bounded Concurrency — readiness/atomic/backoff; refs 012/029.
-- 044 orbok-extract Production Hardening — resource limits, panic isolation, warnings; refs 005/028.
-- 045 Search-in-Folder Flow and Friendly Folder Management — search-first folder picker; accepted; extends 041.
-
-**Stabilization (036–040)**
-
-- 036 Resource-Aware Indexing Scheduler and Backpressure.
-- 037 Source Lifecycle, Refresh Policy, and Change Detection UX.
-- 038 Result Freshness, Trust Badges, and Recovery Actions.
-- 039 Privacy Modes and Local Data Visibility.
-- 040 Safe Diagnostics and Redacted Support Bundle.
-
-### Recommended implementation order
-
-Dependency-ordered into phases (each phase is a candidate release boundary):
-
-1. **Robustness core** — 044 (extract hardening) → 036 (scheduler/backpressure).
-2. **Search foundation** — 041 (search/narrow/browse) → 037 (source refresh) → 038 (result trust).
-3. **Setup & privacy** — 043 (model download readiness) → 039 (privacy modes) → 040 (diagnostics).
-4. **Search UX completion** — 045 (search-in-folder) → 042 (search history).
-
-Exact prerequisites are in each RFC's *Related RFCs* line. 045 is already
-accepted (self-reviewed) and is ready to implement once 041 lands.
+- 042 Search History and Reopen Recent Searches — recent searches; reuses `search_queries`; privacy defers to RFC-039. **Next implementation target.**
 
 ### v1.0.0 gate (unchanged — awaiting owner confirmation)
 
