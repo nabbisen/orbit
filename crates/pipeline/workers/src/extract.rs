@@ -4,10 +4,10 @@
 
 use orbok_cache::{CacheService, EngineOptions, OrbokCacheNamespace};
 use orbok_core::ExtractionId;
-use orbok_core::{ErrorCategory, FileId, JobType, OrbokError, OrbokResult, now_iso8601};
+use orbok_core::{FileId, JobType, OrbokError, OrbokResult, now_iso8601};
 use orbok_db::Catalog;
 use orbok_db::repo::{FileRepository, IndexJobRepository, SourceRepository};
-use orbok_extract::{ExtractOutput, ExtractorRegistry};
+use orbok_extract::{ExtractContext, ExtractOutput, ExtractorRegistry};
 use orbok_fs::{GuardedSource, PathGuard};
 use std::path::Path;
 
@@ -58,14 +58,10 @@ impl<'a> ExtractionWorker<'a> {
             return Ok(());
         }
 
-        // Run extractor.
+        // Run extractor with panic isolation and resource limits (RFC-044).
         let output = self
             .registry
-            .extract(&validated)
-            .map_err(|e| OrbokError::Extraction {
-                category: ErrorCategory::ParserError,
-                message: e.to_string(),
-            })?;
+            .extract_safely(&validated, &ExtractContext::default())?;
 
         // Cache the output (Appendix A §9.1).
         CacheService::put(&engine, &validated, &output)?;

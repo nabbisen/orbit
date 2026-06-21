@@ -36,8 +36,10 @@ fn parameterized_messages_localize() {
 
     // source_summary
     let s = source_summary(Locale::En, 10, 2, 1);
-    assert!(s.contains("10") || s.contains("2") || s.contains("1"),
-        "source_summary should include counts: {s}");
+    assert!(
+        s.contains("10") || s.contains("2") || s.contains("1"),
+        "source_summary should include counts: {s}"
+    );
 }
 
 // RFC-031 §3: locale persistence round-trip.
@@ -52,7 +54,9 @@ fn locale_setting_round_trip() {
 #[test]
 fn locale_from_env_detects_japanese() {
     let prev = std::env::var("LANG").ok();
-    unsafe { std::env::set_var("LANG", "ja_JP.UTF-8"); }
+    unsafe {
+        std::env::set_var("LANG", "ja_JP.UTF-8");
+    }
     let detected = Locale::from_env();
     unsafe {
         match prev {

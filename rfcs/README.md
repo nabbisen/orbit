@@ -1,6 +1,6 @@
 # orbok RFC Index
 
-Managed by RFC-000. Last updated: 2026-06-21.
+Managed by RFC-000. Last updated: 2026-06-21 (v0.16.0).
 
 The folder an RFC lives in is the source of truth for its state
 (`done/` = Implemented, `proposed/` = under review, `archive/` =
@@ -46,6 +46,8 @@ Withdrawn/Superseded). Each RFC's `Status` field mirrors its folder.
 | 034 | [Accessibility Conformance (WCAG 2.1 AA)](done/034-accessibility-conformance.md) | v0.13.0 |
 | 035 | [Inclusive Design](done/035-inclusive-design.md) | v0.14.0 |
 
+| 044 | [orbok-extract Production Hardening](done/044-orbok-extract-production-hardening.md) | v0.16.0 |
+
 ## Proposed
 
 Two parallel programs are under review. **Numbering is creation order, not
@@ -60,7 +62,6 @@ foundation track is listed first for readability.
 | 041 | [Search, Narrow Results, and Browse Around](proposed/041-search-narrow-and-browse-around.md) | Progressive narrow-after-results + browse-around (nearby/similar). Extends RFC-013. |
 | 042 | [Search History and Reopen Recent Searches](proposed/042-search-history-and-reopen.md) | Recent searches, no result tabs. Reuses `search_queries`; privacy defers to 039. |
 | 043 | [Model Download Readiness and Bounded Concurrency](proposed/043-model-download-readiness-and-concurrency.md) | Readiness check, atomic/partial-file safety, `max_concurrent=2`, backoff. Refs 012/029/021. |
-| 044 | [orbok-extract Production Hardening](proposed/044-orbok-extract-production-hardening.md) | Resource limits, panic isolation, structured warnings, boundary cleanup. Refs 005/028. |
 | 045 | [Search-in-Folder Flow and Friendly Folder Management](proposed/045-search-in-folder-flow-and-friendly-folder-management.md) | Search-first folder picker, remembered/recent folders, drag-and-drop. Extends 041; refs 036/037/038/039. |
 
 ### Stabilization (036–040)

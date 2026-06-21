@@ -2,25 +2,25 @@
 
 use crate::components::{badge_tone, status_badge, tone_icon};
 use crate::state::Message;
-use snora::design::{Tone, Tokens};
+use snora::design::{Tokens, Tone};
 
 // RFC-033 §5.2: the badge_tone mapping is stable — shared by UI and RFC-035 CVD fixture.
 #[test]
 fn badge_tone_mapping() {
     let cases: &[(&str, Tone)] = &[
         ("missing source", Tone::Danger),
-        ("Missing",        Tone::Danger),
-        ("stale",          Tone::Warning),
-        ("Stale index",    Tone::Warning),
-        ("semantic",       Tone::Accent),
-        ("Reranked",       Tone::Accent),
-        ("keyword",        Tone::Info),
-        ("Keyword match",  Tone::Info),
-        ("current",        Tone::Success),
-        ("Current",        Tone::Success),
-        ("temporary",      Tone::Neutral),
-        ("unknown badge",  Tone::Neutral),
-        ("",               Tone::Neutral),
+        ("Missing", Tone::Danger),
+        ("stale", Tone::Warning),
+        ("Stale index", Tone::Warning),
+        ("semantic", Tone::Accent),
+        ("Reranked", Tone::Accent),
+        ("keyword", Tone::Info),
+        ("Keyword match", Tone::Info),
+        ("current", Tone::Success),
+        ("Current", Tone::Success),
+        ("temporary", Tone::Neutral),
+        ("unknown badge", Tone::Neutral),
+        ("", Tone::Neutral),
     ];
     for (label, expected) in cases {
         assert_eq!(badge_tone(label), *expected, "badge_tone({label:?})");
@@ -32,13 +32,28 @@ fn badge_tone_mapping() {
 #[test]
 fn status_badge_label_and_icon_invariant() {
     for tone in [
-        Tone::Success, Tone::Warning, Tone::Danger,
-        Tone::Info, Tone::Accent, Tone::Neutral,
+        Tone::Success,
+        Tone::Warning,
+        Tone::Danger,
+        Tone::Info,
+        Tone::Accent,
+        Tone::Neutral,
     ] {
-        assert_ne!(tone_icon(tone) as u32, 0, "tone_icon for {tone:?} must be non-null");
+        assert_ne!(
+            tone_icon(tone) as u32,
+            0,
+            "tone_icon for {tone:?} must be non-null"
+        );
     }
     let tokens = Tokens::light();
-    for label in ["stale", "missing", "keyword", "semantic", "current", "temporary"] {
+    for label in [
+        "stale",
+        "missing",
+        "keyword",
+        "semantic",
+        "current",
+        "temporary",
+    ] {
         let _ = status_badge(&tokens, label, badge_tone(label));
     }
 }
@@ -55,7 +70,8 @@ fn component_smoke_result_card() {
         "Section heading".to_string(),
         "A short snippet of content…".to_string(),
         &["stale".to_string(), "keyword".to_string()],
-        false, false,
+        false,
+        false,
         Message::SelectResult(0),
     );
     // Selected card with no heading and empty badges.
@@ -65,7 +81,9 @@ fn component_smoke_result_card() {
         "/docs/selected.pdf".to_string(),
         String::new(),
         "(source unavailable)".to_string(),
-        &[], false, true,
+        &[],
+        false,
+        true,
         Message::SelectResult(1),
     );
 }

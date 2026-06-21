@@ -1,22 +1,19 @@
-//! Adaptive chunker (RFC-006 §7–§9).
+//! Adaptive chunker (RFC-006 §7–§9; RFC-044 §14 boundary cleanup).
 //!
 //! Strategy (RFC-006 §22 decision):
-//! - **Document chunk** (parent, ordinal 0): the whole document, title
-//!   = filename, section spans the full file. Used for passage-level
-//!   reranking context.
-//! - **Section chunks** (children): for Markdown, one child per heading
-//!   section; for plain text, one child per paragraph group; for other
-//!   types, one child (the whole document).
-//! - **Fallback split**: paragraph groups that exceed `MAX_CHARS` are
-//!   split into overlapping windows (RFC-006 §8.3 token-window fallback).
+//! - **Document chunk** (parent, ordinal 0): whole document, used for
+//!   passage-level reranking context.
+//! - **Section chunks** (children): one per heading section (Markdown),
+//!   one per paragraph group (plain text), or one (other types).
+//! - **Fallback split**: segments exceeding `MAX_CHARS` are split into
+//!   overlapping windows (RFC-006 §8.3 token-window fallback).
 //!
-//! Location quality: Markdown and plain text produce exact line ranges;
-//! other types produce approximate (RFC-006 §16).
-//!
-//! The output is pure data — no I/O, no DB access, easily testable.
+//! The output is [`ExtractedChunk`] — a DB-free type. The pipeline
+//! layer (`orbok-workers`) maps it to `orbok_db::repo::ChunkSpec`.
+//! This removes the `orbok-db` dependency from `orbok-extract`
+//! (RFC-044 §14.6 boundary rule).
 
-use crate::types::{ExtractOutput, SegmentKind};
-use orbok_db::repo::ChunkSpec;
+use crate::types::{ExtractOutput, ExtractedChunk, LocationKind, SegmentKind};
 
 /// Characters per fallback window (approximate token proxy).
 const MAX_CHARS: usize = 1200;
@@ -24,11 +21,11 @@ const MAX_CHARS: usize = 1200;
 const OVERLAP_CHARS: usize = 120;
 
 /// Chunk a single-file extraction result into a flat list of
-/// [`ChunkSpec`]s ready for [`ChunkRepository::insert_bundle`].
+/// [`ExtractedChunk`]s ready for the pipeline layer.
 ///
 /// Index 0 is always the document-level parent chunk.
 /// Indices 1..N are the child (leaf) chunks used for retrieval.
-pub fn chunk(output: &ExtractOutput, file_display_name: &str) -> Vec<ChunkSpec> {
+pub fn chunk(output: &ExtractOutput, file_display_name: &str) -> Vec<ExtractedChunk> {
     if output.segments.is_empty() {
         return vec![empty_document_chunk(file_display_name)];
     }
@@ -40,9 +37,12 @@ pub fn chunk(output: &ExtractOutput, file_display_name: &str) -> Vec<ChunkSpec> 
         .join("\n");
     let first_line = output.segments.first().map(|s| s.line_start).unwrap_or(1);
     let last_line = output.segments.last().map(|s| s.line_end).unwrap_or(1);
+    let doc_location_kind = output
+        .segments
+        .first()
+        .map(|s| s.location_kind)
+        .unwrap_or(LocationKind::Unknown);
 
-    // Parent chunk (ordinal 0).
-    let parent_title = file_display_name.to_string();
     let parent_heading = output.segments.iter().find_map(|s| {
         if s.kind == SegmentKind::Heading {
             Some(s.text.trim().to_string())
@@ -50,12 +50,14 @@ pub fn chunk(output: &ExtractOutput, file_display_name: &str) -> Vec<ChunkSpec> 
             None
         }
     });
-    let parent = ChunkSpec {
+
+    let parent = ExtractedChunk {
         chunk_kind: "document",
         chunk_ordinal: 0,
         heading_path: parent_heading,
-        title: Some(parent_title),
+        title: Some(file_display_name.to_string()),
         normalized_text: all_text,
+        location_kind: doc_location_kind,
         line_start: first_line,
         line_end: last_line,
         byte_start: None,
@@ -64,29 +66,28 @@ pub fn chunk(output: &ExtractOutput, file_display_name: &str) -> Vec<ChunkSpec> 
         parent_idx: None,
     };
 
-    let mut specs = vec![parent];
+    let mut chunks = vec![parent];
 
-    // Child chunks: strategy by content.
     let has_markdown_structure = output
         .segments
         .iter()
         .any(|s| s.kind == SegmentKind::Heading);
 
     if has_markdown_structure {
-        append_markdown_sections(output, &mut specs);
+        append_markdown_sections(output, &mut chunks);
     } else {
-        append_paragraph_chunks(output, &mut specs);
+        append_paragraph_chunks(output, &mut chunks);
     }
 
     // Assign sequential ordinals (parent is 0, children start at 1).
-    for (i, spec) in specs.iter_mut().enumerate() {
-        spec.chunk_ordinal = i as u32;
+    for (i, chunk) in chunks.iter_mut().enumerate() {
+        chunk.chunk_ordinal = i as u32;
     }
-    specs
+    chunks
 }
 
 /// One child chunk per heading section in a Markdown document.
-fn append_markdown_sections(output: &ExtractOutput, specs: &mut Vec<ChunkSpec>) {
+fn append_markdown_sections(output: &ExtractOutput, chunks: &mut Vec<ExtractedChunk>) {
     struct Section {
         heading: String,
         heading_path: String,
@@ -116,7 +117,6 @@ fn append_markdown_sections(output: &ExtractOutput, specs: &mut Vec<ChunkSpec>) 
         } else if let Some(section) = sections.last_mut() {
             section.segments.push(i);
         } else {
-            // Content before the first heading.
             sections.push(Section {
                 heading: current_heading.clone(),
                 heading_path: String::new(),
@@ -140,22 +140,23 @@ fn append_markdown_sections(output: &ExtractOutput, specs: &mut Vec<ChunkSpec>) 
         if text.trim().is_empty() {
             continue;
         }
-        // Long sections get split further via the fallback mechanism.
         if text.len() > MAX_CHARS {
             append_text_windows(
                 &text,
                 first.line_start,
                 last.line_end,
+                first.location_kind,
                 Some(section.heading_path.clone()),
-                specs,
+                chunks,
             );
         } else {
-            specs.push(ChunkSpec {
+            chunks.push(ExtractedChunk {
                 chunk_kind: "section",
                 chunk_ordinal: 0,
                 heading_path: Some(section.heading_path),
                 title: Some(section.heading),
                 normalized_text: text,
+                location_kind: first.location_kind,
                 line_start: first.line_start,
                 line_end: last.line_end,
                 byte_start: None,
@@ -168,26 +169,32 @@ fn append_markdown_sections(output: &ExtractOutput, specs: &mut Vec<ChunkSpec>) 
 }
 
 /// One child chunk per paragraph (or paragraph group within limit).
-fn append_paragraph_chunks(output: &ExtractOutput, specs: &mut Vec<ChunkSpec>) {
+fn append_paragraph_chunks(output: &ExtractOutput, chunks: &mut Vec<ExtractedChunk>) {
     let mut buf = String::new();
     let mut buf_start = 0u32;
     let mut buf_end = 0u32;
+    let mut buf_kind = LocationKind::Unknown;
 
-    let flush = |buf: &mut String, start: u32, end: u32, specs: &mut Vec<ChunkSpec>| {
+    let mut flush = |buf: &mut String,
+                     start: u32,
+                     end: u32,
+                     kind: LocationKind,
+                     chunks: &mut Vec<ExtractedChunk>| {
         let text = buf.trim().to_string();
         if text.is_empty() {
             buf.clear();
             return;
         }
         if text.len() > MAX_CHARS {
-            append_text_windows(&text, start, end, None, specs);
+            append_text_windows(&text, start, end, kind, None, chunks);
         } else {
-            specs.push(ChunkSpec {
+            chunks.push(ExtractedChunk {
                 chunk_kind: "paragraph",
                 chunk_ordinal: 0,
                 heading_path: None,
                 title: None,
                 normalized_text: text,
+                location_kind: kind,
                 line_start: start,
                 line_end: end,
                 byte_start: None,
@@ -202,17 +209,18 @@ fn append_paragraph_chunks(output: &ExtractOutput, specs: &mut Vec<ChunkSpec>) {
     for seg in &output.segments {
         if buf_start == 0 {
             buf_start = seg.line_start;
+            buf_kind = seg.location_kind;
         }
         buf_end = seg.line_end;
         buf.push_str(&seg.text);
         buf.push('\n');
         if buf.len() >= MAX_CHARS {
-            flush(&mut buf, buf_start, buf_end, specs);
+            flush(&mut buf, buf_start, buf_end, buf_kind, chunks);
             buf_start = seg.line_end + 1;
         }
     }
     if !buf.trim().is_empty() {
-        flush(&mut buf, buf_start, buf_end, specs);
+        flush(&mut buf, buf_start, buf_end, buf_kind, chunks);
     }
 }
 
@@ -221,27 +229,27 @@ fn append_text_windows(
     text: &str,
     line_start: u32,
     line_end: u32,
+    location_kind: LocationKind,
     heading_path: Option<String>,
-    specs: &mut Vec<ChunkSpec>,
+    chunks: &mut Vec<ExtractedChunk>,
 ) {
     let chars: Vec<char> = text.chars().collect();
     let total_lines = (line_end - line_start).max(1);
     let mut start = 0usize;
-    let mut window_idx = 0u32;
     while start < chars.len() {
         let end = (start + MAX_CHARS).min(chars.len());
         let window_text: String = chars[start..end].iter().collect();
-        // Approximate line range for this window.
         let frac_start = start as f64 / chars.len() as f64;
         let frac_end = end as f64 / chars.len() as f64;
         let wl_start = line_start + (total_lines as f64 * frac_start) as u32;
         let wl_end = line_start + (total_lines as f64 * frac_end) as u32;
-        specs.push(ChunkSpec {
+        chunks.push(ExtractedChunk {
             chunk_kind: "fallback",
             chunk_ordinal: 0,
             heading_path: heading_path.clone(),
             title: None,
             normalized_text: window_text.trim().to_string(),
+            location_kind,
             line_start: wl_start,
             line_end: wl_end,
             byte_start: None,
@@ -253,18 +261,17 @@ fn append_text_windows(
             break;
         }
         start = end.saturating_sub(OVERLAP_CHARS);
-        window_idx += 1;
-        let _ = window_idx;
     }
 }
 
-fn empty_document_chunk(name: &str) -> ChunkSpec {
-    ChunkSpec {
+fn empty_document_chunk(name: &str) -> ExtractedChunk {
+    ExtractedChunk {
         chunk_kind: "document",
         chunk_ordinal: 0,
         heading_path: None,
         title: Some(name.to_string()),
         normalized_text: String::new(),
+        location_kind: LocationKind::Unknown,
         line_start: 1,
         line_end: 1,
         byte_start: None,

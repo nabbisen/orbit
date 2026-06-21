@@ -6,7 +6,7 @@ use crate::shell::key_to_message;
 use crate::state::{AppState, Message, SearchResultDisplay, ViewId};
 use crate::theme::TextScale;
 use iced::keyboard::{Key, Modifiers, key::Named};
-use snora::design::{Tone, Tokens};
+use snora::design::{Tokens, Tone};
 
 // ── RFC-034: contrast guard ───────────────────────────────────────────────
 
@@ -15,10 +15,10 @@ use snora::design::{Tone, Tokens};
 #[test]
 fn contrast_usage_guard_all_presets() {
     let presets = [
-        ("light",                Tokens::light()),
-        ("dark",                 Tokens::dark()),
-        ("high_contrast_light",  Tokens::high_contrast_light()),
-        ("high_contrast_dark",   Tokens::high_contrast_dark()),
+        ("light", Tokens::light()),
+        ("dark", Tokens::dark()),
+        ("high_contrast_light", Tokens::high_contrast_light()),
+        ("high_contrast_dark", Tokens::high_contrast_dark()),
     ];
     let mut failures: Vec<String> = Vec::new();
     for (name, tokens) in &presets {
@@ -31,7 +31,11 @@ fn contrast_usage_guard_all_presets() {
             }
         }
     }
-    assert!(failures.is_empty(), "WCAG AA contrast failures:\n{}", failures.join("\n"));
+    assert!(
+        failures.is_empty(),
+        "WCAG AA contrast failures:\n{}",
+        failures.join("\n")
+    );
 }
 
 // ── RFC-034: keyboard map ─────────────────────────────────────────────────
@@ -41,40 +45,61 @@ fn key_map_shortcuts() {
     let ctrl = Modifiers::CTRL;
     let none = Modifiers::default();
 
-    assert!(matches!(
-        key_to_message(&Key::Character("k".into()), ctrl, false),
-        Some(Message::FocusSearch)
-    ), "Ctrl+K → FocusSearch");
+    assert!(
+        matches!(
+            key_to_message(&Key::Character("k".into()), ctrl, false),
+            Some(Message::FocusSearch)
+        ),
+        "Ctrl+K → FocusSearch"
+    );
 
-    assert!(matches!(
-        key_to_message(&Key::Character(",".into()), ctrl, false),
-        Some(Message::Switch(ViewId::Settings))
-    ), "Ctrl+, → Settings");
+    assert!(
+        matches!(
+            key_to_message(&Key::Character(",".into()), ctrl, false),
+            Some(Message::Switch(ViewId::Settings))
+        ),
+        "Ctrl+, → Settings"
+    );
 
-    assert!(matches!(
-        key_to_message(&Key::Named(Named::Escape), none, false),
-        Some(Message::DismissOverlay)
-    ), "Escape → DismissOverlay (not typing)");
+    assert!(
+        matches!(
+            key_to_message(&Key::Named(Named::Escape), none, false),
+            Some(Message::DismissOverlay)
+        ),
+        "Escape → DismissOverlay (not typing)"
+    );
 
-    assert!(matches!(
-        key_to_message(&Key::Named(Named::Escape), none, true),
-        Some(Message::DismissOverlay)
-    ), "Escape → DismissOverlay (while typing)");
+    assert!(
+        matches!(
+            key_to_message(&Key::Named(Named::Escape), none, true),
+            Some(Message::DismissOverlay)
+        ),
+        "Escape → DismissOverlay (while typing)"
+    );
 
-    assert!(matches!(
-        key_to_message(&Key::Named(Named::Enter), none, true),
-        Some(Message::SubmitSearch)
-    ), "Enter while focused → SubmitSearch");
+    assert!(
+        matches!(
+            key_to_message(&Key::Named(Named::Enter), none, true),
+            Some(Message::SubmitSearch)
+        ),
+        "Enter while focused → SubmitSearch"
+    );
 
-    assert!(matches!(
-        key_to_message(&Key::Named(Named::ArrowDown), none, false),
-        Some(Message::SelectNextResult)
-    ), "ArrowDown → SelectNextResult");
+    assert!(
+        matches!(
+            key_to_message(&Key::Named(Named::ArrowDown), none, false),
+            Some(Message::SelectNextResult)
+        ),
+        "ArrowDown → SelectNextResult"
+    );
 
-    assert!(matches!(
-        key_to_message(&Key::Named(Named::ArrowUp), none, false),
-        Some(Message::SelectPrevResult)
-    ), "ArrowUp → SelectPrevResult");
+    assert!(
+        matches!(
+            key_to_message(&Key::Named(Named::ArrowUp), none, false),
+            Some(Message::SelectPrevResult)
+        ),
+        "ArrowUp → SelectPrevResult"
+    );
 }
 
 // Printable keys and Enter while typing must not be intercepted.
@@ -82,16 +107,26 @@ fn key_map_shortcuts() {
 fn key_map_no_text_swallow() {
     let none = Modifiers::default();
 
-    assert!(key_to_message(&Key::Character("a".into()), none, true).is_none(),
-        "printable char while typing must not be intercepted");
-    assert!(key_to_message(&Key::Character("k".into()), none, true).is_none(),
-        "bare 'k' (no modifier) must not trigger FocusSearch");
-    assert!(key_to_message(&Key::Named(Named::Enter), none, false).is_none(),
-        "Enter while not focused must not submit search");
-    assert!(key_to_message(&Key::Named(Named::ArrowDown), none, true).is_none(),
-        "ArrowDown while typing must not move selection");
-    assert!(key_to_message(&Key::Named(Named::ArrowUp), none, true).is_none(),
-        "ArrowUp while typing must not move selection");
+    assert!(
+        key_to_message(&Key::Character("a".into()), none, true).is_none(),
+        "printable char while typing must not be intercepted"
+    );
+    assert!(
+        key_to_message(&Key::Character("k".into()), none, true).is_none(),
+        "bare 'k' (no modifier) must not trigger FocusSearch"
+    );
+    assert!(
+        key_to_message(&Key::Named(Named::Enter), none, false).is_none(),
+        "Enter while not focused must not submit search"
+    );
+    assert!(
+        key_to_message(&Key::Named(Named::ArrowDown), none, true).is_none(),
+        "ArrowDown while typing must not move selection"
+    );
+    assert!(
+        key_to_message(&Key::Named(Named::ArrowUp), none, true).is_none(),
+        "ArrowUp while typing must not move selection"
+    );
 }
 
 // Escape closes the active overlay.
@@ -117,10 +152,16 @@ fn result_navigation_bounds() {
 
     let make = |path: &str| SearchResultDisplay {
         display_path: path.into(),
-        title: None, heading_path: None, snippet: None,
-        keyword_rank: 1, badges: vec![],
+        title: None,
+        heading_path: None,
+        snippet: None,
+        keyword_rank: 1,
+        badges: vec![],
     };
-    state.update(&Message::SearchResultsReady(vec![make("a.md"), make("b.md")]));
+    state.update(&Message::SearchResultsReady(vec![
+        make("a.md"),
+        make("b.md"),
+    ]));
 
     state.update(&Message::SelectNextResult);
     assert_eq!(state.selected_result, Some(0));
@@ -138,11 +179,20 @@ fn result_navigation_bounds() {
 #[test]
 fn primary_action_target_size() {
     let t = Tokens::light();
-    assert!(t.spacing.md >= 10.0, "spacing.md ({}) < 10 px", t.spacing.md);
-    assert!(t.spacing.lg >= 14.0, "spacing.lg ({}) < 14 px", t.spacing.lg);
+    assert!(
+        t.spacing.md >= 10.0,
+        "spacing.md ({}) < 10 px",
+        t.spacing.md
+    );
+    assert!(
+        t.spacing.lg >= 14.0,
+        "spacing.lg ({}) < 14 px",
+        t.spacing.lg
+    );
     assert!(
         t.spacing.md * 2.0 >= 24.0,
-        "2 × spacing.md ({}) < 24 px", t.spacing.md * 2.0
+        "2 × spacing.md ({}) < 24 px",
+        t.spacing.md * 2.0
     );
 }
 
@@ -155,15 +205,20 @@ fn primary_action_target_size() {
 #[test]
 fn cvd_icon_pairs_are_distinct() {
     let tones = [
-        Tone::Success, Tone::Warning, Tone::Danger,
-        Tone::Info, Tone::Accent, Tone::Neutral,
+        Tone::Success,
+        Tone::Warning,
+        Tone::Danger,
+        Tone::Info,
+        Tone::Accent,
+        Tone::Neutral,
     ];
     let icons: Vec<char> = tones.iter().map(|&t| tone_icon(t)).collect();
 
     // All six icon glyphs must be distinct (no two tones share an icon).
     let unique: std::collections::HashSet<char> = icons.iter().copied().collect();
     assert_eq!(
-        unique.len(), tones.len(),
+        unique.len(),
+        tones.len(),
         "two or more tones share an icon glyph — CVD distinguishability broken: {icons:?}"
     );
 }
@@ -179,11 +234,11 @@ fn cvd_greyscale_status_distinguishable() {
 
     let tokens = Tokens::light();
     let tones = [
-        (Tone::Success, "Current",   tokens.palette.success),
-        (Tone::Warning, "Stale",     tokens.palette.warning),
-        (Tone::Danger,  "Missing",   tokens.palette.danger),
-        (Tone::Info,    "Keyword",   tokens.palette.info),
-        (Tone::Accent,  "Semantic",  tokens.palette.accent),
+        (Tone::Success, "Current", tokens.palette.success),
+        (Tone::Warning, "Stale", tokens.palette.warning),
+        (Tone::Danger, "Missing", tokens.palette.danger),
+        (Tone::Info, "Keyword", tokens.palette.info),
+        (Tone::Accent, "Semantic", tokens.palette.accent),
         (Tone::Neutral, "Temporary", tokens.palette.background),
     ];
 
@@ -238,8 +293,10 @@ fn locale_aware_size_formatting() {
     // fmt_gib: takes pre-converted GiB f64.
     let result_en = fmt_gib(Locale::En, 1.397);
     assert!(!result_en.is_empty());
-    assert!(result_en.chars().any(|c| c.is_ascii_digit()),
-        "fmt_gib should contain a digit: {result_en}");
+    assert!(
+        result_en.chars().any(|c| c.is_ascii_digit()),
+        "fmt_gib should contain a digit: {result_en}"
+    );
 
     let result_ja = fmt_gib(Locale::Ja, 1.397);
     assert!(!result_ja.is_empty());
@@ -247,8 +304,10 @@ fn locale_aware_size_formatting() {
     // fmt_mib_bucket: produces a non-empty labelled string.
     let bucket_en = fmt_mib_bucket(Locale::En, "Search index", 190.7);
     assert!(!bucket_en.is_empty());
-    assert!(bucket_en.chars().any(|c| c.is_ascii_digit()),
-        "fmt_mib_bucket should contain a digit: {bucket_en}");
+    assert!(
+        bucket_en.chars().any(|c| c.is_ascii_digit()),
+        "fmt_mib_bucket should contain a digit: {bucket_en}"
+    );
 }
 
 // ── RFC-035: RTL readiness ─────────────────────────────────────────────────

@@ -138,7 +138,9 @@ pub fn message(key: MessageKey) -> &'static str {
         TextScaleLarger => "Larger",
         SettingsReduceMotion => "Reduce motion",
         SettingsReduceMotionHint => "Fewer animations and transitions.",
-        SettingsCvdNote => "Status colors are always shown with a label and an icon, so they stay clear for every kind of color vision.",
+        SettingsCvdNote => {
+            "Status colors are always shown with a label and an icon, so they stay clear for every kind of color vision."
+        }
         NoticeSensitiveSourceTitle => "This folder may contain private files",
         NoticeSensitiveSourceBody => {
             "It may include SSH keys, browser profiles, or other sensitive data. The folder was added. Remove it if you did not intend to search it."

@@ -2,6 +2,7 @@
 //! from the cache, chunks it, and atomically inserts chunks + FTS index
 //! into the catalog (one transaction).
 
+use crate::chunk_adapter::to_chunk_specs;
 use orbok_cache::{CacheService, EngineOptions, OrbokCacheNamespace};
 use orbok_core::{ErrorCategory, ExtractionId, FileId, OrbokError, OrbokResult};
 use orbok_db::Catalog;
@@ -54,7 +55,8 @@ impl<'a> ChunkAndIndexWorker<'a> {
             .map(|n| n.to_string_lossy().into_owned())
             .unwrap_or_else(|| record.display_path.clone());
 
-        let specs = chunk(&output, &file_name);
+        let raw = chunk(&output, &file_name);
+        let specs = to_chunk_specs(raw);
         if specs.is_empty() || (specs.len() == 1 && specs[0].normalized_text.is_empty()) {
             return Ok(());
         }

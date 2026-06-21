@@ -28,7 +28,10 @@ fn icon_text<'a>(glyph: char, size: f32) -> iced::widget::Text<'a> {
 }
 
 /// Standard wizard page wrapper: token page padding, fills the window.
-fn wizard_page<'a>(tokens: &Tokens, col: iced::widget::Column<'a, Message>) -> Element<'a, Message> {
+fn wizard_page<'a>(
+    tokens: &Tokens,
+    col: iced::widget::Column<'a, Message>,
+) -> Element<'a, Message> {
     container(col.spacing(tokens.spacing.md))
         .padding(Padding::from([tokens.spacing.xxl, tokens.spacing.xxl]))
         .width(Length::Fill)
@@ -109,7 +112,8 @@ fn page_setup<'a>(
             button(
                 row![
                     icon_text(char::from(lucide::Download), 13.0),
-                    text(tr(locale, MessageKey::WizardDownloadAction)).size(theme::body_s(tokens, sc)),
+                    text(tr(locale, MessageKey::WizardDownloadAction))
+                        .size(theme::body_s(tokens, sc)),
                 ]
                 .spacing(tokens.spacing.xs),
             )
@@ -124,7 +128,8 @@ fn page_setup<'a>(
     col = col.push(text("— or —").size(theme::meta_s(tokens, sc)));
 
     // ── Secondary action: locate existing files ───────────────────────
-    col = col.push(text(tr(locale, MessageKey::WizardBodyFileMissing)).size(theme::meta_s(tokens, sc)));
+    col = col
+        .push(text(tr(locale, MessageKey::WizardBodyFileMissing)).size(theme::meta_s(tokens, sc)));
 
     // Show previous path hint when files were missing.
     if let Some((prev_dir, checks)) = missing {
@@ -135,8 +140,9 @@ fn page_setup<'a>(
             } else {
                 ("✗", "  ← missing")
             };
-            col = col
-                .push(text(format!("{icon}  {}{note}", fc.relative_path)).size(theme::meta_s(tokens, sc)));
+            col = col.push(
+                text(format!("{icon}  {}{note}", fc.relative_path)).size(theme::meta_s(tokens, sc)),
+            );
         }
     }
 
@@ -154,7 +160,8 @@ fn page_setup<'a>(
             button(
                 row![
                     icon_text(char::from(lucide::FolderOpen), 13.0),
-                    text(tr(locale, MessageKey::WizardActionValidate)).size(theme::body_s(tokens, sc)),
+                    text(tr(locale, MessageKey::WizardActionValidate))
+                        .size(theme::body_s(tokens, sc)),
                 ]
                 .spacing(tokens.spacing.xs),
             )
@@ -249,7 +256,8 @@ fn page_checked<'a>(
             .map(|m| format!("  ({m} MB)"))
             .unwrap_or_default();
         col = col.push(
-            text(format!("{icon}  {}{size_info}{style}", fc.relative_path)).size(theme::meta_s(tokens, sc)),
+            text(format!("{icon}  {}{size_info}{style}", fc.relative_path))
+                .size(theme::meta_s(tokens, sc)),
         );
     }
 
@@ -258,14 +266,17 @@ fn page_checked<'a>(
             button(
                 row![
                     icon_text(char::from(lucide::CheckCircle), 13.0),
-                    text(tr(locale, MessageKey::WizardActionUseModel)).size(theme::body_s(tokens, sc)),
+                    text(tr(locale, MessageKey::WizardActionUseModel))
+                        .size(theme::body_s(tokens, sc)),
                 ]
                 .spacing(tokens.spacing.xs),
             )
             .on_press(Message::WizardAccept),
         );
     } else {
-        col = col.push(text(tr(locale, MessageKey::WizardBodyFileMissing)).size(theme::meta_s(tokens, sc)));
+        col = col.push(
+            text(tr(locale, MessageKey::WizardBodyFileMissing)).size(theme::meta_s(tokens, sc)),
+        );
         let path_input = text_input(
             tr(locale, MessageKey::WizardPathPlaceholder),
             &state.wizard_path_input,
@@ -279,7 +290,8 @@ fn page_checked<'a>(
                 button(
                     row![
                         icon_text(char::from(lucide::ScanEye), 13.0),
-                        text(tr(locale, MessageKey::WizardActionValidate)).size(theme::body_s(tokens, sc)),
+                        text(tr(locale, MessageKey::WizardActionValidate))
+                            .size(theme::body_s(tokens, sc)),
                     ]
                     .spacing(tokens.spacing.xs),
                 )
@@ -303,7 +315,12 @@ fn page_checked<'a>(
 
 // ── Page: ready ───────────────────────────────────────────────────────
 
-fn page_ready<'a>(tokens: &Tokens, sc: crate::theme::TextScale, locale: Locale, model_dir: &'a str) -> Element<'a, Message> {
+fn page_ready<'a>(
+    tokens: &Tokens,
+    sc: crate::theme::TextScale,
+    locale: Locale,
+    model_dir: &'a str,
+) -> Element<'a, Message> {
     let col = column![
         row![
             icon_text(char::from(lucide::CheckCircle), 18.0),

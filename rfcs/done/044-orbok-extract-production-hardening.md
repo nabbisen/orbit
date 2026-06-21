@@ -4,7 +4,7 @@
 **Former project name:** orbit  
 **RFC:** 044  
 **Title:** `orbok-extract` Production Hardening and Boundary Cleanup  
-**Status:** Proposed
+**Status:** Implemented (v0.16.0)
 **Target milestone:** Extraction reliability / core slimming / release hardening  
 **Date:** 2026-06-18  
 **Primary target crate:** `orbok-extract v0.9`  

@@ -35,9 +35,7 @@ pub fn key_to_message(
 
     match key {
         // Ctrl/Cmd + K  →  focus global search input (works from any view).
-        Key::Character(c) if c.as_str() == "k" && modifiers.command() => {
-            Some(Message::FocusSearch)
-        }
+        Key::Character(c) if c.as_str() == "k" && modifiers.command() => Some(Message::FocusSearch),
         // Ctrl/Cmd + ,  →  open Settings.
         Key::Character(c) if c.as_str() == "," && modifiers.command() => {
             Some(Message::Switch(ViewId::Settings))
@@ -78,7 +76,10 @@ pub struct OrbokApp {
 
 impl OrbokApp {
     pub fn with_state(state: AppState) -> Self {
-        Self { state, search_focused: false }
+        Self {
+            state,
+            search_focused: false,
+        }
     }
 
     pub fn update(&mut self, message: Message) {
@@ -209,11 +210,11 @@ impl OrbokApp {
         );
         let palette = iced::theme::Palette {
             background: to_iced_color(p.background),
-            text:       to_iced_color(p.text_primary),
-            primary:    to_iced_color(p.accent),
-            success:    to_iced_color(p.success),
-            warning:    to_iced_color(p.warning),
-            danger:     to_iced_color(p.danger),
+            text: to_iced_color(p.text_primary),
+            primary: to_iced_color(p.accent),
+            success: to_iced_color(p.success),
+            warning: to_iced_color(p.warning),
+            danger: to_iced_color(p.danger),
         };
         let name = if is_dark { "orbok-dark" } else { "orbok-light" };
         iced::Theme::custom(name, palette)

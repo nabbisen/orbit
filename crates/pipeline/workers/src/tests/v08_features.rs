@@ -239,6 +239,7 @@ fn scanned_pdf_detection_identifies_zero_text_pages() {
         normalization_version: "norm-v1".into(),
         segments: vec![],
         char_count: 0,
+        warnings: Vec::new(),
     };
     // PDF with pages but no text → scanned.
     assert!(

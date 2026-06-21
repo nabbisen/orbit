@@ -142,7 +142,9 @@ pub fn message(key: MessageKey) -> &'static str {
         TextScaleLarger => "特大",
         SettingsReduceMotion => "モーションを減らす",
         SettingsReduceMotionHint => "アニメーションとトランジションを減らします。",
-        SettingsCvdNote => "ステータスカラーは常にラベルとアイコンとともに表示されるため、色覚に関わらず識別できます。",
+        SettingsCvdNote => {
+            "ステータスカラーは常にラベルとアイコンとともに表示されるため、色覚に関わらず識別できます。"
+        }
         NoticeSensitiveSourceTitle => "このフォルダには機密ファイルが含まれている可能性があります",
         NoticeSensitiveSourceBody => {
             "SSH鍵、ブラウザのプロフィール、またはその他の機密データが含まれている可能性があります。フォルダは追加されました。意図しない場合は削除してください。"

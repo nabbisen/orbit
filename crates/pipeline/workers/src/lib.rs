@@ -14,6 +14,7 @@
 //! (RFC-004 §16, RFC-005 §13). Workers update the relevant catalog
 //! records with the error category.
 
+mod chunk_adapter;
 mod chunk_and_index;
 pub mod cleanup_service;
 mod embedding;

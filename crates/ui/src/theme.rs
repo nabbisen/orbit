@@ -49,34 +49,34 @@ impl Theme {
     /// Setting string stored in `OrbokSettings`.
     pub fn as_str(self) -> &'static str {
         match self {
-            Theme::System           => "system",
-            Theme::Light            => "light",
-            Theme::Dark             => "dark",
+            Theme::System => "system",
+            Theme::Light => "light",
+            Theme::Dark => "dark",
             Theme::HighContrastLight => "high_contrast_light",
-            Theme::HighContrastDark  => "high_contrast_dark",
+            Theme::HighContrastDark => "high_contrast_dark",
         }
     }
 
     /// Parse a stored setting string back into a [`Theme`].
     pub fn parse(s: &str) -> Option<Theme> {
         Some(match s {
-            "system"              => Theme::System,
-            "light"               => Theme::Light,
-            "dark"                => Theme::Dark,
+            "system" => Theme::System,
+            "light" => Theme::Light,
+            "dark" => Theme::Dark,
             "high_contrast_light" => Theme::HighContrastLight,
-            "high_contrast_dark"  => Theme::HighContrastDark,
-            _                     => return None,
+            "high_contrast_dark" => Theme::HighContrastDark,
+            _ => return None,
         })
     }
 
     /// The i18n key for this theme's display name (Settings picker).
     pub fn label_key(self) -> MessageKey {
         match self {
-            Theme::System           => MessageKey::ThemeSystem,
-            Theme::Light            => MessageKey::ThemeLight,
-            Theme::Dark             => MessageKey::ThemeDark,
+            Theme::System => MessageKey::ThemeSystem,
+            Theme::Light => MessageKey::ThemeLight,
+            Theme::Dark => MessageKey::ThemeDark,
             Theme::HighContrastLight => MessageKey::ThemeHighContrastLight,
-            Theme::HighContrastDark  => MessageKey::ThemeHighContrastDark,
+            Theme::HighContrastDark => MessageKey::ThemeHighContrastDark,
         }
     }
 
@@ -88,9 +88,9 @@ impl Theme {
     pub fn tokens(self) -> Tokens {
         match self {
             Theme::Light | Theme::System => Tokens::light(),
-            Theme::Dark                  => Tokens::dark(),
-            Theme::HighContrastLight     => Tokens::high_contrast_light(),
-            Theme::HighContrastDark      => Tokens::high_contrast_dark(),
+            Theme::Dark => Tokens::dark(),
+            Theme::HighContrastLight => Tokens::high_contrast_light(),
+            Theme::HighContrastDark => Tokens::high_contrast_dark(),
         }
     }
 
@@ -134,33 +134,33 @@ impl TextScale {
     pub fn factor(self) -> f32 {
         match self {
             TextScale::Default => 1.0,
-            TextScale::Large   => 1.15,
-            TextScale::Larger  => 1.3,
+            TextScale::Large => 1.15,
+            TextScale::Larger => 1.3,
         }
     }
 
     pub fn as_str(self) -> &'static str {
         match self {
             TextScale::Default => "default",
-            TextScale::Large   => "large",
-            TextScale::Larger  => "larger",
+            TextScale::Large => "large",
+            TextScale::Larger => "larger",
         }
     }
 
     pub fn parse(s: &str) -> Option<TextScale> {
         Some(match s {
             "default" => TextScale::Default,
-            "large"   => TextScale::Large,
-            "larger"  => TextScale::Larger,
-            _         => return None,
+            "large" => TextScale::Large,
+            "larger" => TextScale::Larger,
+            _ => return None,
         })
     }
 
     pub fn label_key(self) -> MessageKey {
         match self {
             TextScale::Default => MessageKey::TextScaleDefault,
-            TextScale::Large   => MessageKey::TextScaleLarge,
-            TextScale::Larger  => MessageKey::TextScaleLarger,
+            TextScale::Large => MessageKey::TextScaleLarge,
+            TextScale::Larger => MessageKey::TextScaleLarger,
         }
     }
 }

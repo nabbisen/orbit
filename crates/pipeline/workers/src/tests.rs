@@ -8,6 +8,8 @@ mod v05_features;
 
 mod v06_features;
 
+mod v07_features;
+
 mod v08_features;
 
 mod v09_rc;

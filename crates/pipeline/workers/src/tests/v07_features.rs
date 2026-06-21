@@ -1,12 +1,12 @@
 //! v0.7 tests: RFC-021 (embedding backend), RFC-022 (PDF extraction),
 //! RFC-029 (model integrity).
 
-use crate::ExtractorRegistry;
-use crate::types::{DocumentExtractor, LocationQuality};
 use orbok_db::Catalog;
 use orbok_db::repo::verify_model_sha256;
 use orbok_db::repo::{ModelRepository, ModelRole, ModelStatus, NewModel};
 use orbok_embed::{RECOMMENDED_MODEL_DIMENSION, create_embedding_model, recommended_config};
+use orbok_extract::ExtractorRegistry;
+use orbok_extract::types::{DocumentExtractor, LocationQuality};
 use orbok_fs::ValidatedPath;
 use orbok_models::{EmbeddingModel, EmbeddingModelConfig, InferenceBackend, MockEmbeddingModel};
 
@@ -142,7 +142,7 @@ startxref
 // RFC-022 AC: PDF extractor handles a valid PDF.
 #[test]
 fn pdf_extractor_extracts_text_from_valid_pdf() {
-    use crate::pdf::PdfExtractor;
+    use orbok_extract::pdf::PdfExtractor;
     let dir = tempfile::tempdir().unwrap();
     let pdf_path = dir.path().join("test.pdf");
     fs::write(&pdf_path, MINIMAL_PDF).unwrap();
@@ -174,7 +174,7 @@ fn pdf_extractor_extracts_text_from_valid_pdf() {
 // RFC-022 AC: Failure isolation — missing file returns typed error, no panic.
 #[test]
 fn pdf_extractor_missing_file_returns_typed_error() {
-    use crate::pdf::PdfExtractor;
+    use orbok_extract::pdf::PdfExtractor;
     let vp = ValidatedPath {
         source_id: orbok_core::SourceId::from_string("s1".to_string()),
         canonical: PathBuf::from("/nonexistent/file.pdf"),
@@ -208,7 +208,7 @@ fn pdf_extractor_registered_in_registry() {
 // RFC-022 AC: Location quality is PageOnly, not Exact (honest claims).
 #[test]
 fn pdf_location_quality_is_page_only() {
-    use crate::pdf::PdfExtractor;
+    use orbok_extract::pdf::PdfExtractor;
     let dir = tempfile::tempdir().unwrap();
     let pdf_path = dir.path().join("test.pdf");
     fs::write(&pdf_path, MINIMAL_PDF).unwrap();

@@ -12,8 +12,8 @@ pub use wizard::wizard_view;
 
 use crate::components::{self, health_cell, job_progress, result_card, source_card};
 use crate::i18n::{
-    Locale, MessageKey, files_indexed, fmt_gib, fmt_mib_bucket, fmt_query,
-    fmt_storage_row, search_result_count, source_summary, tr,
+    Locale, MessageKey, files_indexed, fmt_gib, fmt_mib_bucket, fmt_query, fmt_storage_row,
+    search_result_count, source_summary, tr,
 };
 use crate::state::{AppState, Message};
 use crate::theme::{self, TextScale, Theme};
@@ -90,12 +90,19 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
         content = content.push(
             row![
                 text(tr(locale, MessageKey::SearchModeLabel)).size(theme::meta_s(tokens, sc)),
-                button(text(tr(locale, MessageKey::SearchModeAuto)).size(theme::meta_s(tokens, sc)))
-                    .on_press(Message::SetSearchMode(orbok_search::SearchMode::Auto)),
-                button(text(tr(locale, MessageKey::SearchModeExact)).size(theme::meta_s(tokens, sc)))
-                    .on_press(Message::SetSearchMode(orbok_search::SearchMode::Exact)),
-                button(text(tr(locale, MessageKey::SearchModeConceptual)).size(theme::meta_s(tokens, sc)))
-                    .on_press(Message::SetSearchMode(orbok_search::SearchMode::Conceptual)),
+                button(
+                    text(tr(locale, MessageKey::SearchModeAuto)).size(theme::meta_s(tokens, sc))
+                )
+                .on_press(Message::SetSearchMode(orbok_search::SearchMode::Auto)),
+                button(
+                    text(tr(locale, MessageKey::SearchModeExact)).size(theme::meta_s(tokens, sc))
+                )
+                .on_press(Message::SetSearchMode(orbok_search::SearchMode::Exact)),
+                button(
+                    text(tr(locale, MessageKey::SearchModeConceptual))
+                        .size(theme::meta_s(tokens, sc))
+                )
+                .on_press(Message::SetSearchMode(orbok_search::SearchMode::Conceptual)),
             ]
             .spacing(tokens.spacing.xs),
         );
@@ -117,7 +124,8 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
     } else {
         if state.capability == SearchCapability::KeywordOnly {
             content = content.push(
-                text(tr(locale, MessageKey::SearchKeywordOnlyNotice)).size(theme::meta_s(tokens, sc)),
+                text(tr(locale, MessageKey::SearchKeywordOnlyNotice))
+                    .size(theme::meta_s(tokens, sc)),
             );
         }
         if state.search_running {
@@ -126,7 +134,8 @@ pub fn search_view(state: &AppState) -> Element<'_, Message> {
             if state.search_results.is_empty() {
                 content = content.push(
                     column![
-                        text(tr(locale, MessageKey::SearchNoResults)).size(theme::body_s(tokens, sc)),
+                        text(tr(locale, MessageKey::SearchNoResults))
+                            .size(theme::body_s(tokens, sc)),
                         text(fmt_query(locale, last)).size(theme::meta_s(tokens, sc)),
                     ]
                     .spacing(tokens.spacing.xs),
@@ -236,13 +245,25 @@ pub fn indexing_view(state: &AppState) -> Element<'_, Message> {
     )]
     .spacing(tokens.spacing.sm);
     if h.queued > 0 || state.show_advanced {
-        cells = cells.push(health_cell(tokens, tr(locale, MessageKey::IndexingHealthQueued), h.queued));
+        cells = cells.push(health_cell(
+            tokens,
+            tr(locale, MessageKey::IndexingHealthQueued),
+            h.queued,
+        ));
     }
     if h.stale > 0 || state.show_advanced {
-        cells = cells.push(health_cell(tokens, tr(locale, MessageKey::IndexingHealthStale), h.stale));
+        cells = cells.push(health_cell(
+            tokens,
+            tr(locale, MessageKey::IndexingHealthStale),
+            h.stale,
+        ));
     }
     if h.failed > 0 || state.show_advanced {
-        cells = cells.push(health_cell(tokens, tr(locale, MessageKey::IndexingHealthFailed), h.failed));
+        cells = cells.push(health_cell(
+            tokens,
+            tr(locale, MessageKey::IndexingHealthFailed),
+            h.failed,
+        ));
     }
 
     let mut content = column![
@@ -275,8 +296,16 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
             text(tr(locale, MessageKey::StorageResetCatalog)).size(theme::title_s(tokens, sc)),
             text(tr(locale, MessageKey::StorageResetWarning)).size(theme::body_s(tokens, sc)),
             row![
-                components::ghost(tokens, tr(locale, MessageKey::Cancel), Some(Message::CancelResetCatalog)),
-                components::danger(tokens, tr(locale, MessageKey::StorageResetCatalog), Some(Message::ConfirmResetCatalog)),
+                components::ghost(
+                    tokens,
+                    tr(locale, MessageKey::Cancel),
+                    Some(Message::CancelResetCatalog)
+                ),
+                components::danger(
+                    tokens,
+                    tr(locale, MessageKey::StorageResetCatalog),
+                    Some(Message::ConfirmResetCatalog)
+                ),
             ]
             .spacing(tokens.spacing.md),
         ]
@@ -319,13 +348,17 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
             }
             let mib = |b: u64| b as f64 / (1024.0 * 1024.0);
             for (label, bytes) in [
-                (tr(locale, MessageKey::StorageGroupSearchIndex), search_index),
+                (
+                    tr(locale, MessageKey::StorageGroupSearchIndex),
+                    search_index,
+                ),
                 (tr(locale, MessageKey::StorageGroupModels), ai_models),
                 (tr(locale, MessageKey::StorageGroupCaches), caches),
             ] {
                 if bytes > 0 {
                     breakdown = breakdown.push(
-                        text(fmt_mib_bucket(locale, label, mib(bytes))).size(theme::body_s(tokens, sc)),
+                        text(fmt_mib_bucket(locale, label, mib(bytes)))
+                            .size(theme::body_s(tokens, sc)),
                     );
                 }
             }
@@ -336,12 +369,24 @@ pub fn storage_view(state: &AppState) -> Element<'_, Message> {
         breakdown,
         text(tr(locale, MessageKey::StorageSafeCleanupHeading)).size(theme::body_s(tokens, sc)),
         row![
-            components::secondary(tokens, tr(locale, MessageKey::StorageClearSnippets), Some(Message::CleanSnippets)),
-            components::secondary(tokens, tr(locale, MessageKey::StorageClearSearchCache), Some(Message::CleanSearchCache)),
+            components::secondary(
+                tokens,
+                tr(locale, MessageKey::StorageClearSnippets),
+                Some(Message::CleanSnippets)
+            ),
+            components::secondary(
+                tokens,
+                tr(locale, MessageKey::StorageClearSearchCache),
+                Some(Message::CleanSearchCache)
+            ),
         ]
         .spacing(tokens.spacing.sm),
         text(tr(locale, MessageKey::StorageDangerHeading)).size(theme::body_s(tokens, sc)),
-        components::danger(tokens, tr(locale, MessageKey::StorageResetCatalog), Some(Message::AskResetCatalog)),
+        components::danger(
+            tokens,
+            tr(locale, MessageKey::StorageResetCatalog),
+            Some(Message::AskResetCatalog)
+        ),
         text(tr(locale, MessageKey::StorageResetWarning)).size(theme::meta_s(tokens, sc)),
     ];
     page(tokens, content)
@@ -362,14 +407,21 @@ pub fn models_view(state: &AppState) -> Element<'_, Message> {
     };
     let mut content = column![
         heading(tokens, sc, tr(locale, MessageKey::ModelsTitle)),
-        text(format!("{}: {embedding}", tr(locale, MessageKey::ModelsEmbeddingRole)))
-            .size(theme::body_s(tokens, sc)),
-        text(format!("{}: {reranker}", tr(locale, MessageKey::ModelsRerankerRole)))
-            .size(theme::body_s(tokens, sc)),
+        text(format!(
+            "{}: {embedding}",
+            tr(locale, MessageKey::ModelsEmbeddingRole)
+        ))
+        .size(theme::body_s(tokens, sc)),
+        text(format!(
+            "{}: {reranker}",
+            tr(locale, MessageKey::ModelsRerankerRole)
+        ))
+        .size(theme::body_s(tokens, sc)),
     ];
     if state.capability == SearchCapability::KeywordOnly {
-        content = content
-            .push(text(tr(locale, MessageKey::ModelsKeywordOnlyHint)).size(theme::meta_s(tokens, sc)));
+        content = content.push(
+            text(tr(locale, MessageKey::ModelsKeywordOnlyHint)).size(theme::meta_s(tokens, sc)),
+        );
     }
     page(tokens, content)
 }

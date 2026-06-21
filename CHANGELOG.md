@@ -11,6 +11,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.16.0] — 2026-06-21 — RFC-044: orbok-extract Production Hardening
+
+### Changed
+
+**RFC-044: `orbok-extract` Production Hardening and Boundary Cleanup.**
+
+- **`ExtractLimits` / `ExtractContext`** (`types.rs`): new types carrying
+  per-extraction resource limits (`max_file_bytes`, `max_extracted_chars`,
+  `max_segments`, `max_pdf_pages`, `max_docx_xml_bytes`, `max_zip_entry_bytes`,
+  `max_html_bytes`) with conservative defaults. All built-in extractors now
+  implement `extract_with_context` and honor their format-specific limits.
+
+- **`ExtractWarning`** (`types.rs`): structured warning enum added to
+  `ExtractOutput.warnings` (serde `#[serde(default)]`, backward-compatible with
+  cached payloads). Variants: `SomePagesUnreadable`, `PossiblyScannedPdf`,
+  `SizeLimitReached`, `EncodingUnsupported`, `UnsupportedDocumentPart`,
+  `ApproximateLocationOnly`, `MalformedContentRecovered`, `SomeContentSkipped`.
+
+- **`LocationKind`** (`types.rs`): new enum on `ExtractedSegment.location_kind`
+  distinguishing `Lines` / `Pages` / `Paragraphs` / `Blocks` / `Unknown`. Each
+  extractor sets the correct kind: text+markdown → Lines, PDF → Pages, DOCX →
+  Paragraphs, HTML → Blocks. The UI must not label pages as "line N".
+
+- **`ErrorCategory::ParserPanic`** (`orbok-core`): new variant with stable
+  catalog string `"parser_panic"` for panics caught by the isolation wrapper.
+
+- **`ExtractorRegistry::extract_safely`** (`registry.rs`): production entry
+  point. Wraps every extractor call in `std::panic::catch_unwind`; a parser
+  panic returns `ErrorCategory::ParserPanic` instead of crashing the worker.
+  `ExtractorRegistry::extract` now delegates to `extract_safely`. Added
+  `ExtractorRegistry::new_with` constructor for test injection.
+
+- **Crate-boundary cleanup** (RFC-044 §14 Option B): `chunker.rs` now produces
+  `Vec<ExtractedChunk>` (a new DB-free type in `types.rs`) instead of
+  `Vec<orbok_db::repo::ChunkSpec>`. `orbok-db` removed from `orbok-extract`
+  `[dependencies]` (kept in `[dev-dependencies]` until test migration
+  completes). Conversion `ExtractedChunk → ChunkSpec` lives in new
+  `crates/pipeline/workers/src/chunk_adapter.rs`; `chunker.rs` propagates
+  `LocationKind` through to chunks.
+
+- **Test boundary cleanup** (RFC-044 §15): `v07_features.rs` (RFC-021/022/029
+  tests covering embedding backend, PDF extraction, model integrity) moved from
+  `orbok-extract` to `orbok-workers/src/tests/`; imports updated to use
+  fully-qualified crate paths. `ExtractionWorker` updated to call
+  `extract_safely` with `ExtractContext::default()`.
+
+### Added
+
+- **RFC-044 acceptance tests**: 15 new tests across two submodules:
+  - `tests/rfc044_limits.rs`: file-size limits (text/HTML/DOCX), segment
+    cap, char-truncation warning, clean-extraction zero-warnings invariant.
+  - `tests/rfc044_isolation.rs`: panic-isolation round-trip via
+    `PanickingExtractor`, missing-file → `SourceMissing`, invalid-UTF-8 →
+    `EncodingError`, unsupported extension → `UnsupportedType`, `LocationKind`
+    per format, chunker `LocationKind` propagation, boundary compile-proof.
+
+**244 tests / 0 failures / 0 warnings in RFC-044 files.**
+
+---
+
 ## [0.15.0] — 2026-06-21 — RFC pipeline: 036–045 merged; planning baseline
 
 ### Docs / Planning

@@ -18,8 +18,8 @@ use orbok_models::SearchCapability;
 use orbok_search::HybridSearchService;
 use orbok_ui::AppState;
 use orbok_ui::i18n::Locale;
-use orbok_ui::theme::{Theme, TextScale};
 use orbok_ui::state::{WizardFileCheck, WizardState};
+use orbok_ui::theme::{TextScale, Theme};
 use orbok_workers::{VerifyOutcome, verify_embedding_model};
 use std::path::PathBuf;
 
@@ -106,8 +106,7 @@ pub fn load_initial_state() -> Result<AppState, Box<dyn std::error::Error>> {
     state.theme = stored_theme;
     state.tokens = resolved_theme.tokens();
     state.text_scale = TextScale::parse(&settings.text_scale).unwrap_or_default();
-    state.reduced_motion = settings.reduced_motion
-        || resolve_os_reduced_motion();
+    state.reduced_motion = settings.reduced_motion || resolve_os_reduced_motion();
     state.capability = capability;
     state.wizard = wizard;
     state.health = health;

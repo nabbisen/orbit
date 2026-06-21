@@ -4,7 +4,7 @@
 //! unsupported types, and Japanese text passthrough.
 
 use crate::normalize::normalize_document;
-use crate::types::{LocationQuality, SegmentKind};
+use crate::types::{LocationKind, LocationQuality, SegmentKind};
 use crate::{DocumentExtractor, ExtractorRegistry};
 use orbok_core::{ErrorCategory, OrbokError, SourceId};
 use orbok_fs::ValidatedPath;
@@ -203,6 +203,7 @@ fn extract_str(text: &str) -> ExtractOutput {
             text: para.trim().to_string(),
             line_start: (i as u32 * 2) + 1,
             line_end: (i as u32 * 2) + 2,
+            location_kind: LocationKind::Lines,
             heading_path: None,
             location_quality: LocationQuality::Exact,
         })
@@ -213,6 +214,7 @@ fn extract_str(text: &str) -> ExtractOutput {
         normalization_version: "norm-v1".into(),
         segments,
         char_count: text.len() as u64,
+        warnings: Vec::new(),
     }
 }
 
@@ -250,6 +252,7 @@ fn markdown_headings_create_section_chunks() {
             text: "Authentication".into(),
             line_start: 1,
             line_end: 1,
+            location_kind: LocationKind::Lines,
             heading_path: Some("Authentication".into()),
             location_quality: LocationQuality::Exact,
         },
@@ -258,6 +261,7 @@ fn markdown_headings_create_section_chunks() {
             text: "Tokens expire after 24 hours.".into(),
             line_start: 3,
             line_end: 4,
+            location_kind: LocationKind::Lines,
             heading_path: Some("Authentication".into()),
             location_quality: LocationQuality::Exact,
         },
@@ -266,6 +270,7 @@ fn markdown_headings_create_section_chunks() {
             text: "Storage".into(),
             line_start: 6,
             line_end: 6,
+            location_kind: LocationKind::Lines,
             heading_path: Some("Storage".into()),
             location_quality: LocationQuality::Exact,
         },
@@ -274,6 +279,7 @@ fn markdown_headings_create_section_chunks() {
             text: "Data is stored locally.".into(),
             line_start: 8,
             line_end: 9,
+            location_kind: LocationKind::Lines,
             heading_path: Some("Storage".into()),
             location_quality: LocationQuality::Exact,
         },
@@ -284,6 +290,7 @@ fn markdown_headings_create_section_chunks() {
         normalization_version: "norm-v1".into(),
         segments,
         char_count: 80,
+        warnings: Vec::new(),
     };
     let specs = chunk(&output, "guide.md");
     // Parent + 2 sections.
@@ -338,4 +345,6 @@ fn children_point_to_parent() {
     }
 }
 
-mod v07_features;
+// RFC-044 hardening tests in submodules.
+mod rfc044_isolation;
+mod rfc044_limits;

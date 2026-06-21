@@ -19,8 +19,11 @@ fn state_transitions() {
 
 #[test]
 fn navigation_order_is_search_first() {
-    assert_eq!(ViewId::ALL[0], ViewId::Search,
-        "Search must be the first view (GUI external design §3.1)");
+    assert_eq!(
+        ViewId::ALL[0],
+        ViewId::Search,
+        "Search must be the first view (GUI external design §3.1)"
+    );
 }
 
 // Failures surface a notice; success clears it.
@@ -43,7 +46,10 @@ fn failures_surface_notice_success_clears_it() {
         keyword_rank: 1,
         badges: vec![],
     }]));
-    assert!(state.notice.is_none(), "results ready must clear the notice");
+    assert!(
+        state.notice.is_none(),
+        "results ready must clear the notice"
+    );
 }
 
 // Problem notices have an action; confirmation notices have dismiss instead.
@@ -83,14 +89,24 @@ fn theme_tokens_and_string_roundtrip() {
     let cases = [
         (Theme::Light, snora::design::Tokens::light()),
         (Theme::Dark, snora::design::Tokens::dark()),
-        (Theme::HighContrastLight, snora::design::Tokens::high_contrast_light()),
-        (Theme::HighContrastDark, snora::design::Tokens::high_contrast_dark()),
+        (
+            Theme::HighContrastLight,
+            snora::design::Tokens::high_contrast_light(),
+        ),
+        (
+            Theme::HighContrastDark,
+            snora::design::Tokens::high_contrast_dark(),
+        ),
     ];
     for (theme, expected) in cases {
         assert_eq!(theme.tokens(), expected, "{theme:?} preset");
     }
     for theme in Theme::ALL {
-        assert_eq!(Theme::parse(theme.as_str()), Some(*theme), "round-trip {theme:?}");
+        assert_eq!(
+            Theme::parse(theme.as_str()),
+            Some(*theme),
+            "round-trip {theme:?}"
+        );
     }
 }
 
@@ -98,11 +114,17 @@ fn theme_tokens_and_string_roundtrip() {
 #[test]
 fn theme_from_env_resolves_override() {
     let prev = std::env::var("ORBOK_THEME").ok();
-    unsafe { std::env::set_var("ORBOK_THEME", "dark"); }
+    unsafe {
+        std::env::set_var("ORBOK_THEME", "dark");
+    }
     assert_eq!(Theme::from_env(), Some(Theme::Dark));
-    unsafe { std::env::set_var("ORBOK_THEME", "system"); }
+    unsafe {
+        std::env::set_var("ORBOK_THEME", "system");
+    }
     assert_eq!(Theme::from_env(), None, "system override is not concrete");
-    unsafe { std::env::remove_var("ORBOK_THEME"); }
+    unsafe {
+        std::env::remove_var("ORBOK_THEME");
+    }
     assert_eq!(Theme::from_env(), None, "unset yields None");
     unsafe {
         match prev {
@@ -119,7 +141,11 @@ fn text_scale_roundtrip() {
     assert!((TextScale::Large.factor() - 1.15).abs() < f32::EPSILON);
     assert!((TextScale::Larger.factor() - 1.3).abs() < f32::EPSILON);
     for scale in TextScale::ALL {
-        assert_eq!(TextScale::parse(scale.as_str()), Some(*scale), "round-trip {scale:?}");
+        assert_eq!(
+            TextScale::parse(scale.as_str()),
+            Some(*scale),
+            "round-trip {scale:?}"
+        );
     }
 }
 
@@ -151,11 +177,18 @@ fn notice_tone_mapping_is_consistent() {
     use crate::notice::UserNotice;
     use snora::design::Tone;
     // Danger: hard failures.
-    for n in [UserNotice::SearchDidNotFinish, UserNotice::FolderCouldNotBeAdded, UserNotice::DownloadDidNotFinish] {
+    for n in [
+        UserNotice::SearchDidNotFinish,
+        UserNotice::FolderCouldNotBeAdded,
+        UserNotice::DownloadDidNotFinish,
+    ] {
         assert_eq!(n.tone(), Tone::Danger, "{n:?} must be Danger");
     }
     // Warning: cautions.
-    for n in [UserNotice::FilesMovedOrMissing, UserNotice::SensitiveSourceAdded] {
+    for n in [
+        UserNotice::FilesMovedOrMissing,
+        UserNotice::SensitiveSourceAdded,
+    ] {
         assert_eq!(n.tone(), Tone::Warning, "{n:?} must be Warning");
     }
     // Success: positive confirmations.

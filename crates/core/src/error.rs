@@ -27,6 +27,7 @@ pub enum ErrorCategory {
     OutOfMemory,
     Canceled,
     ModelUnavailable,
+    ParserPanic,
     InternalError,
 }
 
@@ -51,6 +52,7 @@ impl ErrorCategory {
             ErrorCategory::OutOfMemory => "out_of_memory",
             ErrorCategory::Canceled => "canceled",
             ErrorCategory::ModelUnavailable => "model_unavailable",
+            ErrorCategory::ParserPanic => "parser_panic",
             ErrorCategory::InternalError => "internal_error",
         }
     }

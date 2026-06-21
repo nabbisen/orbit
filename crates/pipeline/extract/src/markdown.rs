@@ -1,5 +1,5 @@
 //! Markdown extractor, `markdown-v1` (RFC-005 §5/§8: heading-aware,
-//! fence-aware, exact line locations for FR-061 "open at location").
+//! fence-aware, exact line locations; RFC-044 §16.2 resource limits).
 //!
 //! Line-oriented by design: every segment maps to exact source lines so
 //! search results can highlight the original file region. ATX headings
@@ -8,8 +8,8 @@
 
 use crate::normalize::normalize_document;
 use crate::types::{
-    DocumentExtractor, ExtractOutput, ExtractedSegment, LocationQuality, SegmentKind,
-    read_error_category,
+    DocumentExtractor, ExtractContext, ExtractOutput, ExtractWarning, ExtractedSegment,
+    LocationKind, LocationQuality, SegmentKind, read_error_category,
 };
 use orbok_core::{ErrorCategory, OrbokError, OrbokResult, versions::NORMALIZATION_VERSION};
 use orbok_fs::ValidatedPath;
@@ -29,7 +29,30 @@ impl DocumentExtractor for MarkdownExtractor {
         &["md", "markdown"]
     }
 
-    fn extract(&self, path: &ValidatedPath) -> OrbokResult<ExtractOutput> {
+    fn extract_with_context(
+        &self,
+        path: &ValidatedPath,
+        context: &ExtractContext,
+    ) -> OrbokResult<ExtractOutput> {
+        let limits = &context.limits;
+        let mut warnings = Vec::new();
+
+        // RFC-044 §9.5: check file size before reading.
+        let meta = std::fs::metadata(&path.canonical).map_err(|e| OrbokError::Extraction {
+            category: read_error_category(&e),
+            message: e.to_string(),
+        })?;
+        if meta.len() > limits.max_file_bytes {
+            return Err(OrbokError::Extraction {
+                category: ErrorCategory::FileTooLarge,
+                message: format!(
+                    "file is {} bytes, limit is {}",
+                    meta.len(),
+                    limits.max_file_bytes
+                ),
+            });
+        }
+
         let bytes = std::fs::read(&path.canonical).map_err(|e| OrbokError::Extraction {
             category: read_error_category(&e),
             message: e.to_string(),
@@ -38,15 +61,50 @@ impl DocumentExtractor for MarkdownExtractor {
             category: ErrorCategory::EncodingError,
             message: "file is not valid UTF-8".into(),
         })?;
+
         let normalized = normalize_document(&raw);
-        let segments = parse_markdown(&normalized);
+        let mut segments = parse_markdown(&normalized);
+        let mut char_count = normalized.chars().count() as u64;
+
+        // RFC-044 §9.5: segment limit.
+        if segments.len() > limits.max_segments {
+            segments.truncate(limits.max_segments);
+            warnings.push(ExtractWarning::SizeLimitReached {
+                limit_name: "max_segments".into(),
+            });
+        }
+
+        // RFC-044 §9.5: extracted char limit — truncate and warn.
+        if char_count > limits.max_extracted_chars {
+            let mut kept = 0usize;
+            let mut kept_chars = 0u64;
+            for seg in &segments {
+                let n = seg.text.chars().count() as u64;
+                if kept_chars + n > limits.max_extracted_chars {
+                    break;
+                }
+                kept_chars += n;
+                kept += 1;
+            }
+            segments.truncate(kept);
+            char_count = kept_chars;
+            warnings.push(ExtractWarning::SizeLimitReached {
+                limit_name: "max_extracted_chars".into(),
+            });
+        }
+
         Ok(ExtractOutput {
             extractor_name: self.name().into(),
             extractor_version: self.version().into(),
             normalization_version: NORMALIZATION_VERSION.into(),
-            char_count: normalized.chars().count() as u64,
+            char_count,
             segments,
+            warnings,
         })
+    }
+
+    fn extract(&self, path: &ValidatedPath) -> OrbokResult<ExtractOutput> {
+        self.extract_with_context(path, &ExtractContext::default())
     }
 }
 
@@ -89,6 +147,7 @@ fn parse_markdown(normalized: &str) -> Vec<ExtractedSegment> {
                     text: paragraph.join("\n"),
                     line_start: paragraph_start,
                     line_end: $end,
+                    location_kind: LocationKind::Lines,
                     heading_path: headings.path(),
                     location_quality: LocationQuality::Exact,
                 });
@@ -110,6 +169,7 @@ fn parse_markdown(normalized: &str) -> Vec<ExtractedSegment> {
                 text: title.to_string(),
                 line_start: line_no,
                 line_end: line_no,
+                location_kind: LocationKind::Lines,
                 heading_path: headings.path(),
                 location_quality: LocationQuality::Exact,
             });
@@ -127,13 +187,14 @@ fn parse_markdown(normalized: &str) -> Vec<ExtractedSegment> {
                 body.push(lines[idx]);
                 idx += 1;
             }
-            let end = (idx as u32) + 1; // closing fence (or EOF line)
-            idx += 1; // skip the closing fence when present
+            let end = (idx as u32) + 1;
+            idx += 1;
             segments.push(ExtractedSegment {
                 kind: SegmentKind::CodeBlock,
                 text: body.join("\n"),
                 line_start: start,
                 line_end: end.min(lines.len() as u32),
+                location_kind: LocationKind::Lines,
                 heading_path: headings.path(),
                 location_quality: LocationQuality::Exact,
             });
@@ -174,8 +235,7 @@ fn parse_atx_heading(line: &str) -> Option<(u8, &str)> {
     None
 }
 
-/// Code fence marker: three-or-more backticks or tildes. Returns the
-/// fence character so open/close pairs match.
+/// Code fence marker: three-or-more backticks or tildes.
 fn parse_fence(line: &str) -> Option<char> {
     let trimmed = line.trim_start();
     for fence_char in ['`', '~'] {

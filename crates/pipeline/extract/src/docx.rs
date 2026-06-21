@@ -1,4 +1,4 @@
-//! DOCX text extractor (Microsoft Word 2007+).
+//! DOCX text extractor (Microsoft Word 2007+; RFC-044 §16.4 resource limits).
 //!
 //! DOCX files are ZIP archives containing XML. This extractor reads
 //! `word/document.xml` and strips XML tags to recover paragraph text.
@@ -10,7 +10,8 @@
 
 use crate::normalize::normalize_document;
 use crate::types::{
-    DocumentExtractor, ExtractOutput, ExtractedSegment, LocationQuality, SegmentKind,
+    DocumentExtractor, ExtractContext, ExtractOutput, ExtractWarning, ExtractedSegment,
+    LocationKind, LocationQuality, SegmentKind, read_error_category,
 };
 use orbok_core::{ErrorCategory, OrbokError, OrbokResult, versions::NORMALIZATION_VERSION};
 use orbok_fs::ValidatedPath;
@@ -25,30 +26,74 @@ impl DocumentExtractor for DocxExtractor {
     fn name(&self) -> &'static str {
         EXTRACTOR_NAME
     }
+
     fn version(&self) -> &'static str {
         EXTRACTOR_VERSION
     }
+
     fn supported_extensions(&self) -> &'static [&'static str] {
         &["docx"]
     }
 
-    fn extract(&self, path: &ValidatedPath) -> OrbokResult<ExtractOutput> {
-        let file = std::fs::File::open(&path.canonical)?;
+    fn extract_with_context(
+        &self,
+        path: &ValidatedPath,
+        context: &ExtractContext,
+    ) -> OrbokResult<ExtractOutput> {
+        let limits = &context.limits;
+        let mut warnings = Vec::new();
+
+        // RFC-044 §9.5: check file size before opening ZIP.
+        let meta = std::fs::metadata(&path.canonical).map_err(|e| OrbokError::Extraction {
+            category: read_error_category(&e),
+            message: e.to_string(),
+        })?;
+        if meta.len() > limits.max_zip_entry_bytes {
+            return Err(OrbokError::Extraction {
+                category: ErrorCategory::FileTooLarge,
+                message: format!(
+                    "DOCX file is {} bytes, limit is {}",
+                    meta.len(),
+                    limits.max_zip_entry_bytes
+                ),
+            });
+        }
+
+        let file = std::fs::File::open(&path.canonical).map_err(|e| OrbokError::Extraction {
+            category: read_error_category(&e),
+            message: e.to_string(),
+        })?;
         let mut zip = zip::ZipArchive::new(file).map_err(|e| OrbokError::Extraction {
             category: ErrorCategory::ParserError,
             message: format!("docx zip: {e}"),
         })?;
 
+        // RFC-044 §9.5: enforce per-entry XML size limit.
         let xml = match zip.by_name("word/document.xml") {
             Ok(mut entry) => {
-                let mut s = String::new();
-                entry
-                    .read_to_string(&mut s)
-                    .map_err(|e| OrbokError::Extraction {
+                if entry.size() > limits.max_docx_xml_bytes {
+                    warnings.push(ExtractWarning::SizeLimitReached {
+                        limit_name: "max_docx_xml_bytes".into(),
+                    });
+                    // Read only up to limit.
+                    let mut buf = vec![0u8; limits.max_docx_xml_bytes as usize];
+                    let n = entry.read(&mut buf).map_err(|e| OrbokError::Extraction {
                         category: ErrorCategory::ParserError,
                         message: format!("docx xml read: {e}"),
                     })?;
-                s
+                    buf.truncate(n);
+                    // Best-effort UTF-8; invalid bytes → replacement chars.
+                    String::from_utf8_lossy(&buf).into_owned()
+                } else {
+                    let mut s = String::new();
+                    entry
+                        .read_to_string(&mut s)
+                        .map_err(|e| OrbokError::Extraction {
+                            category: ErrorCategory::ParserError,
+                            message: format!("docx xml read: {e}"),
+                        })?;
+                    s
+                }
             }
             Err(_) => {
                 return Err(OrbokError::Extraction {
@@ -64,16 +109,33 @@ impl DocumentExtractor for DocxExtractor {
         let mut total_chars = 0u64;
 
         for (para_idx, para_text) in paragraphs.iter().enumerate() {
+            // RFC-044 §9.5: segment and char limits.
+            if segments.len() >= limits.max_segments {
+                warnings.push(ExtractWarning::SizeLimitReached {
+                    limit_name: "max_segments".into(),
+                });
+                break;
+            }
+
             let norm = normalize_document(para_text);
             if norm.trim().is_empty() {
                 continue;
             }
-            total_chars += norm.len() as u64;
+            let para_chars = norm.chars().count() as u64;
+            if total_chars + para_chars > limits.max_extracted_chars {
+                warnings.push(ExtractWarning::SizeLimitReached {
+                    limit_name: "max_extracted_chars".into(),
+                });
+                break;
+            }
+            total_chars += para_chars;
+
             segments.push(ExtractedSegment {
                 kind: SegmentKind::Paragraph,
                 text: norm,
                 line_start: (para_idx + 1) as u32,
                 line_end: (para_idx + 1) as u32,
+                location_kind: LocationKind::Paragraphs,
                 heading_path: None,
                 location_quality: LocationQuality::Approximate,
             });
@@ -85,7 +147,12 @@ impl DocumentExtractor for DocxExtractor {
             normalization_version: NORMALIZATION_VERSION.to_string(),
             segments,
             char_count: total_chars,
+            warnings,
         })
+    }
+
+    fn extract(&self, path: &ValidatedPath) -> OrbokResult<ExtractOutput> {
+        self.extract_with_context(path, &ExtractContext::default())
     }
 }
 
@@ -100,7 +167,6 @@ fn extract_paragraphs(xml: &str) -> Vec<String> {
 
     while pos < bytes.len() {
         if bytes[pos] == b'<' {
-            // Find end of tag
             let end = bytes[pos..]
                 .iter()
                 .position(|&b| b == b'>')
@@ -117,14 +183,12 @@ fn extract_paragraphs(xml: &str) -> Vec<String> {
                 in_para = false;
                 current_para.clear();
             } else if in_para && (tag.starts_with("<w:t") || tag.starts_with("<w:t>")) {
-                // Collect text until </w:t>
                 let text_start = end;
                 let text_end = xml[text_start..]
                     .find("</w:t>")
                     .map(|p| text_start + p)
                     .unwrap_or(text_start);
                 let text = &xml[text_start..text_end];
-                // Skip any nested tags in text content
                 let clean: String = {
                     let mut t = String::new();
                     let mut in_tag = false;

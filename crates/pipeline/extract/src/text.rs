@@ -1,5 +1,5 @@
 //! Plain-text extractor, `text-v1` (RFC-005 §5: txt, log, csv, source
-//! code as line-aware text).
+//! code as line-aware text; RFC-044 §16.1 resource limits).
 //!
 //! Segmentation: consecutive non-blank lines form a paragraph segment;
 //! line ranges are exact. Invalid UTF-8 is a typed `EncodingError`
@@ -7,8 +7,8 @@
 
 use crate::normalize::normalize_document;
 use crate::types::{
-    DocumentExtractor, ExtractOutput, ExtractedSegment, LocationQuality, SegmentKind,
-    read_error_category,
+    DocumentExtractor, ExtractContext, ExtractOutput, ExtractWarning, ExtractedSegment,
+    LocationKind, LocationQuality, SegmentKind, read_error_category,
 };
 use orbok_core::{ErrorCategory, OrbokError, OrbokResult, versions::NORMALIZATION_VERSION};
 use orbok_fs::ValidatedPath;
@@ -32,7 +32,30 @@ impl DocumentExtractor for PlainTextExtractor {
         ]
     }
 
-    fn extract(&self, path: &ValidatedPath) -> OrbokResult<ExtractOutput> {
+    fn extract_with_context(
+        &self,
+        path: &ValidatedPath,
+        context: &ExtractContext,
+    ) -> OrbokResult<ExtractOutput> {
+        let limits = &context.limits;
+        let mut warnings = Vec::new();
+
+        // RFC-044 §9.5: check file size before reading.
+        let meta = std::fs::metadata(&path.canonical).map_err(|e| OrbokError::Extraction {
+            category: read_error_category(&e),
+            message: e.to_string(),
+        })?;
+        if meta.len() > limits.max_file_bytes {
+            return Err(OrbokError::Extraction {
+                category: ErrorCategory::FileTooLarge,
+                message: format!(
+                    "file is {} bytes, limit is {}",
+                    meta.len(),
+                    limits.max_file_bytes
+                ),
+            });
+        }
+
         let bytes = std::fs::read(&path.canonical).map_err(|e| OrbokError::Extraction {
             category: read_error_category(&e),
             message: e.to_string(),
@@ -41,57 +64,94 @@ impl DocumentExtractor for PlainTextExtractor {
             category: ErrorCategory::EncodingError,
             message: "file is not valid UTF-8".into(),
         })?;
+
         let normalized = normalize_document(&raw);
-        let segments = segment_paragraphs(&normalized);
-        let char_count = normalized.chars().count() as u64;
+        let mut segments = segment_paragraphs(&normalized);
+        let mut char_count = normalized.chars().count() as u64;
+
+        // RFC-044 §9.5: extracted char limit — truncate and warn.
+        if char_count > limits.max_extracted_chars {
+            // Trim to the last segment boundary under the limit.
+            let mut kept = 0usize;
+            let mut kept_chars = 0u64;
+            for seg in &segments {
+                let seg_chars = seg.text.chars().count() as u64;
+                if kept_chars + seg_chars > limits.max_extracted_chars {
+                    break;
+                }
+                kept_chars += seg_chars;
+                kept += 1;
+            }
+            segments.truncate(kept);
+            char_count = kept_chars;
+            warnings.push(ExtractWarning::SizeLimitReached {
+                limit_name: "max_extracted_chars".into(),
+            });
+        }
+
+        // RFC-044 §9.5: segment count limit.
+        if segments.len() > limits.max_segments {
+            segments.truncate(limits.max_segments);
+            warnings.push(ExtractWarning::SizeLimitReached {
+                limit_name: "max_segments".into(),
+            });
+        }
+
         Ok(ExtractOutput {
             extractor_name: self.name().into(),
             extractor_version: self.version().into(),
             normalization_version: NORMALIZATION_VERSION.into(),
             segments,
             char_count,
+            warnings,
         })
+    }
+
+    fn extract(&self, path: &ValidatedPath) -> OrbokResult<ExtractOutput> {
+        self.extract_with_context(path, &ExtractContext::default())
     }
 }
 
 /// Group consecutive non-blank lines into paragraph segments with
-/// 1-based inclusive line ranges.
+/// 1-based inclusive line ranges and `LocationKind::Lines`.
 pub(crate) fn segment_paragraphs(normalized: &str) -> Vec<ExtractedSegment> {
     let mut segments = Vec::new();
-    let mut current: Vec<&str> = Vec::new();
-    let mut start_line = 0u32;
-    for (idx, line) in normalized.lines().enumerate() {
-        let line_no = idx as u32 + 1;
+    let mut para_lines: Vec<&str> = Vec::new();
+    let mut para_start = 0u32;
+    let mut line_num = 0u32;
+
+    for line in normalized.lines() {
+        line_num += 1;
         if line.trim().is_empty() {
-            flush(
-                &mut segments,
-                &mut current,
-                start_line,
-                line_no.saturating_sub(1),
-            );
-        } else {
-            if current.is_empty() {
-                start_line = line_no;
+            if !para_lines.is_empty() {
+                segments.push(ExtractedSegment {
+                    kind: SegmentKind::Paragraph,
+                    text: para_lines.join("\n"),
+                    line_start: para_start,
+                    line_end: line_num - 1,
+                    location_kind: LocationKind::Lines,
+                    heading_path: None,
+                    location_quality: LocationQuality::Exact,
+                });
+                para_lines.clear();
             }
-            current.push(line);
+        } else {
+            if para_lines.is_empty() {
+                para_start = line_num;
+            }
+            para_lines.push(line);
         }
     }
-    let last_line = normalized.lines().count() as u32;
-    flush(&mut segments, &mut current, start_line, last_line);
-    segments
-}
-
-fn flush(segments: &mut Vec<ExtractedSegment>, current: &mut Vec<&str>, start: u32, end: u32) {
-    if current.is_empty() {
-        return;
+    if !para_lines.is_empty() {
+        segments.push(ExtractedSegment {
+            kind: SegmentKind::Paragraph,
+            text: para_lines.join("\n"),
+            line_start: para_start,
+            line_end: line_num,
+            location_kind: LocationKind::Lines,
+            heading_path: None,
+            location_quality: LocationQuality::Exact,
+        });
     }
-    segments.push(ExtractedSegment {
-        kind: SegmentKind::Paragraph,
-        text: current.join("\n"),
-        line_start: start,
-        line_end: end,
-        heading_path: None,
-        location_quality: LocationQuality::Exact,
-    });
-    current.clear();
+    segments
 }

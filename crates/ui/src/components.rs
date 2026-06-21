@@ -28,8 +28,8 @@ use crate::state::Message;
 use crate::theme;
 use iced::widget::{button, column, row, text};
 use iced::{Element, Padding};
-use snora::design::{Tokens, Tone, card, progress};
 use snora::design::style::button as btn_style;
+use snora::design::{Tokens, Tone, card, progress};
 use snora::lucide;
 
 // ── Icon helper (same technique as views.rs; glyph size stays explicit) ──
