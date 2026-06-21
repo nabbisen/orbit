@@ -4,7 +4,7 @@
 
 ```sh
 # All non-GUI crates (fast — no iced compile)
-cargo test --workspace --exclude orbok-app --exclude orbok-ui --exclude orbok-bench
+cargo test --workspace --exclude orbok --exclude orbok-ui --exclude orbok-bench
 
 # Single crate
 cargo test -p orbok-workers

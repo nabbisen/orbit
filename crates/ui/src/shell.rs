@@ -3,7 +3,7 @@
 //! a horizontal tab bar for the sub-views within each group.
 //!
 //! RFC-034: [`key_to_message`] is the pure keyboard-map function. It is called
-//! from `orbok-app` via an `iced::keyboard::on_key_press` subscription. Keeping
+//! from `orbok` via an `iced::keyboard::on_key_press` subscription. Keeping
 //! it here (in `orbok-ui`) means it is unit-testable without the iced runtime.
 
 use crate::i18n::{MessageKey, tr};

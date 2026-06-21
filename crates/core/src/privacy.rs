@@ -1,7 +1,7 @@
 //! Privacy modes and local data visibility (RFC-039 §5–§6, §17).
 //!
 //! This is the shared vocabulary for privacy settings. It lives in
-//! `orbok-core` so that `orbok-app`, `orbok-ui`, and any future
+//! `orbok-core` so that `orbok`, `orbok-ui`, and any future
 //! diagnostics layer can all refer to the same types without a
 //! circular dependency.
 

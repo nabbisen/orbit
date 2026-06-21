@@ -1,7 +1,7 @@
 //! Headless UI state (view models) and the message vocabulary.
 //!
 //! Everything here is plain data — testable without a display server.
-//! `orbok-app` populates these structs from backend services; views
+//! `orbok` populates these structs from backend services; views
 //! render them; `update` mutates them. No iced types appear in this
 //! module so state logic stays UI-framework-agnostic.
 
@@ -175,13 +175,13 @@ pub struct AppState {
     /// truth for the whole view tree (RFC-032).
     pub tokens: snora::design::Tokens,
     /// The user's selected theme. `System` is resolved to a concrete preset at
-    /// startup in `orbok-app`; `tokens` always holds the resolved bundle.
+    /// startup in `orbok`; `tokens` always holds the resolved bundle.
     pub theme: crate::theme::Theme,
     /// User-selected text scale multiplier (RFC-035). Applied via the `*_s`
     /// helpers in `theme.rs`; views read `state.text_scale` alongside tokens.
     pub text_scale: crate::theme::TextScale,
     /// When true, suppress non-essential animation (RFC-035). Defaulted from
-    /// the OS preference at startup in `orbok-app`. Currently a no-op gate:
+    /// the OS preference at startup in `orbok`. Currently a no-op gate:
     /// wired now so any future animation checks it rather than being retrofitted.
     pub reduced_motion: bool,
 }
@@ -369,7 +369,7 @@ impl AppState {
             Message::CancelResetCatalog => self.confirm_reset = false,
             Message::ConfirmResetCatalog => {
                 self.confirm_reset = false;
-                // Actual reset handled in orbok-app; UI pre-clears state.
+                // Actual reset handled in orbok; UI pre-clears state.
                 self.sources.clear();
                 self.health = crate::state::IndexHealth::default();
                 self.search_results.clear();
@@ -377,7 +377,7 @@ impl AppState {
                 self.storage_total_bytes = 0;
             }
             Message::CleanSnippets | Message::CleanSearchCache => {
-                // Actual work done in orbok-app; state update arrives via CleanupDone.
+                // Actual work done in orbok; state update arrives via CleanupDone.
             }
             Message::CleanupDone => {
                 self.notice = Some(UserNotice::PreviewsCleared);
@@ -432,18 +432,18 @@ impl AppState {
             Message::ClearFilters => self.search_ui.clear_filters(),
             Message::OpenMoreWays => self.search_ui.more_panel_open = true,
             Message::CloseMoreWays => self.search_ui.more_panel_open = false,
-            Message::SearchInResultFolder(_idx) => {} // handled by orbok-app
-            Message::ShowNearbyFiles(_idx) => {}      // handled by orbok-app
-            Message::ShowSimilarFiles(_idx) => {}     // handled by orbok-app
+            Message::SearchInResultFolder(_idx) => {} // handled by orbok
+            Message::ShowNearbyFiles(_idx) => {}      // handled by orbok
+            Message::ShowSimilarFiles(_idx) => {}     // handled by orbok
             // RFC-038: trust recovery actions
-            Message::TrustRecoveryAction { .. } => {} // handled by orbok-app
+            Message::TrustRecoveryAction { .. } => {} // handled by orbok
             Message::SelectResult(idx) => self.selected_result = Some(*idx),
-            Message::OpenSourceFile(_) => {} // handled by orbok-app
+            Message::OpenSourceFile(_) => {} // handled by orbok
             Message::SetSearchMode(mode) => self.search_mode = *mode,
             Message::PersistLocale(locale) | Message::SetLocale(locale) => self.locale = *locale,
-            // RFC-034 keyboard navigation: FocusSearch is handled in orbok-app
+            // RFC-034 keyboard navigation: FocusSearch is handled in orbok
             // (it issues an iced focus task); DismissOverlay closes any overlay.
-            Message::FocusSearch => {} // focus task issued by orbok-app
+            Message::FocusSearch => {} // focus task issued by orbok
             Message::DismissOverlay => {
                 // Close whichever overlay is open, in priority order.
                 if self.confirm_reset {
@@ -470,7 +470,7 @@ impl AppState {
             }
             Message::StorageDataReady(rows) => self.storage_rows = rows.clone(),
             Message::WizardPathChanged(p) => self.wizard_path_input = p.clone(),
-            Message::WizardValidate => {} // handled in orbok-app update
+            Message::WizardValidate => {} // handled in orbok update
             Message::WizardChecked {
                 model_dir,
                 checks,
@@ -489,7 +489,7 @@ impl AppState {
                 });
             }
             Message::WizardAccept => {
-                // orbok-app writes the model dir to OrbokSettings; ui
+                // orbok writes the model dir to OrbokSettings; ui
                 // transitions to full capability.
                 self.capability = SearchCapability::Hybrid;
                 self.wizard = None;
@@ -501,7 +501,7 @@ impl AppState {
                 self.wizard_path_input = String::new();
             }
             Message::DownloadModel => {
-                // Transition handled in orbok-app main.rs (needs the data_dir).
+                // Transition handled in orbok main.rs (needs the data_dir).
                 // The UI just switches to a "waiting" state until DownloadStarted arrives.
             }
             Message::DownloadStarted { dest_dir } => {
@@ -548,7 +548,7 @@ impl AppState {
                 self.wizard = Some(WizardState::NotConfigured);
             }
             Message::SourcePathChanged(p) => self.source_path_input = p.clone(),
-            Message::RequestAddSource => {} // handled in orbok-app
+            Message::RequestAddSource => {} // handled in orbok
             Message::SourceAdded(card) => {
                 self.sources.push(card.clone());
                 self.source_path_input = String::new();
@@ -561,20 +561,20 @@ impl AppState {
             }
             Message::SourcesLoaded(cards) => self.sources = cards.clone(),
             // RFC-043: model readiness
-            Message::ModelReadinessChecked { .. } => {} // handled by orbok-app
+            Message::ModelReadinessChecked { .. } => {} // handled by orbok
             // RFC-039: privacy
-            Message::SetPrivacyMode(_) => {} // handled by orbok-app
-            Message::PrivacySettingChanged { .. } => {} // handled by orbok-app
-            Message::ClearTemporaryPreviews => {} // handled by orbok-app
+            Message::SetPrivacyMode(_) => {} // handled by orbok
+            Message::PrivacySettingChanged { .. } => {} // handled by orbok
+            Message::ClearTemporaryPreviews => {} // handled by orbok
             // RFC-040: diagnostics
-            Message::DiagnosticsCreateBundle => {} // handled by orbok-app
+            Message::DiagnosticsCreateBundle => {} // handled by orbok
             Message::DiagnosticsBundleCreated(_) => {
                 self.notice = Some(UserNotice::DiagnosticsFileCreated);
             }
             Message::DiagnosticsBundleFailed => {
                 self.notice = Some(UserNotice::DiagnosticsFileFailed);
             }
-            Message::DiagnosticsOptInChanged { .. } => {} // handled by orbok-app
+            Message::DiagnosticsOptInChanged { .. } => {} // handled by orbok
             // RFC-045: search-in-folder flow
             Message::ChooseFolderRequested => {
                 // Guard: block duplicate picker dialogs on rapid Search clicks.
@@ -585,7 +585,7 @@ impl AppState {
                 self.search_location.picker_in_progress = false;
             }
             Message::FolderPicked(_) => {
-                // Handled in orbok-app (source create/reuse); result arrives
+                // Handled in orbok (source create/reuse); result arrives
                 // via SearchLocationSelected. Keep picker_in_progress = true
                 // until the source record is ready.
             }

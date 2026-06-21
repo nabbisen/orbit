@@ -1,4 +1,4 @@
-//! Persistent user settings (orbok-app layer).
+//! Persistent user settings (orbok layer).
 //!
 //! [`OrbokSettings`] is the single source of truth for user-configurable
 //! values that outlive a session. It is persisted as `settings.json`
@@ -11,10 +11,9 @@
 //!
 //! ## Note for the crate author
 //!
-//! `ConfigManager::new()` currently derives the config directory from
-//! the binary name. A future `.with_app_name("orbok")` builder method
-//! would guarantee consistent config paths regardless of whether the
-//! binary ships as `orbok` or `orbok-app`. Tracked as an open question.
+//! `ConfigManager::new()` derives the config directory from the binary name.
+//! The crate package and binary are both named `orbok` (resolved in v0.20.1),
+//! so config paths are now stable.
 
 use app_json_settings::ConfigManager;
 

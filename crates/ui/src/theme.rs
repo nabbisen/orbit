@@ -18,7 +18,7 @@ use crate::i18n::MessageKey;
 // ── Theme ─────────────────────────────────────────────────────────────────
 
 /// User-selectable UI theme. `System` is resolved to a concrete variant at
-/// startup (in `orbok-app`) via [`Theme::from_env`]; the other four map
+/// startup (in `orbok`) via [`Theme::from_env`]; the other four map
 /// directly to the built-in Snora Design presets.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -83,7 +83,7 @@ impl Theme {
     /// The concrete Snora Design token bundle for this theme.
     ///
     /// `System` falls back to Light here; the real OS resolution happens once
-    /// at startup in `orbok-app` via [`Theme::from_env`]. Selecting `System`
+    /// at startup in `orbok` via [`Theme::from_env`]. Selecting `System`
     /// at runtime therefore applies Light until the next launch (RFC-032 §5.5).
     pub fn tokens(self) -> Tokens {
         match self {

@@ -6,7 +6,7 @@ orbok is a Rust workspace of twelve crates, grouped under `crates/` by domain.
 
 ```
 crates/
-├── app/          orbok-app    — binary: bootstrap, --check mode, GUI launch
+├── app/          orbok            — binary: bootstrap, --check mode, GUI launch
 ├── bench/        orbok-bench  — benchmark harness
 ├── core/         orbok-core   — typed IDs, error types, data-lifecycle classes
 ├── data/

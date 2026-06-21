@@ -15,7 +15,7 @@ use crate::state::location::SearchFolderScope;
 use serde::{Deserialize, Serialize};
 
 /// Supported UI locales. Default English; persisted in the catalog
-/// under the `ui.locale` setting (read/written by `orbok-app`).
+/// under the `ui.locale` setting (read/written by `orbok`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Locale {

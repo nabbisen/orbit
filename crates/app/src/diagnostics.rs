@@ -4,7 +4,7 @@
 //! redacted: no document contents, no search text, no raw paths. Each
 //! optional inclusion requires an explicit opt-in.
 
-#![allow(dead_code)] // Public API; wired in orbok-app update() and views.
+#![allow(dead_code)] // Public API; wired in orbok update() and views.
 
 use orbok_core::DiagnosticsPolicy;
 use std::collections::HashMap;

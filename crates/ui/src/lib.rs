@@ -5,7 +5,7 @@
 //!
 //! Boundary rules (RFC-027):
 //! - this crate performs **no file-system access** and **no database
-//!   access** — `orbok-app` loads data through backend services and
+//!   access** — `orbok` loads data through backend services and
 //!   hands plain view-model structs to these views;
 //! - every user-visible string goes through the [`i18n`] catalog
 //!   (RFC-031): adding a [`i18n::Locale`] without translating every

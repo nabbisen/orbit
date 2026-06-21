@@ -11,6 +11,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.20.1] — 2026-06-21 — Rename crate orbok-app → orbok
+
+### Changed
+
+- `crates/app/Cargo.toml`: package `name` changed from `orbok-app` to `orbok`.
+  The compiled binary was already named `orbok` (via `[[bin]] name = "orbok"`);
+  this aligns the crate package name with it so `cargo install orbok` works as
+  expected and crates.io, docs.rs, and deps.rs badges all point to the right
+  crate.
+- Root `Cargo.toml`: workspace dependency key renamed `orbok-app` → `orbok`.
+- `README.md`: crates.io, docs.rs, and deps.rs badge URLs updated to `orbok`.
+- `docs/src/maintainers/architecture.md`: crate label updated.
+- `docs/src/maintainers/release_readiness.md`: `-p orbok-app` → `-p orbok`.
+- `docs/src/maintainers/testing.md`: `--exclude orbok-app` → `--exclude orbok`.
+- All `// ... in orbok-app` / `` `orbok-app` `` references in `crates/**/*.rs`
+  source comments updated to `orbok`.
+- `crates/app/src/settings.rs`: resolved the open-question comment about binary
+  naming — the crate package and binary are now both `orbok`.
+
+No logic, API, or behaviour changes. No DB migrations. No new tests.
+
+---
+
 ## [0.20.0] — 2026-06-21 — Search-in-Folder Flow and Friendly Folder Management (RFC-045)
 
 ### Added

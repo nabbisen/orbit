@@ -27,7 +27,7 @@ This document defines the release gates and QA checklist for orbok releases.
 
 All fast gate requirements, plus:
 
-- `cargo build --release -p orbok-app` succeeds on Linux, Windows, macOS
+- `cargo build --release -p orbok` succeeds on Linux, Windows, macOS
 - `orbok --version` prints the current version
 - Benchmark smoke test passes (10-document corpus)
 - No new `cargo audit` high-severity advisories

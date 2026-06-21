@@ -1,8 +1,8 @@
 # orbok
 
-[![crates.io](https://img.shields.io/crates/v/orbok-app?label=rust)](https://crates.io/crates/orbok-app)
-[![Rust Documentation](https://docs.rs/orbok-app/badge.svg?version=latest)](https://docs.rs/orbok-app)
-[![Dependency Status](https://deps.rs/crate/orbok-app/latest/status.svg)](https://deps.rs/crate/orbok-app)
+[![crates.io](https://img.shields.io/crates/v/orbok?label=rust)](https://crates.io/crates/orbok)
+[![Rust Documentation](https://docs.rs/orbok/badge.svg?version=latest)](https://docs.rs/orbok)
+[![Dependency Status](https://deps.rs/crate/orbok/latest/status.svg)](https://deps.rs/crate/orbok)
 [![License](https://img.shields.io/github/license/nabbisen/orbok)](LICENSE)
 
 **Local-first AI document search — private, storage-aware, offline.**
