@@ -1,6 +1,7 @@
 [package]
 name = "orbok-cache"
 description = "orbok cache-engine boundary over localcache (Appendix A)"
+readme = "../../../README.md"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

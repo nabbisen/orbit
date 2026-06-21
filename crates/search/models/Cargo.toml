@@ -1,6 +1,7 @@
 [package]
 name = "orbok-models"
 description = "orbok local AI model registry types and embedding model trait (RFC-008, RFC-012)"
+readme = "../../../README.md"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

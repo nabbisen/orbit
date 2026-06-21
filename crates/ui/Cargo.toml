@@ -1,6 +1,7 @@
 [package]
 name = "orbok-ui"
 description = "orbok GUI: snora/iced views, navigation shell, typed i18n catalog (RFC-027, RFC-031)"
+readme = "../../README.md"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

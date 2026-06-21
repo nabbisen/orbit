@@ -1,6 +1,7 @@
 [package]
 name = "orbok-embed"
 description = "orbok embedding backend factory: mock, candle, and ONNX backends (RFC-021)"
+readme = "../../../README.md"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

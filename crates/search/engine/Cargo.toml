@@ -1,6 +1,7 @@
 [package]
 name = "orbok-search"
 description = "orbok retrieval: keyword search engine trait and FTS5 implementation (RFC-007)"
+readme = "../../../README.md"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

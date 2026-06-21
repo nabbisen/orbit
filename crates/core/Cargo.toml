@@ -1,6 +1,7 @@
 [package]
 name = "orbok-core"
 description = "orbok shared vocabulary: identifiers, data lifecycle classes, status enums, errors"
+readme = "../../README.md"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

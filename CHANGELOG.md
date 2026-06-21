@@ -11,6 +11,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.17.1] — 2026-06-21 — Crate manifest: readme attribute
+
+### Changed
+
+- Added `readme = "…/README.md"` to all 11 publishable crate manifests
+  (`orbok-app`, `orbok-core`, `orbok-ui`, `orbok-cache`, `orbok-db`,
+  `orbok-fs`, `orbok-extract`, `orbok-workers`, `orbok-embed`,
+  `orbok-search`, `orbok-models`), placed immediately after `description`.
+  Path is relative from each crate to the workspace root `README.md`
+  (`../../README.md` for top-level crates, `../../../README.md` for
+  nested crates). `orbok-bench` (`publish = false`) is unchanged.
+
+---
+
 ## [0.17.0] — 2026-06-21 — RFC-036: Resource-Aware Indexing Scheduler and Backpressure
 
 ### Added

@@ -1,6 +1,7 @@
 [package]
 name = "orbok-app"
 description = "orbok application binary: backend bootstrap and GUI launch"
+readme = "../../README.md"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

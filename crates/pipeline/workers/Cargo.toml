@@ -1,6 +1,7 @@
 [package]
 name = "orbok-workers"
 description = "orbok pipeline workers: extraction → chunking → keyword indexing (M5/M6)"
+readme = "../../../README.md"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

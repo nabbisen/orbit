@@ -1,6 +1,7 @@
 [package]
 name = "orbok-extract"
 description = "orbok document extraction pipeline: extractor trait, normalization, text/markdown/pdf/docx/html extractors (RFC-005, RFC-044)"
+readme = "../../../README.md"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

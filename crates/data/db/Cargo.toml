@@ -1,6 +1,7 @@
 [package]
 name = "orbok-db"
 description = "orbok authoritative SQLite catalog: migrations and repositories (RFC-002)"
+readme = "../../../README.md"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
